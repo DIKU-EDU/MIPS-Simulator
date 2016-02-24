@@ -61,31 +61,36 @@ char *reg_names [] = {
  *   J   |  op  |            Address          |
  *       +------+-----------------------------+
  *
+ *
+ * The C standard does not guarantee the correct bitfield structure, so the
+ * instruction struct has to be split into the 3 format, then union'ed.
  * */
+struct instr_r {
+	uint8_t funct	: 6;
+	uint8_t shamt	: 5;
+	uint8_t rd	: 5;
+	uint8_t rt	: 5;
+	uint8_t rs	: 5;
+	uint8_t opcode	: 6;
+} __attribute__((packed));
 
-typedef struct instr {
-	union {
-		struct {
-			/* R and I */
-			union {
-				struct {
-					uint8_t funct : 6;
-					uint8_t shamt : 5;
-					uint8_t rd    : 5;
-				} __attribute__((packed));
-				struct {
-					uint16_t immediate;
-				} __attribute__((packed));
+struct instr_i {
+	uint16_t immediate;
+	uint8_t rt	: 5;
+	uint8_t rs	: 5;
+	uint8_t opcode	: 6;
+} __attribute__((packed));
 
-				uint8_t rt    : 5;
-				uint8_t rs    : 5;
-			}__attribute__((packed));
+struct instr_j {
+	uint32_t address : 26;
+	uint8_t opcode	: 6;
+} __attribute__((packed));
 
-			/* J */
-			uint32_t address : 26;
-		} __attribute__((packed));
-	};
-	uint8_t opcode : 6;
+
+typedef union instr {
+	struct instr_r r;
+	struct instr_i i;
+	struct instr_j j;
 } instr_t __attribute__((packed));
 
 /*
