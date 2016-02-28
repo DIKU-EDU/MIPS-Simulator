@@ -1,0 +1,4 @@
+src/*.o
+src/*.swp
+programs/*.o
+programs/*.elf
