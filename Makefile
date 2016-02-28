@@ -1,14 +1,20 @@
-EXECUTABLE=mips-sim
+TARGET  =./bin/mips-sim
 CC=gcc
-CFLAGS=-Wall -c
-LDFLAGS=
-SOURCES=$(wildcard src/*.c)
-OBJECTS=$(wildcard src/*.o, $(SOURCES))
+CFLAGS  =-g -Wall -Werror -Wno-parentheses -std=gnu99 -D DEBUG_LEVEL=ERROR_LVL -Wno-packed-bitfield-compat
+SRCDIR  = src/
+SOURCES =$(wildcard $(SRCDIR)*.c)
+OBJECTS =$(SOURCES:.c=.o)
+LFLAGS  =
 
 .PHONY: clean
 
-$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $(EXECUTABLE)
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o $(TARGET) $(LFLAGS)
+
+%.o: %.c
+	$(CC) -o $@  $(CFLAGS) -c $<
 
 clean:
-	rm -rfv src/*.o
+	rm -f $(OBJECTS) $(TARGET)
