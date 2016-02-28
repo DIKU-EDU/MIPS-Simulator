@@ -1,0 +1,212 @@
+\documentclass[11pt, twocolumn]{article}
+\usepackage[a4paper, hmargin={2.8cm, 2.8cm}, vmargin={2.5cm, 2.5cm}]{geometry}
+%\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{eso-pic} % \AddToShipoutPicture
+\usepackage{graphicx} % \includegraphics
+\usepackage[english]{babel}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{fancyhdr}
+\usepackage{fancyvrb}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{array}
+\usepackage{multicol}
+\usepackage[toc,page]{appendix}
+\usepackage{cleveref}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{xcolor,colortbl}
+\usepackage{pdfpages}
+\usepackage{multirow}
+\usepackage[font={small,it}]{caption}
+
+\raggedbottom
+
+%\nonstopmode
+
+\newcommand\floor[1]{\lfloor#1\rfloor}
+
+\definecolor{tablegreen}{rgb}{0.609375, 0.8828125, 0.3515625}
+\definecolor{tableyellow}{rgb}{0.9921875, 0.859375, 0.2734375}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\setlength{\columnsep}{1cm}
+
+\lstset{language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=4
+}
+
+\newcommand{\pic}[3] {
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=#3\textwidth]{#1}
+        \caption{#2}
+        \label{fig:#1}
+    \end{figure}
+}
+
+
+\newcommand{\picappendix}[3] {
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=#3\textwidth]{#1}
+        \caption{#2}
+        \label{fig:#1}
+    \end{figure}
+}
+
+\newcommand{\asmcode}[3] {
+    % \begin{figure}[H]
+        % \centering
+        \begin{Verbatim}[fontsize=\scriptsize]
+        #3
+        \end{Verbatim}
+        \caption{#2}
+        \label{fig:#1}
+    % \end{figure}
+}
+
+\newcommand{\dpic}[5] {
+    \begin{figure}[h]
+\centering
+\begin{subfigure}{#5\textwidth}
+  \centering
+  \includegraphics[width=.9\linewidth]{#1}
+  \caption{#2}
+  \label{fig:#1}
+\end{subfigure}%
+\begin{subfigure}{#5\textwidth}
+  \centering
+  \includegraphics[width=.9\linewidth]{#3}
+  \caption{#4}
+  \label{fig:#3}
+\end{subfigure}
+\end{figure}
+}
+
+\author{
+\Large{
+\begin{tabular}{C{4.5cm} C{4.5cm} C{4.5cm}}
+  Jan Mezník \\
+\texttt{PZJ895}
+\end{tabular}
+}
+\vspace{12cm}
+}
+
+\title{
+\vspace{3cm}
+\Huge{Simulation of a MIPS machine} \\
+\vspace{0.5cm}
+%\Large{TEXT HERE}
+}
+
+\begin{document}
+
+
+\onecolumn
+
+
+%%%%% KU HEADER %%%%%%%%%%%%%%%%%%%%%%%
+%% Change `ku-farve` to `nat-farve` to use SCIENCE's old colors or
+%% `natbio-farve` to use SCIENCE's new colors and logo.
+\AddToShipoutPicture*{\put(0,0){\includegraphics*[viewport=0 0 700 600]{include/ku-farve}}}
+\AddToShipoutPicture*{\put(0,602){\includegraphics*[viewport=0 600 700 1600]{include/ku-farve}}}
+
+%% Change `ku-en` to `nat-en` to use the `Faculty of Science` header
+\AddToShipoutPicture*{\put(0,0){\includegraphics*{include/ku-en}}}
+
+
+%\clearpage
+\maketitle
+\pagenumbering{roman}
+\thispagestyle{empty}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{abstract}
+\thispagestyle{empty}
+\input{abstract/abstract.tex}
+\end{abstract}
+
+\newpage
+
+\twocolumn
+
+%\thispagestyle{empty}
+\tableofcontents
+
+\onecolumn
+\newpage
+\twocolumn
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\markboth{Name}{Report}
+\noindent
+%\underline{\textbf{Category}}\\
+%Hardware emulation\\\\
+%\underline{\textbf{Keywords}}\\
+%Copenhagen, university, computer, science, simulation, MIPS
+
+
+\section{Introduction}
+\input{introduction/introduction.tex}
+
+
+
+\section{MIPS Architecture}
+
+\section{TLB}
+
+\section{MMU}
+
+\section{User and Kernel mode}
+
+\section{SMP}
+
+\section{Tests}
+
+\section{Performance}
+
+\section{Conclusion}
+
+
+
+
+\newpage
+
+
+
+%\bibliography{bib}{}
+%\bibliographystyle{plain}
+
+\newpage
+
+\appendix
+\begin{appendices}
+% Appendix here
+\end{appendices}
+
+\end{document}
