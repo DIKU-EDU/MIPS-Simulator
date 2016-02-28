@@ -2,3 +2,12 @@ src/*.o
 src/*.swp
 programs/*.o
 programs/*.elf
+
+
+# Ignore everything in the report folder except .tex and .eps files
+report/*.*
+!report/*.tex
+!report/*/*.tex
+!report/*.eps
+!report/*/*.eps
+!report/*.pdf
