@@ -4,45 +4,49 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include "mips32.h"
 
-#define NUM_REGISTERS	32
+/* Registers */
+#define NUM_REGISTERS	33		/* PC included as 33 */
+extern char *reg_names[NUM_REGISTERS];	/* Defined in cpu.c */
 
-/* Array of register names */
-char *reg_names [] = {
-	"zero",
-	"at",
-	"v0",
-	"v1",
-	"a0",
-	"a1",
-	"a2",
-	"a3",
-	"t0",
-	"t1",
-	"t2",
-	"t3",
-	"t4",
-	"t5",
-	"t6",
-	"t7",
-	"s0",
-	"s1",
-	"s2",
-	"s3",
-	"s4",
-	"s5",
-	"s6",
-	"s7",
-	"t8",
-	"t9",
-	"k0",
-	"k1",
-	"gp",
-	"sp",
-	"fp",
-	"ra",
-	"pc",
-};
+#define REG_ZERO	0
+#define REG_AT		1
+#define REG_V0		2
+#define REG_V1		3
+#define REG_A0		4
+#define REG_A1		5
+#define REG_A2		6
+#define REG_A3		7
+#define REG_T0		8
+#define REG_T1		9
+#define REG_T2		10
+#define REG_T3		11
+#define REG_T4		12
+#define REG_T5		13
+#define REG_T6		14
+#define REG_T7		15
+#define REG_S0		16
+#define REG_S1		17
+#define REG_S2		18
+#define REG_S3		19
+#define REG_S4		20
+#define REG_S5		21
+#define REG_S6		22
+#define REG_S7		23
+#define REG_T8		24
+#define REG_T9		25
+#define REG_K0		26
+#define REG_K1		27
+#define REG_GP		28
+#define REG_SP		29
+#define REG_FP		30
+#define REG_RA		31
+#define REG_PC		32
+
+
+
+
 
 /* Structure of an instruction
  *
@@ -65,45 +69,70 @@ char *reg_names [] = {
  * The C standard does not guarantee the correct bitfield structure, so the
  * instruction struct has to be split into the 3 format, then union'ed.
  * */
-struct instr_r {
-	uint8_t funct	: 6;
-	uint8_t shamt	: 5;
-	uint8_t rd	: 5;
-	uint8_t rt	: 5;
-	uint8_t rs	: 5;
-	uint8_t opcode	: 6;
-} __attribute__((packed));
+typedef union instr_r {
+	struct {
+		uint8_t funct	: 6;
+		uint8_t shamt	: 5;
+		uint8_t rd	: 5;
+		uint8_t rt	: 5;
+		uint8_t rs	: 5;
+		uint8_t opcode	: 6;
+	}__attribute__((packed));
+	uint32_t raw;
+}__attribute__((packed)) instr_r_t;
 
-struct instr_i {
+typedef struct instr_i {
 	uint16_t immediate;
 	uint8_t rt	: 5;
 	uint8_t rs	: 5;
 	uint8_t opcode	: 6;
-} __attribute__((packed));
+}__attribute__((packed)) instr_i_t;
 
-struct instr_j {
+typedef struct instr_j {
 	uint32_t address : 26;
 	uint8_t opcode	: 6;
-} __attribute__((packed));
+}__attribute__((packed)) instr_j_t;
 
 
 typedef union instr {
-	struct instr_r r;
-	struct instr_i i;
-	struct instr_j j;
-} instr_t __attribute__((packed));
+	instr_r_t r;
+	instr_i_t i;
+	instr_j_t j;
+	uint32_t raw;
+}__attribute__((packed)) instr_t;
+
+
 
 /*
- * Looks up register name and returns its number.
- * Returns -1 on error. */
-int
-register_to_number(char *str)
-{
-	size_t i;
-	for(i = 0; i < NUM_REGISTERS; i++) {
-
-	}
-}
+ * Core structure of the CPU
+ */
+typedef struct core {
+	uint32_t regs[NUM_REGISTERS];
+} core_t;
 
 
-#endif	/* cpu.h */
+/*
+ * The structure for a complete CPU.
+ */
+typedef struct cpu {
+	core_t *core;	/* The CPU cores. */
+} cpu_t;
+
+
+
+/* Initialize a new cpu */
+cpu_t *cpu_init(int n_cores);
+
+/* Frees a CPU */
+void cpu_free(cpu_t *cpu);
+
+/* Ticks of the clock */
+void cpu_tick(cpu_t *cpu);
+
+/* Prints all registers of a given core. */
+void print_registers(core_t *core);
+
+
+
+
+#endif	/* _CPU_H */
