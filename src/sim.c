@@ -116,14 +116,13 @@ void interpret_r(uint32_t inst, core_t *core)
 
 }
 
-
 int run(cpu_t* cpu)
 {
 	while(1) {
-		printf("PC: %d\n", cpu->core[0].regs[31]);
+		printf("PC: %d\n", cpu->core[0].regs[REG_PC]);
 
 		uint32_t inst = 0;
-		inst = (uint32_t)GET_BIGWORD(mem, cpu->core[0].regs[31]);
+		inst = (uint32_t)GET_BIGWORD(mem, cpu->core[0].regs[REG_PC]);
 
 		/*
 		printf("opcode: %d\trd: %d\trs: %d\trt: %d\t\n",
@@ -133,13 +132,102 @@ int run(cpu_t* cpu)
 
 		/* Interpret instruction accordingly */
 		switch(GET_OPCODE(inst)) {
+
 		case OPCODE_R:
 			interpret_r(inst, &cpu->core[0]);
+			break;
+
+
+		/* Jump And Link: RA = PC + 8; PC = Imm;*/
+		case OPCODE_JAL:
+			cpu->core[0].regs[REG_RA] = cpu->core[0].regs[REG_PC]
+							+ 8;
+			cpu->core[0].regs[REG_PC] = GET_IMM(inst);
+			break;
+
+		/* Branch On Equal: if (RS == RT) { PC = PC + 4 + Imm; } */
+		case OPCODE_BEQ:
+			if(cpu->core[0].regs[GET_RS(inst)] ==
+			   cpu->core[0].regs[GET_RT(inst)])
+				cpu->core[0].regs[REG_PC] += 4 + GET_IMM(inst);
+			break;
+
+		/* Branch on Not Equal: If (RS != RT) { PC = PC + 4 + Imm} */
+		case OPCODE_BNE:
+			if(cpu->core[0].regs[GET_RS(inst)] !=
+			   cpu->core[0].regs[GET_RT(inst)])
+				cpu->core[0].regs[REG_PC] += 4 + GET_IMM(inst);
+			break;
+
+		/* Add Immediate: RT = RS + SignExtImm */
+		case OPCODE_ADDI:
+			cpu->core[0].regs[GET_RT(inst)] =
+				cpu->core[0].regs[GET_RS(inst)] +
+				SIGN_EXTEND(GET_IMM(inst));
+			break;
+
+		/* Add unsigned Immediate: RT = RS + SignExtImm */
+		case OPCODE_ADDIU:
+			cpu->core[0].regs[GET_RT(inst)] =
+				cpu->core[0].regs[GET_RS(inst)] +
+				SIGN_EXTEND(GET_IMM(inst));
+			break;
+
+		/* Set Less Than Immediate: RT = (RS < SignExtImm) ? 1 : 0 */
+		case OPCODE_SLTI:
+			cpu->core[0].regs[GET_RT(inst)] =
+				(cpu->core[0].regs[GET_RS(inst)] <
+				 SIGN_EXTEND((GET_IMM(inst)))) ?
+				1 : 0;
+			break;
+
+		/* Set Less Than Immediate Unsigned:
+		 * RT = (RS < SignExtImm) ? 1 : 0 */
+		case OPCODE_SLTIU:
+			cpu->core[0].regs[GET_RT(inst)] =
+				(cpu->core[0].regs[GET_RS(inst)] <
+				 SIGN_EXTEND((GET_IMM(inst)))) ?
+				1 : 0;
+			break;
+
+		/* And Immediate: RT = RS & ZeroExtImm */
+		case OPCODE_ANDI:
+			cpu->core[0].regs[GET_RT(inst)] =
+			cpu->core[0].regs[GET_RS(inst)] &
+			ZERO_EXTEND(GET_IMM(inst));
+			break;
+
+		/* Or Immediate: RT = RS | ZeroExtImm */
+		case OPCODE_ORI:
+			cpu->core[0].regs[GET_RT(inst)] =
+			cpu->core[0].regs[GET_RS(inst)] |
+			ZERO_EXTEND(GET_IMM(inst));
+			break;
+
+		/* Load Upper Immediate: RT = Imm << 16 */
+		case OPCODE_LUI:
+			cpu->core[0].regs[GET_RT(inst)] = GET_IMM(inst) << 16;
+			break;
+
+		/* Load Word: RT = M[RS + SignExtImm] */
+		case OPCODE_LW:
+			cpu->core[0].regs[GET_RT(inst)] =
+			    GET_BIGWORD(mem, cpu->core[0].regs[GET_RS(inst)])
+					+ SIGN_EXTEND(GET_IMM(inst));
+			break;
+
+		/* Store Word: M[RS + SignExtImm] = RT */
+		case OPCODE_SW:
+			SET_BIGWORD(mem,
+				    cpu->core[0].regs[GET_RS(inst)] +
+						SIGN_EXTEND(GET_IMM(inst)),
+				    cpu->core[0].regs[GET_RT(inst)]);
+			break;
 		}
 
 
 		/* Move to next instr */
-		cpu->core[0].regs[32] += 4;
+		cpu->core[0].regs[REG_PC] += 4;
 
 		if('s' == getchar()) /* Pause */
 			print_registers(&cpu->core[0]);
@@ -154,7 +242,7 @@ int simulate(char *program)
 	cpu_t *cpu = cpu_init(1);
 
 	/* Load the program into memory */
-	if(elf_dump(program, &(cpu->core[0].regs[31]), mem, MEMSZ) != 0) {
+	if(elf_dump(program, &(cpu->core[0].regs[REG_PC]), mem, MEMSZ) != 0) {
 		printf("Elf file could not be read.\n");
 		exit(0);
 	}

@@ -75,6 +75,7 @@ register_to_number(char *str)
 {
 	size_t i;
 	for(i = 0; i < NUM_REGISTERS; i++) {
+
 	}
 	return 0;
 }
