@@ -3,9 +3,13 @@
 
 #include <stdint.h>
 
-/* Reverse bits */
-uint32_t reverse(register uint32_t x);
 
+/* Switch between endianess */
+#define REVERSE(x) \
+	(((x) >> 24)&0x000000ff) | \
+        (((x) <<  8)&0x00ff0000) | \
+	(((x) >>  8)&0x0000ff00) | \
+	(((x) << 24)&0xff000000)
 
 
 #endif /* _TOOLS_H */
