@@ -25,9 +25,13 @@ void dump_mem()
 void interpret_r(uint32_t inst, core_t *core)
 {
 	switch(GET_FUNCT(inst)) {
+	/* Jump register */
 	case FUNCT_JR:
-		/* TODO: Jump register */
+		core->regs[REG_PC] = core->regs[GET_RS(inst)];
+		/* 4 is added later. To negate that: */
+		core->regs[REG_PC] -= -4;
 		break;
+
 	case FUNCT_SYSCALL:
 		/* TODO: System call */
 
