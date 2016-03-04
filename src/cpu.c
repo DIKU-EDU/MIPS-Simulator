@@ -92,5 +92,13 @@ print_registers(core_t *core)
 }
 
 
-
+void
+dump_registers(core_t *core)
+{
+	size_t i;
+	/* PC is not included */
+	for(i = 0; i < NUM_REGISTERS - 1; i++) {
+		printf("%d\n", core->regs[i]);
+	}
+}
 

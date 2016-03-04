@@ -30,6 +30,7 @@ void interpret_r(uint32_t inst, core_t *core)
 		break;
 	case FUNCT_SYSCALL:
 		/* TODO: System call */
+
 		break;
 	case FUNCT_ADD:
 		/* Signed addition */
@@ -122,15 +123,13 @@ int run(cpu_t* cpu)
 	while(1) {
 		printf("PC: %d\n", cpu->core[0].regs[REG_PC]);
 
-		print_registers(&cpu->core[0]);
 		uint32_t inst = 0;
 		inst = (uint32_t)GET_BIGWORD(mem, cpu->core[0].regs[REG_PC]);
 
-		/*
-		printf("opcode: %d\trd: %d\trs: %d\trt: %d\t\n",
-		       GET_OPCODE(inst), GET_RD(inst), GET_RS(inst),
-		       GET_RT(inst));
-		*/
+
+		/* Return v0 on SYSCALL */
+		if(GET_FUNCT(inst) == FUNCT_SYSCALL)
+			return cpu->core[0].regs[REG_V0];
 
 		/* Interpret instruction accordingly */
 		switch(GET_OPCODE(inst)) {
@@ -244,8 +243,10 @@ int run(cpu_t* cpu)
 		/* Move to next instr */
 		cpu->core[0].regs[REG_PC] += 4;
 
-		if('s' == getchar()) /* Pause */
-			;
+		/* Pause */
+		if('s' == getchar())
+			print_registers(&cpu->core[0]);
+
 	}
 }
 
@@ -261,6 +262,5 @@ int simulate(char *program)
 		exit(0);
 	}
 
-	run(cpu);
-	return 0;
+	return run(cpu);
 }

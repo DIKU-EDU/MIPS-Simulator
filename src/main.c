@@ -4,6 +4,7 @@
 #include "cpu.h"
 #include "sim.h"
 
+#include "tools.h"
 
 int main(int argc, char **argv)
 {
@@ -38,8 +39,5 @@ int main(int argc, char **argv)
 	}
 
 	cores = cores; /* Ignore warning */
-	simulate(program);
-
-
-	return 0;
+	return simulate(program);
 }

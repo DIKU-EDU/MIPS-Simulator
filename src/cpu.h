@@ -132,7 +132,7 @@ void cpu_tick(cpu_t *cpu);
 /* Prints all registers of a given core. */
 void print_registers(core_t *core);
 
-
-
+/* Dump registers except PC in hex. Used for testing */
+void dump_registers(core_t *core);
 
 #endif	/* _CPU_H */
