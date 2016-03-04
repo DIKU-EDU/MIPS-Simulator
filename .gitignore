@@ -2,7 +2,7 @@ src/*.o
 src/*.swp
 programs/*.o
 programs/*.elf
-
+programs/regs.txt
 
 # Ignore everything in the report folder except .tex and .eps files
 report/*.*
