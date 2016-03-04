@@ -3,7 +3,7 @@
 c_failed=0
 c=0
 
-for f in programs/*.elf
+for f in tests/*.elf
 do
 	c=$((c+1))
 
