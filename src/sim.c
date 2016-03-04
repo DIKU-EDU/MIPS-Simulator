@@ -244,9 +244,10 @@ int run(cpu_t* cpu)
 		cpu->core[0].regs[REG_PC] += 4;
 
 		/* Pause */
+		/*
 		if('s' == getchar())
 			print_registers(&cpu->core[0]);
-
+		*/
 	}
 }
 
