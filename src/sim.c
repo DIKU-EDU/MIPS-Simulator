@@ -13,15 +13,6 @@
 /* Static memory of the CPU. */
 uint8_t mem[MEMSZ];
 
-/* TODO */
-void dump_mem()
-{
-	int i;
-	for(i = 0; i < MEMSZ; i += 4)
-		printf("%d\t%d\t%d\t%d\n", mem[i], mem[i+1], mem[i+2],
-		       mem[i+3]);
-}
-
 void interpret_r(uint32_t inst, core_t *core)
 {
 	switch(GET_FUNCT(inst)) {
