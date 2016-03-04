@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "tools.h"
 #include "sim.h"
 #include "cpu.h"
 #include "elf.h"
@@ -121,6 +122,7 @@ int run(cpu_t* cpu)
 	while(1) {
 		printf("PC: %d\n", cpu->core[0].regs[REG_PC]);
 
+		print_registers(&cpu->core[0]);
 		uint32_t inst = 0;
 		inst = (uint32_t)GET_BIGWORD(mem, cpu->core[0].regs[REG_PC]);
 
@@ -137,6 +139,19 @@ int run(cpu_t* cpu)
 			interpret_r(inst, &cpu->core[0]);
 			break;
 
+		/* Jump */
+		/* The new address is computed by taking the upper 4 bits of the
+		 * PC, concatenated to the 26 bit immediate value, and the lower
+		 * two bits are 00, so the address created remains word-aligned.
+		 */
+		case OPCODE_J:
+			cpu->core[0].regs[REG_PC] = (cpu->core[0].regs[REG_PC]
+							& 0xF0000000)
+							|(GET_ADDRESS(inst)<<2);
+
+			/* REG_PC will be incremented by 4 later... */
+			cpu->core[0].regs[REG_PC] -= 4;
+			break;
 
 		/* Jump And Link: RA = PC + 8; PC = Imm;*/
 		case OPCODE_JAL:
@@ -230,8 +245,7 @@ int run(cpu_t* cpu)
 		cpu->core[0].regs[REG_PC] += 4;
 
 		if('s' == getchar()) /* Pause */
-			print_registers(&cpu->core[0]);
-
+			;
 	}
 }
 
