@@ -20,7 +20,7 @@ void interpret_r(uint32_t inst, core_t *core)
 	case FUNCT_JR:
 		core->regs[REG_PC] = core->regs[GET_RS(inst)];
 		/* 4 is added later. To negate that: */
-		core->regs[REG_PC] -= -4;
+		core->regs[REG_PC] -= 4;
 		break;
 
 	case FUNCT_SYSCALL:
@@ -116,10 +116,11 @@ void interpret_r(uint32_t inst, core_t *core)
 int run(cpu_t* cpu)
 {
 	while(1) {
-		printf("PC: %d\n", cpu->core[0].regs[REG_PC]);
 
 		uint32_t inst = 0;
 		inst = (uint32_t)GET_BIGWORD(mem, cpu->core[0].regs[REG_PC]);
+
+		printf("PC: %08x\tCODE: %08x\n",cpu->core[0].regs[REG_PC], inst);
 
 		/* Return v0 on SYSCALL */
 		if(inst == FUNCT_SYSCALL)
@@ -149,7 +150,14 @@ int run(cpu_t* cpu)
 		case OPCODE_JAL:
 			cpu->core[0].regs[REG_RA] = cpu->core[0].regs[REG_PC]
 							+ 8;
-			cpu->core[0].regs[REG_PC] = GET_IMM(inst);
+
+			/* Ordinary Jump */
+			cpu->core[0].regs[REG_PC] = (cpu->core[0].regs[REG_PC]
+							& 0xF0000000)
+							|(GET_ADDRESS(inst)<<2);
+
+			/* REG_PC will be incremented by 4 later... */
+			cpu->core[0].regs[REG_PC] -= 4;
 			break;
 
 		/* Branch On Equal: if (RS == RT) { PC = PC + 4 + Imm; } */
@@ -211,13 +219,14 @@ int run(cpu_t* cpu)
 		/* Or Immediate: RT = RS | ZeroExtImm */
 		case OPCODE_ORI:
 			cpu->core[0].regs[GET_RT(inst)] =
-			cpu->core[0].regs[GET_RS(inst)] |
-			ZERO_EXTEND(GET_IMM(inst));
+				cpu->core[0].regs[GET_RS(inst)]
+				| ZERO_EXTEND(GET_IMM(inst));
 			break;
 
 		/* Load Upper Immediate: RT = Imm << 16 */
 		case OPCODE_LUI:
-			cpu->core[0].regs[GET_RT(inst)] = GET_IMM(inst) << 16;
+			cpu->core[0].regs[GET_RT(inst)] = ((uint32_t)GET_IMM(inst)
+							   << 16);
 			break;
 
 		/* Load Word: RT = M[RS + SignExtImm] */
@@ -239,16 +248,12 @@ int run(cpu_t* cpu)
 
 		/* Move to next instr */
 		cpu->core[0].regs[REG_PC] += 4;
-
-
-		printf("CODE: %08x\n", inst);
 	//	print_registers(&cpu->core[0]);
 		/* Pause */
-		/*
-		if('s' == getchar())
+/*
+		if(getchar())
 			print_registers(&cpu->core[0]);
-		*/
-
+*/
 		}
 }
 
