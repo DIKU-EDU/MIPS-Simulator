@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Counters
 c_failed=0
 c=0
+
+# Make the tests directory
+cd tests
+make all
+cd ..
 
 for f in tests/*.elf
 do
@@ -18,9 +24,9 @@ do
 
 
 	if [ "$result" == "$expected" ]; then
-		echo $f passed.
+		echo PASSED: $f
 	else
-		echo $f failed. Expected value: $expected, returned value: $result
+		echo FAILED $f. Expected value: $expected, returned value: $result
 		c_failed=$((c_failed+1))
 	fi
 done

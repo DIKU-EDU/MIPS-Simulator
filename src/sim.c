@@ -123,12 +123,12 @@ int run(cpu_t* cpu)
 
 
 		/* Return v0 on SYSCALL */
-		if(GET_FUNCT(inst) == FUNCT_SYSCALL)
+		if(GET_OPCODE(inst) == OPCODE_R &&
+		   GET_FUNCT(inst) == FUNCT_SYSCALL)
 			return cpu->core[0].regs[REG_V0];
 
 		/* Interpret instruction accordingly */
 		switch(GET_OPCODE(inst)) {
-
 		case OPCODE_R:
 			interpret_r(inst, &cpu->core[0]);
 			break;
@@ -238,6 +238,8 @@ int run(cpu_t* cpu)
 		/* Move to next instr */
 		cpu->core[0].regs[REG_PC] += 4;
 
+
+		print_registers(&cpu->core[0]);
 		/* Pause */
 		/*
 		if('s' == getchar())
