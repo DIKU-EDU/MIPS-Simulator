@@ -4,5 +4,4 @@
 int
 simulate(char *program);
 
-
 #endif /* _SIM_H */

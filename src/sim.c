@@ -121,10 +121,8 @@ int run(cpu_t* cpu)
 		uint32_t inst = 0;
 		inst = (uint32_t)GET_BIGWORD(mem, cpu->core[0].regs[REG_PC]);
 
-
 		/* Return v0 on SYSCALL */
-		if(GET_OPCODE(inst) == OPCODE_R &&
-		   GET_FUNCT(inst) == FUNCT_SYSCALL)
+		if(inst == FUNCT_SYSCALL)
 			return cpu->core[0].regs[REG_V0];
 
 		/* Interpret instruction accordingly */
@@ -158,14 +156,18 @@ int run(cpu_t* cpu)
 		case OPCODE_BEQ:
 			if(cpu->core[0].regs[GET_RS(inst)] ==
 			   cpu->core[0].regs[GET_RT(inst)])
-				cpu->core[0].regs[REG_PC] += 4 + GET_IMM(inst);
+				cpu->core[0].regs[REG_PC] += (SIGN_EXTEND(
+								GET_IMM(inst))
+							      << 2);
 			break;
 
 		/* Branch on Not Equal: If (RS != RT) { PC = PC + 4 + Imm} */
 		case OPCODE_BNE:
 			if(cpu->core[0].regs[GET_RS(inst)] !=
 			   cpu->core[0].regs[GET_RT(inst)])
-				cpu->core[0].regs[REG_PC] += 4 + GET_IMM(inst);
+				cpu->core[0].regs[REG_PC] += (SIGN_EXTEND(
+								GET_IMM(inst))
+							      << 2);
 			break;
 
 		/* Add Immediate: RT = RS + SignExtImm */
@@ -239,15 +241,16 @@ int run(cpu_t* cpu)
 		cpu->core[0].regs[REG_PC] += 4;
 
 
-		print_registers(&cpu->core[0]);
+		printf("CODE: %08x\n", inst);
+	//	print_registers(&cpu->core[0]);
 		/* Pause */
 		/*
 		if('s' == getchar())
 			print_registers(&cpu->core[0]);
 		*/
-	}
-}
 
+		}
+}
 
 int simulate(char *program)
 {
