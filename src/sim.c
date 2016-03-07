@@ -94,7 +94,7 @@ void interpret_r(uint32_t inst, core_t *core)
 	case FUNCT_SLL:
 		/* Shift Left Logical: rd = rt << shamt */
 		core->regs[GET_RD(inst)] =
-			(uint32_t)core->regs[GET_RS(inst)] <<
+			(uint32_t)core->regs[GET_RT(inst)] <<
 			(uint32_t)GET_SHAMT(inst);
 		break;
 
@@ -102,7 +102,7 @@ void interpret_r(uint32_t inst, core_t *core)
 	case FUNCT_SRL:
 		/* Shift Right Logical: rd = rt >> shamt */
 		core->regs[GET_RD(inst)] =
-			(uint32_t)core->regs[GET_RS(inst)] >>
+			(uint32_t)core->regs[GET_RT(inst)] >>
 			(uint32_t)GET_SHAMT(inst);
 		break;
 
