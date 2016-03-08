@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<project name="MIPS-Simulator" company="" manager="" phase="" project-start="20160222T000000Z" mrproject-version="2" calendar="1">
+  <properties/>
+  <phases/>
+  <calendars>
+    <day-types>
+      <day-type id="0" name="Working" description="A default working day"/>
+      <day-type id="1" name="Nonworking" description="A default non working day"/>
+      <day-type id="2" name="Use base" description="Use day from base calendar"/>
+    </day-types>
+    <calendar id="1" name="Default">
+      <default-week mon="0" tue="0" wed="0" thu="0" fri="0" sat="1" sun="1"/>
+      <overridden-day-types>
+        <overridden-day-type id="0">
+          <interval start="0800" end="1200"/>
+          <interval start="1300" end="1700"/>
+        </overridden-day-type>
+      </overridden-day-types>
+      <days/>
+    </calendar>
+  </calendars>
+  <tasks>
+    <task id="1" name="Report writing" note="" work="2390400" start="20160222T000000Z" end="20160615T170000Z" work-start="20160222T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="must-start-on" time="20160222T000000Z"/>
+    </task>
+    <task id="2" name="Bare-metal simulator" note="" work="403200" start="20160222T000000Z" end="20160310T170000Z" work-start="20160222T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
+    <task id="3" name="Simple tests" note="" work="201600" start="20160302T000000Z" end="20160310T170000Z" work-start="20160302T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="must-start-on" time="20160302T000000Z"/>
+    </task>
+    <task id="4" name="Pipelining" note="" work="432000" start="20160309T000000Z" end="20160323T170000Z" work-start="20160309T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="must-start-on" time="20160309T000000Z"/>
+      <task id="5" name="Research" note="" work="201600" start="20160309T000000Z" end="20160317T170000Z" work-start="20160309T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160309T000000Z"/>
+      </task>
+      <task id="6" name="Implementation" note="" work="201600" start="20160313T000000Z" end="20160322T170000Z" work-start="20160314T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160313T000000Z"/>
+      </task>
+      <task id="7" name="Testing" note="" work="28800" start="20160323T000000Z" end="20160323T170000Z" work-start="20160323T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160323T000000Z"/>
+      </task>
+    </task>
+    <task id="8" name="TLB" note="" work="432000" start="20160324T000000Z" end="20160404T170000Z" work-start="20160324T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="9" name="Research" note="" work="201600" start="20160324T000000Z" end="20160401T170000Z" work-start="20160324T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160324T000000Z"/>
+      </task>
+      <task id="10" name="Implementation" note="" work="201600" start="20160325T000000Z" end="20160404T170000Z" work-start="20160325T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160325T000000Z"/>
+      </task>
+      <task id="11" name="Testing" note="" work="28800" start="20160404T000000Z" end="20160404T170000Z" work-start="20160404T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160404T000000Z"/>
+      </task>
+    </task>
+    <task id="12" name="User / Kernel -mode" note="" work="172800" start="20160407T000000Z" end="20160414T170000Z" work-start="20160407T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="13" name="Research" note="" work="57600" start="20160407T000000Z" end="20160408T170000Z" work-start="20160407T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160407T000000Z"/>
+      </task>
+      <task id="14" name="Implementation" note="" work="86400" start="20160409T000000Z" end="20160413T170000Z" work-start="20160411T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160409T000000Z"/>
+      </task>
+      <task id="15" name="Testing" note="" work="28800" start="20160414T000000Z" end="20160414T170000Z" work-start="20160414T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160414T000000Z"/>
+      </task>
+    </task>
+    <task id="16" name="SMP" note="" work="489600" start="20160418T000000Z" end="20160504T170000Z" work-start="20160418T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="17" name="Research" note="" work="201600" start="20160418T000000Z" end="20160426T170000Z" work-start="20160418T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160418T000000Z"/>
+      </task>
+      <task id="18" name="Implementation" note="" work="201600" start="20160421T000000Z" end="20160429T170000Z" work-start="20160421T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160421T000000Z"/>
+      </task>
+      <task id="19" name="Testing" note="" work="86400" start="20160502T000000Z" end="20160504T170000Z" work-start="20160502T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160502T000000Z"/>
+      </task>
+    </task>
+    <task id="20" name="Bug-fixing, code improvement etc..." note="" work="201600" start="20160509T000000Z" end="20160517T170000Z" work-start="20160509T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="must-start-on" time="20160509T000000Z"/>
+    </task>
+    <task id="21" name="KUDOS" note="" work="201600" start="20160518T000000Z" end="20160526T170000Z" work-start="20160518T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="22" name="Test for support" note="" work="201600" start="20160518T000000Z" end="20160526T170000Z" work-start="20160518T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="must-start-on" time="20160518T000000Z"/>
+      </task>
+    </task>
+  </tasks>
+  <resource-groups/>
+  <resources/>
+  <allocations/>
+</project>
