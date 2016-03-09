@@ -1,3 +1,5 @@
+#include <errno.h>   // errno
+#include <limits.h>  // ULONG_MAX
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -12,14 +14,20 @@ int main(int argc, char **argv)
 	char *program = NULL;
 
 	/* Number of cores. 1 by default*/
-	int cores = 1;
+	size_t cores = 1;
 
 	/* Parse command line arguments. */
 	int c;
+	char *begin;
 	while((c = getopt(argc, argv, "c:p:")) != -1) {
 		switch(c) {
 		case 'c':
-			cores = atoi(optarg);
+			begin = optarg;
+			cores = strtoul(begin, &optarg, 10);
+			if (begin == optarg || (cores == ULONG_MAX && errno == ERANGE)) {
+				fprintf(stderr, "Invalid number of cores.\n");
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 'p':
 			program = optarg;
