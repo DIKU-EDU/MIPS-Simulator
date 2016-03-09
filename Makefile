@@ -11,6 +11,7 @@ LFLAGS  =
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
+	install -D /dev/null $(TARGET)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $(TARGET) $(LFLAGS)
 
 %.o: %.c
