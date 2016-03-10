@@ -9,7 +9,7 @@
 /* Registers */
 #define NUM_REGISTERS	33		/* PC included as 33 */
 extern char *reg_names[NUM_REGISTERS];	/* Defined in cpu.c */
-
+uint32_t register_to_number(char *str);
 #define REG_ZERO	0
 #define REG_AT		1
 #define REG_V0		2

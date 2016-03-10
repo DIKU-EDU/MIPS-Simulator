@@ -114,7 +114,43 @@ void interpret_r(uint32_t inst, core_t *core)
 
 }
 
-int run(cpu_t* cpu, bool debug)
+void debug(uint32_t inst, cpu_t* cpu)
+{
+	unsigned char c[3] = {0};
+	bool stop = false;
+
+	while(stop == false) {
+		fgets((char*)c, 3, stdin);
+
+		switch(c[0]) {
+			/* Print all registers */
+		case 'r':
+			print_registers(&cpu->core[0]);
+			break;
+
+			/* Print next instruction */
+		case 'i':
+			print_instruction(inst, &cpu->core[0]);
+			break;
+
+		/* Print specified register only */
+		case 'v':
+		case 's':
+		case 't':
+			printf("%s = %u\n", c,
+			       cpu->core[0].regs[register_to_number((char*)c)]);
+			break;
+
+			/* Continue */
+		case 'c':
+		default:
+			stop = true;
+			break;
+		}
+	}
+}
+
+int run(cpu_t* cpu, bool debugging)
 {
 	while(1) {
 
@@ -122,26 +158,9 @@ int run(cpu_t* cpu, bool debug)
 		inst = (uint32_t)GET_BIGWORD(mem, cpu->core[0].regs[REG_PC]);
 
 		/* Debugging */
-		if(debug) {
-			unsigned char c;
-			do {
-				c = getchar();
-			} while(c == '\n');
+		if(debugging)
+			debug(inst, cpu);
 
-			switch(c) {
-			case 'r':
-				/* TODO: Print registers */
-				break;
-			case 'i':
-				print_instruction(inst, &cpu->core[0]);
-				break;
-
-			/* Continue */
-			case 'c':
-			default:
-				break;
-			}
-		}
 
 
 		/* Return v0 on SYSCALL */
@@ -154,67 +173,67 @@ int run(cpu_t* cpu, bool debug)
 			interpret_r(inst, &cpu->core[0]);
 			break;
 
-		/* Jump */
-		/* The new address is computed by taking the upper 4 bits of the
-		 * PC, concatenated to the 26 bit immediate value, and the lower
-		 * two bits are 00, so the address created remains word-aligned.
-		 */
+			/* Jump */
+			/* The new address is computed by taking the upper 4 bits of the
+			 * PC, concatenated to the 26 bit immediate value, and the lower
+			 * two bits are 00, so the address created remains word-aligned.
+			 */
 		case OPCODE_J:
 			cpu->core[0].regs[REG_PC] = (cpu->core[0].regs[REG_PC]
-							& 0xF0000000)
-							|(GET_ADDRESS(inst)<<2);
+						     & 0xF0000000)
+			|(GET_ADDRESS(inst)<<2);
 
 			/* REG_PC will be incremented by 4 later... */
 			cpu->core[0].regs[REG_PC] -= 4;
 			break;
 
-		/* Jump And Link: RA = PC + 8; PC = Imm;*/
+			/* Jump And Link: RA = PC + 8; PC = Imm;*/
 		case OPCODE_JAL:
 			cpu->core[0].regs[REG_RA] = cpu->core[0].regs[REG_PC]
-							+ 8;
+			+ 8;
 
 			/* Ordinary Jump */
 			cpu->core[0].regs[REG_PC] = (cpu->core[0].regs[REG_PC]
-							& 0xF0000000)
-							|(GET_ADDRESS(inst)<<2);
+						     & 0xF0000000)
+			|(GET_ADDRESS(inst)<<2);
 
 			/* REG_PC will be incremented by 4 later... */
 			cpu->core[0].regs[REG_PC] -= 4;
 			break;
 
-		/* Branch On Equal: if (RS == RT) { PC = PC + 4 + Imm; } */
+			/* Branch On Equal: if (RS == RT) { PC = PC + 4 + Imm; } */
 		case OPCODE_BEQ:
 			if(cpu->core[0].regs[GET_RS(inst)] ==
 			   cpu->core[0].regs[GET_RT(inst)])
 				cpu->core[0].regs[REG_PC] += (SIGN_EXTEND(
-								GET_IMM(inst))
+									  GET_IMM(inst))
 							      << 2);
 			break;
 
-		/* Branch on Not Equal: If (RS != RT) { PC = PC + 4 + Imm} */
+			/* Branch on Not Equal: If (RS != RT) { PC = PC + 4 + Imm} */
 		case OPCODE_BNE:
 			if(cpu->core[0].regs[GET_RS(inst)] !=
 			   cpu->core[0].regs[GET_RT(inst)])
 				cpu->core[0].regs[REG_PC] += (SIGN_EXTEND(
-								GET_IMM(inst))
+									  GET_IMM(inst))
 							      << 2);
 			break;
 
-		/* Add Immediate: RT = RS + SignExtImm */
+			/* Add Immediate: RT = RS + SignExtImm */
 		case OPCODE_ADDI:
 			cpu->core[0].regs[GET_RT(inst)] =
 				cpu->core[0].regs[GET_RS(inst)] +
 				SIGN_EXTEND(GET_IMM(inst));
 			break;
 
-		/* Add unsigned Immediate: RT = RS + SignExtImm */
+			/* Add unsigned Immediate: RT = RS + SignExtImm */
 		case OPCODE_ADDIU:
 			cpu->core[0].regs[GET_RT(inst)] =
 				cpu->core[0].regs[GET_RS(inst)] +
 				SIGN_EXTEND(GET_IMM(inst));
 			break;
 
-		/* Set Less Than Immediate: RT = (RS < SignExtImm) ? 1 : 0 */
+			/* Set Less Than Immediate: RT = (RS < SignExtImm) ? 1 : 0 */
 		case OPCODE_SLTI:
 			cpu->core[0].regs[GET_RT(inst)] =
 				(cpu->core[0].regs[GET_RS(inst)] <
@@ -222,8 +241,8 @@ int run(cpu_t* cpu, bool debug)
 				1 : 0;
 			break;
 
-		/* Set Less Than Immediate Unsigned:
-		 * RT = (RS < SignExtImm) ? 1 : 0 */
+			/* Set Less Than Immediate Unsigned:
+			 * RT = (RS < SignExtImm) ? 1 : 0 */
 		case OPCODE_SLTIU:
 			cpu->core[0].regs[GET_RT(inst)] =
 				(cpu->core[0].regs[GET_RS(inst)] <
@@ -231,40 +250,40 @@ int run(cpu_t* cpu, bool debug)
 				1 : 0;
 			break;
 
-		/* And Immediate: RT = RS & ZeroExtImm */
+			/* And Immediate: RT = RS & ZeroExtImm */
 		case OPCODE_ANDI:
 			cpu->core[0].regs[GET_RT(inst)] =
-			cpu->core[0].regs[GET_RS(inst)] &
-			ZERO_EXTEND(GET_IMM(inst));
+				cpu->core[0].regs[GET_RS(inst)] &
+				ZERO_EXTEND(GET_IMM(inst));
 			break;
 
-		/* Or Immediate: RT = RS | ZeroExtImm */
+			/* Or Immediate: RT = RS | ZeroExtImm */
 		case OPCODE_ORI:
 			cpu->core[0].regs[GET_RT(inst)] =
 				cpu->core[0].regs[GET_RS(inst)]
 				| ZERO_EXTEND(GET_IMM(inst));
-			break;
+				break;
 
-		/* Load Upper Immediate: RT = Imm << 16 */
+				/* Load Upper Immediate: RT = Imm << 16 */
 		case OPCODE_LUI:
-			cpu->core[0].regs[GET_RT(inst)] = ((uint32_t)GET_IMM(inst)
-							   << 16);
-			break;
+				cpu->core[0].regs[GET_RT(inst)] = ((uint32_t)GET_IMM(inst)
+								   << 16);
+				break;
 
-		/* Load Word: RT = M[RS + SignExtImm] */
+				/* Load Word: RT = M[RS + SignExtImm] */
 		case OPCODE_LW:
-			cpu->core[0].regs[GET_RT(inst)] =
-			    GET_BIGWORD(mem, cpu->core[0].regs[GET_RS(inst)])
+				cpu->core[0].regs[GET_RT(inst)] =
+					GET_BIGWORD(mem, cpu->core[0].regs[GET_RS(inst)])
 					+ SIGN_EXTEND(GET_IMM(inst));
-			break;
+				break;
 
-		/* Store Word: M[RS + SignExtImm] = RT */
+				/* Store Word: M[RS + SignExtImm] = RT */
 		case OPCODE_SW:
-			SET_BIGWORD(mem,
-				    cpu->core[0].regs[GET_RS(inst)] +
-						SIGN_EXTEND(GET_IMM(inst)),
-				    cpu->core[0].regs[GET_RT(inst)]);
-			break;
+				SET_BIGWORD(mem,
+					    cpu->core[0].regs[GET_RS(inst)] +
+					    SIGN_EXTEND(GET_IMM(inst)),
+					    cpu->core[0].regs[GET_RT(inst)]);
+				break;
 		}
 
 

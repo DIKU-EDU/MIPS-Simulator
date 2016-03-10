@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "cpu.h"
 
@@ -70,12 +71,15 @@ cpu_tick(cpu_t *cpu)
 /*
  * Looks up register name and returns its number.
  * Returns -1 on error. */
-int
+uint32_t
 register_to_number(char *str)
 {
 	size_t i;
 	for(i = 0; i < NUM_REGISTERS; i++) {
-
+		/* If strings equal */
+		if(strcmp(str,reg_names[i]) == 0) {
+			return i;
+		}
 	}
 	return 0;
 }
