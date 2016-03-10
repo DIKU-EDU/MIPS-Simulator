@@ -3,15 +3,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdbool.h>
+
 #include "cpu.h"
 #include "sim.h"
 
 #include "tools.h"
 
+
+/* Command-line options:
+ *	-p <prog>	: Program to execute (MIPS32 ELF)
+ *	-d		: debug
+ *	-c <num>	: Number of cores
+ */
+#define OPTS "dc:p:"
+
+
 int main(int argc, char **argv)
 {
 	/* Program to simulate */
 	char *program = NULL;
+
+	/* Debug flag */
+	bool debug = false;
 
 	/* Number of cores. 1 by default*/
 	size_t cores = 1;
@@ -19,8 +33,11 @@ int main(int argc, char **argv)
 	/* Parse command line arguments. */
 	int c;
 	char *begin;
-	while((c = getopt(argc, argv, "c:p:")) != -1) {
+	while((c = getopt(argc, argv, "dc:p:")) != -1) {
 		switch(c) {
+		case 'd':
+			debug = true;
+			break;
 		case 'c':
 			begin = optarg;
 			cores = strtoul(begin, &optarg, 10);
@@ -47,5 +64,5 @@ int main(int argc, char **argv)
 	}
 
 	cores = cores; /* Ignore warning */
-	return simulate(program);
+	return simulate(program, debug);
 }

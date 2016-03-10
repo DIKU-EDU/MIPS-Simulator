@@ -2,6 +2,6 @@
 #define _SIM_H
 
 int
-simulate(char *program);
+simulate(char *program, bool debug);
 
 #endif /* _SIM_H */

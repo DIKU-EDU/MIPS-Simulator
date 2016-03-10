@@ -5,12 +5,12 @@
 //  Oleksandr Shturmov <oleks@oleks.info>
 //  Annie Jane Pinder <anpi@di.ku.dk>
 
-#ifndef DiMS_MIPS32_H
-#define DiMS_MIPS32_H
+#ifndef _MIPS32_H
+#define _MIPS32_H
 
 
 #include <stdint.h>
-
+#include <stdlib.h>
 
 
 // MIPS32 memory
@@ -60,6 +60,9 @@
 #define FUNCT_SLL       (0x00)
 #define FUNCT_SRL       (0x02)
 
+extern char* op_codes[];
+extern char* funct_codes[];
+
 // Least-significant bit-masks.
 #define LS_4B   ((1 << 4 ) - 1)
 #define LS_5B   ((1 << 5 ) - 1)
@@ -83,4 +86,4 @@
 #define SIGN_EXTEND(value)  ((int32_t)(int16_t)value)
 #define ZERO_EXTEND(value)  ((uint32_t)value)
 
-#endif // DiMS_MIPS32_H
+#endif // MIPS32_H

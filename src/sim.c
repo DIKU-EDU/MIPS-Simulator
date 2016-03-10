@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "tools.h"
 #include "sim.h"
 #include "cpu.h"
 #include "elf.h"
 #include "mips32.h"
-
+#include "disasm.h"
 
 #define MEMSZ 0xA0000
 /* Static memory of the CPU. */
@@ -113,14 +114,35 @@ void interpret_r(uint32_t inst, core_t *core)
 
 }
 
-int run(cpu_t* cpu)
+int run(cpu_t* cpu, bool debug)
 {
 	while(1) {
 
 		uint32_t inst = 0;
 		inst = (uint32_t)GET_BIGWORD(mem, cpu->core[0].regs[REG_PC]);
 
-		printf("PC: %08x\tCODE: %08x\n",cpu->core[0].regs[REG_PC], inst);
+		/* Debugging */
+		if(debug) {
+			unsigned char c;
+			do {
+				c = getchar();
+			} while(c == '\n');
+
+			switch(c) {
+			case 'r':
+				/* TODO: Print registers */
+				break;
+			case 'i':
+				print_instruction(inst, &cpu->core[0]);
+				break;
+
+			/* Continue */
+			case 'c':
+			default:
+				break;
+			}
+		}
+
 
 		/* Return v0 on SYSCALL */
 		if(inst == FUNCT_SYSCALL)
@@ -248,16 +270,12 @@ int run(cpu_t* cpu)
 
 		/* Move to next instr */
 		cpu->core[0].regs[REG_PC] += 4;
-	//	print_registers(&cpu->core[0]);
-		/* Pause */
-/*
-		if(getchar())
-			print_registers(&cpu->core[0]);
-*/
-		}
+
+
+	}
 }
 
-int simulate(char *program)
+int simulate(char *program, bool debug)
 {
 	/* Create a new CPU */
 	cpu_t *cpu = cpu_init(1);
@@ -268,5 +286,5 @@ int simulate(char *program)
 		exit(0);
 	}
 
-	return run(cpu);
+	return run(cpu, debug);
 }
