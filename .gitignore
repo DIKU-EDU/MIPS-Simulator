@@ -4,6 +4,11 @@ programs/*.o
 programs/*.elf
 programs/regs.txt
 
+*.synctex.gz
+*.log
+*.aux
+
+
 # Ignore everything in the report folder except .tex and .eps files
 report/*.*
 !report/*.tex
