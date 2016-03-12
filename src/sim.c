@@ -301,11 +301,14 @@ int simulate(char *program, bool debug)
 	/* Hardware to simulate */
 	hardware_t hardware;
 
+	/* Initialize the memory */
+	hardware.mem = mem_init(MEMSZ);
+
 	/* Create a new CPU */
 	hardware.cpu = cpu_init(1);
 
-	/* Initialize the memory */
-	hardware.mem = mem_init(MEMSZ);
+	/* Set stack pointer to top of memory */
+	hardware.cpu->core[0].regs[REG_SP] = MIPS_RESERVE + MEMSZ - 4;
 
 	/* Load the program into memory */
 	if(elf_dump(program, &(hardware.cpu->core[0].regs[REG_PC]),
