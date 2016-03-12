@@ -11,8 +11,6 @@
 #include "disasm.h"
 
 #define MEMSZ 0xA0000
-/* Static memory of the CPU. */
-uint8_t mem[MEMSZ];
 
 void interpret_r(uint32_t inst, core_t *core)
 {
@@ -150,12 +148,15 @@ void debug(uint32_t inst, cpu_t* cpu)
 	}
 }
 
-int run(cpu_t* cpu, bool debugging)
+int run(hardware_t *hw, bool debugging)
 {
+	cpu_t* cpu = hw->cpu;
+	memory_t* mem = hw->mem;
+
 	while(1) {
 
 		uint32_t inst = 0;
-		inst = (uint32_t)GET_BIGWORD(mem, cpu->core[0].regs[REG_PC]);
+		inst = (uint32_t)GET_BIGWORD(mem->raw, cpu->core[0].regs[REG_PC]);
 
 		/* Debugging */
 		if(debugging)
@@ -273,13 +274,14 @@ int run(cpu_t* cpu, bool debugging)
 				/* Load Word: RT = M[RS + SignExtImm] */
 		case OPCODE_LW:
 				cpu->core[0].regs[GET_RT(inst)] =
-					GET_BIGWORD(mem, cpu->core[0].regs[GET_RS(inst)])
+					GET_BIGWORD(mem->raw, cpu->core[0]
+						    .regs[GET_RS(inst)])
 					+ SIGN_EXTEND(GET_IMM(inst));
 				break;
 
 				/* Store Word: M[RS + SignExtImm] = RT */
 		case OPCODE_SW:
-				SET_BIGWORD(mem,
+				SET_BIGWORD(mem->raw,
 					    cpu->core[0].regs[GET_RS(inst)] +
 					    SIGN_EXTEND(GET_IMM(inst)),
 					    cpu->core[0].regs[GET_RT(inst)]);
@@ -296,14 +298,21 @@ int run(cpu_t* cpu, bool debugging)
 
 int simulate(char *program, bool debug)
 {
+	/* Hardware to simulate */
+	hardware_t hardware;
+
 	/* Create a new CPU */
-	cpu_t *cpu = cpu_init(1);
+	hardware.cpu = cpu_init(1);
+
+	/* Initialize the memory */
+	hardware.mem = mem_init(MEMSZ);
 
 	/* Load the program into memory */
-	if(elf_dump(program, &(cpu->core[0].regs[REG_PC]), mem, MEMSZ) != 0) {
+	if(elf_dump(program, &(hardware.cpu->core[0].regs[REG_PC]),
+		    hardware.mem->raw, MEMSZ) != 0) {
 		printf("Elf file could not be read.\n");
 		exit(0);
 	}
 
-	return run(cpu, debug);
+	return run(&hardware, debug);
 }
