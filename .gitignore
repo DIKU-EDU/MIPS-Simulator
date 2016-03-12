@@ -1,5 +1,6 @@
-src/*.o
-src/*.swp
+*.o
+*.elf
+*.swp
 programs/*.o
 programs/*.elf
 programs/regs.txt
