@@ -100,7 +100,10 @@ reduced instruction set computing - RISC.\\
 To ease the development and debugging of KUDOS, it is desireable to run the OS
 in a simulated machine. This enables the students and other developers to
 better inspect the state of the machine while executing, as well as making up
-for the difference in the hardware of the host machine.
+for the difference in the hardware of the host machine.\\
+The task of the simulator is to immiate such a machine, including the memory
+and the I/O devices, such as the keyboard and disk-drive.
+
 
 \section{Learning objectives}
 To implement a fast, correct and efficient CPU simulator, it is essential
@@ -113,9 +116,9 @@ made when
 designing the architecture.
 \item Learn how the CPU interacts with the rest of the computer, such as
 its I/O devices using hardware interrupts.
-\item Discover how the operating system (KUDOS in our case) interacts with the 
+\item Discover how the operating system (KUDOS in our case) interacts with the
 underlying MIPS CPU.
-\item To understand the advantages and disadvantages of the MIPS architecture
+\item Understand the advantages and disadvantages of the MIPS architecture
 compared to other architectures, such as RISC-V or x86\_64.
 \end{itemize}
 
