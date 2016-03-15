@@ -13,6 +13,13 @@
 \usepackage{hyperref}
 \usepackage{pdfpages}
 \usepackage[toc,page]{appendix}
+\newcommand{\namesigdate}[2][5cm]{%
+  \begin{tabular}{@{}p{#1}@{}}
+    #2 \\[2\normalbaselineskip] \hrule \\[0pt]
+    {\small \textit{Signature}} \\[2\normalbaselineskip] \hrule \\[0pt]
+    {\small \textit{Date}}
+  \end{tabular}
+}
 
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -81,21 +88,25 @@
 \clearpage\maketitle
 \thispagestyle{empty}
 
+\vfill
+\noindent \namesigdate{Supervisor} %\hfill \namesigdate[3cm]{Name2}
+
+
 \newpage
 
 %% Write your dissertation here.
 \section{Problem statement}
-Is it possible to construct a MIPS simulator in C with a working TLB, MMU,
+Is it possible to construct a MIPS32 simulator in C with a working TLB, MMU,
 User/Kernel mode, and multiple cores, to simulate the current version of
 KUDOS on other architectures?
-How does this compare to running KUDOS on a x86-64 or a RISC-V?
+How does this compare to running KUDOS on a x86\_64 or a RISC-V?
 
 \section{Motivation}
 KUDOS is a small operating system skeleton intended to be used by students
 attending operating system project courses at university of Copenhagen.
 It is used to explore operating system concepts and to extend and improve the
 existing system.
-It is based on the MIPS architecture, which leverages on the advantages of a
+It targets the MIPS architecture, which leverages on the advantages of a
 reduced instruction set computing - RISC.\\
 To ease the development and debugging of KUDOS, it is desireable to run the OS
 in a simulated machine. This enables the students and other developers to
