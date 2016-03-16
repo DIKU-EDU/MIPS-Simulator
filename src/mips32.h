@@ -23,11 +23,26 @@
   ((mem)[(addr) - MIPS_RESERVE + 2] << 8)   | \
   ((mem)[(addr) - MIPS_RESERVE + 3]))
 
+#define GET_BIGBYTE(mem, addr) ((uint32_t)(uint8_t) \
+  ((mem)[(addr) - MIPS_RESERVE + 0])
+
+#define GET_BIGHALF(mem, addr) ((uint32_t)(uint16_t) \
+  ((mem)[(addr) - MIPS_RESERVE + 0]) \
+  ((mem)[(addr) - MIPS_RESERVE + 1] << 8)
+
 #define SET_BIGWORD(mem, addr, value) \
   (mem)[(addr) - MIPS_RESERVE + 0] = value >> 24; \
   (mem)[(addr) - MIPS_RESERVE + 1] = value << 8 >> 24; \
   (mem)[(addr) - MIPS_RESERVE + 2] = value << 16 >> 24; \
   (mem)[(addr) - MIPS_RESERVE + 3] = value << 24 >> 24;
+
+#define SET_BIGBYTE(mem, addr, value) \
+  (mem)[(addr) - MIPS_RESERVE + 0] = ((uint8_t)(value));
+
+#define SET_BIGHALF(mem, addr, value) \
+  (mem)[(addr) - MIPS_RESERVE + 0] = value >> 8; \
+  (mem)[(addr) - MIPS_RESERVE + 1] = value << 24 >> 24;
+
 
 // MIPS32 instruction parsing
 
@@ -43,8 +58,14 @@
 #define OPCODE_ANDI     (0x0C)
 #define OPCODE_ORI      (0x0D)
 #define OPCODE_LUI      (0x0F)
+#define OPCODE_LBU	(0x24)
+#define OPCODE_LHU	(0x25)
 #define OPCODE_LW       (0x23)
 #define OPCODE_SW       (0x2B)
+#define OPCODE_SB	(0x28)
+#define OPCODE_SC	(0x38)
+#define OPCODE_SH	(0x29)
+
 
 #define FUNCT_JR        (0x08)
 #define FUNCT_SYSCALL   (0x0C)
@@ -67,6 +88,7 @@ extern char* funct_codes[];
 #define LS_4B   ((1 << 4 ) - 1)
 #define LS_5B   ((1 << 5 ) - 1)
 #define LS_6B   ((1 << 6 ) - 1)
+#define LS_8B	((1 << 8 ) - 1)
 #define LS_16B  ((1 << 16) - 1)
 #define LS_26B  ((1 << 26) - 1)
 

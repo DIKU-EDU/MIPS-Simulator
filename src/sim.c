@@ -114,10 +114,13 @@ void interpret_r(uint32_t inst, core_t *core)
 
 void debug(uint32_t inst, cpu_t* cpu)
 {
+	print_instruction(inst, &cpu->core[0]);
+
 	unsigned char c[3] = {0};
 	bool stop = false;
 
 	while(stop == false) {
+		printf("> ");
 		fgets((char*)c, 3, stdin);
 
 		switch(c[0]) {
@@ -126,8 +129,8 @@ void debug(uint32_t inst, cpu_t* cpu)
 			print_registers(&cpu->core[0]);
 			break;
 
-			/* Print next instruction */
-		case 'i':
+			/* Print instruction */
+		case 'p':
 			print_instruction(inst, &cpu->core[0]);
 			break;
 
@@ -140,12 +143,14 @@ void debug(uint32_t inst, cpu_t* cpu)
 			break;
 
 			/* Continue */
+		case '\n':
 		case 'c':
-		default:
 			stop = true;
+		default:
 			break;
 		}
 	}
+	printf("\n");
 }
 
 int run(hardware_t *hw, bool debugging)
@@ -154,15 +159,12 @@ int run(hardware_t *hw, bool debugging)
 	memory_t* mem = hw->mem;
 
 	while(1) {
-
 		uint32_t inst = 0;
 		inst = (uint32_t)GET_BIGWORD(mem->raw, cpu->core[0].regs[REG_PC]);
 
 		/* Debugging */
 		if(debugging)
 			debug(inst, cpu);
-
-
 
 		/* Return v0 on SYSCALL */
 		if(inst == FUNCT_SYSCALL)
@@ -207,7 +209,7 @@ int run(hardware_t *hw, bool debugging)
 			if(cpu->core[0].regs[GET_RS(inst)] ==
 			   cpu->core[0].regs[GET_RT(inst)])
 				cpu->core[0].regs[REG_PC] += (SIGN_EXTEND(
-									  GET_IMM(inst))
+								  GET_IMM(inst))
 							      << 2);
 			break;
 
@@ -216,7 +218,7 @@ int run(hardware_t *hw, bool debugging)
 			if(cpu->core[0].regs[GET_RS(inst)] !=
 			   cpu->core[0].regs[GET_RT(inst)])
 				cpu->core[0].regs[REG_PC] += (SIGN_EXTEND(
-									  GET_IMM(inst))
+								  GET_IMM(inst))
 							      << 2);
 			break;
 
@@ -234,7 +236,7 @@ int run(hardware_t *hw, bool debugging)
 				SIGN_EXTEND(GET_IMM(inst));
 			break;
 
-			/* Set Less Than Immediate: RT = (RS < SignExtImm) ? 1 : 0 */
+		/* Set Less Than Immediate: RT = (RS < SignExtImm) ? 1 : 0 */
 		case OPCODE_SLTI:
 			cpu->core[0].regs[GET_RT(inst)] =
 				(cpu->core[0].regs[GET_RS(inst)] <
@@ -242,8 +244,8 @@ int run(hardware_t *hw, bool debugging)
 				1 : 0;
 			break;
 
-			/* Set Less Than Immediate Unsigned:
-			 * RT = (RS < SignExtImm) ? 1 : 0 */
+		/* Set Less Than Immediate Unsigned:
+		 * RT = (RS < SignExtImm) ? 1 : 0 */
 		case OPCODE_SLTIU:
 			cpu->core[0].regs[GET_RT(inst)] =
 				(cpu->core[0].regs[GET_RS(inst)] <
@@ -251,27 +253,45 @@ int run(hardware_t *hw, bool debugging)
 				1 : 0;
 			break;
 
-			/* And Immediate: RT = RS & ZeroExtImm */
+		/* And Immediate: RT = RS & ZeroExtImm */
 		case OPCODE_ANDI:
 			cpu->core[0].regs[GET_RT(inst)] =
 				cpu->core[0].regs[GET_RS(inst)] &
 				ZERO_EXTEND(GET_IMM(inst));
 			break;
 
-			/* Or Immediate: RT = RS | ZeroExtImm */
+		/* Or Immediate: RT = RS | ZeroExtImm */
 		case OPCODE_ORI:
 			cpu->core[0].regs[GET_RT(inst)] =
 				cpu->core[0].regs[GET_RS(inst)]
 				| ZERO_EXTEND(GET_IMM(inst));
 				break;
 
-				/* Load Upper Immediate: RT = Imm << 16 */
+		/* Load Upper Immediate: RT = Imm << 16 */
 		case OPCODE_LUI:
-				cpu->core[0].regs[GET_RT(inst)] = ((uint32_t)GET_IMM(inst)
-								   << 16);
+				cpu->core[0].regs[GET_RT(inst)] =
+					((uint32_t)GET_IMM(inst) << 16);
 				break;
 
-				/* Load Word: RT = M[RS + SignExtImm] */
+		/* Load Byte Unsigned: RT = MEM[RS + SignExtImm] */
+		case OPCODE_LBU:
+				cpu->core[0].regs[GET_RT(inst)] =
+				       GET_BIGWORD(mem->raw,
+						   cpu->core[0].regs[GET_RS(inst)])
+					+ SIGN_EXTEND(GET_IMM(inst))
+					& LS_8B;
+
+				break;
+		/* Load Halfword Unsigned: RT = MEM[RS + SignExtImm] */
+		case OPCODE_LHU:
+				cpu->core[0].regs[GET_RT(inst)] =
+				       GET_BIGWORD(mem->raw,
+						   cpu->core[0].regs[GET_RS(inst)])
+					+ SIGN_EXTEND(GET_IMM(inst))
+					& LS_16B;
+				break;
+
+		/* Load Word: RT = M[RS + SignExtImm] */
 		case OPCODE_LW:
 				cpu->core[0].regs[GET_RT(inst)] =
 					GET_BIGWORD(mem->raw, cpu->core[0]
@@ -279,20 +299,34 @@ int run(hardware_t *hw, bool debugging)
 					+ SIGN_EXTEND(GET_IMM(inst));
 				break;
 
-				/* Store Word: M[RS + SignExtImm] = RT */
+		/* Store Word: M[RS + SignExtImm] = RT */
 		case OPCODE_SW:
 				SET_BIGWORD(mem->raw,
 					    cpu->core[0].regs[GET_RS(inst)] +
 					    SIGN_EXTEND(GET_IMM(inst)),
 					    cpu->core[0].regs[GET_RT(inst)]);
 				break;
+
+		/* Store Byte: M[RS + SignExtImm] = RT */
+		case OPCODE_SB:
+			SET_BIGBYTE(mem->raw,
+				    cpu->core[0].regs[GET_RS(inst)] +
+				    SIGN_EXTEND(GET_IMM(inst)),
+				    cpu->core[0].regs[GET_RT(inst)]);
+			break;
+
+		/* Store Halfword: M[RS + SignExtImm] = RT */
+		case OPCODE_SH:
+			SET_BIGHALF(mem->raw,
+				    cpu->core[0].regs[GET_RS(inst)] +
+				    SIGN_EXTEND(GET_IMM(inst)),
+				    cpu->core[0].regs[GET_RT(inst)]);
+			break;
 		}
 
 
 		/* Move to next instr */
 		cpu->core[0].regs[REG_PC] += 4;
-
-
 	}
 }
 
