@@ -36,6 +36,11 @@ void print_instruction(uint32_t instr, core_t *core)
 	case OPCODE_ANDI:
 	case OPCODE_ORI:
 	case OPCODE_LUI:
+	case OPCODE_SB:
+	case OPCODE_SC:
+	case OPCODE_SH:
+	case OPCODE_LBU:
+	case OPCODE_LHU:
 	case OPCODE_LW:
 	case OPCODE_SW:
 		printf("%s  rs = %s = %d,  rt = %s = %d,  imm = %d\n",

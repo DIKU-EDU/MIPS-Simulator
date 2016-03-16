@@ -142,10 +142,11 @@ void debug(uint32_t inst, cpu_t* cpu)
 			       cpu->core[0].regs[register_to_number((char*)c)]);
 			break;
 
-			/* Continue */
-		case '\n':
+		/* Continue */
 		case 'c':
 			stop = true;
+
+		case '\n':
 		default:
 			break;
 		}
@@ -269,43 +270,43 @@ int run(hardware_t *hw, bool debugging)
 
 		/* Load Upper Immediate: RT = Imm << 16 */
 		case OPCODE_LUI:
-				cpu->core[0].regs[GET_RT(inst)] =
-					((uint32_t)GET_IMM(inst) << 16);
-				break;
+			cpu->core[0].regs[GET_RT(inst)] =
+				((uint32_t)GET_IMM(inst) << 16);
+			break;
 
 		/* Load Byte Unsigned: RT = MEM[RS + SignExtImm] */
 		case OPCODE_LBU:
-				cpu->core[0].regs[GET_RT(inst)] =
-				       GET_BIGWORD(mem->raw,
-						   cpu->core[0].regs[GET_RS(inst)])
-					+ SIGN_EXTEND(GET_IMM(inst))
-					& LS_8B;
+			cpu->core[0].regs[GET_RT(inst)] =
+			       GET_BIGWORD(mem->raw,
+					   cpu->core[0].regs[GET_RS(inst)])
+				+ SIGN_EXTEND(GET_IMM(inst))
+				& LS_8B;
 
 				break;
 		/* Load Halfword Unsigned: RT = MEM[RS + SignExtImm] */
 		case OPCODE_LHU:
-				cpu->core[0].regs[GET_RT(inst)] =
-				       GET_BIGWORD(mem->raw,
-						   cpu->core[0].regs[GET_RS(inst)])
-					+ SIGN_EXTEND(GET_IMM(inst))
-					& LS_16B;
-				break;
+			cpu->core[0].regs[GET_RT(inst)] =
+			       GET_BIGWORD(mem->raw,
+					   cpu->core[0].regs[GET_RS(inst)])
+				+ SIGN_EXTEND(GET_IMM(inst))
+				& LS_16B;
+			break;
 
 		/* Load Word: RT = M[RS + SignExtImm] */
 		case OPCODE_LW:
-				cpu->core[0].regs[GET_RT(inst)] =
-					GET_BIGWORD(mem->raw, cpu->core[0]
-						    .regs[GET_RS(inst)])
-					+ SIGN_EXTEND(GET_IMM(inst));
-				break;
+			cpu->core[0].regs[GET_RT(inst)] =
+				GET_BIGWORD(mem->raw, cpu->core[0]
+					    .regs[GET_RS(inst)])
+				+ SIGN_EXTEND(GET_IMM(inst));
+			break;
 
 		/* Store Word: M[RS + SignExtImm] = RT */
 		case OPCODE_SW:
-				SET_BIGWORD(mem->raw,
-					    cpu->core[0].regs[GET_RS(inst)] +
-					    SIGN_EXTEND(GET_IMM(inst)),
-					    cpu->core[0].regs[GET_RT(inst)]);
-				break;
+			SET_BIGWORD(mem->raw,
+				    cpu->core[0].regs[GET_RS(inst)] +
+				    SIGN_EXTEND(GET_IMM(inst)),
+				    cpu->core[0].regs[GET_RT(inst)]);
+			break;
 
 		/* Store Byte: M[RS + SignExtImm] = RT */
 		case OPCODE_SB:
