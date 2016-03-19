@@ -15,8 +15,7 @@
 void interpret_r(uint32_t inst, core_t *core)
 {
 	switch(GET_FUNCT(inst)) {
-	/* Jump register */
-	case FUNCT_JR:
+	/* Jump register */ case FUNCT_JR:
 		core->regs[REG_PC] = core->regs[GET_RS(inst)];
 		/* 4 is added later. To negate that: */
 		core->regs[REG_PC] -= 4;
@@ -185,7 +184,7 @@ int run(hardware_t *hw, bool debugging)
 		case OPCODE_J:
 			cpu->core[0].regs[REG_PC] = (cpu->core[0].regs[REG_PC]
 						     & 0xF0000000)
-			|(GET_ADDRESS(inst)<<2);
+							|(GET_ADDRESS(inst)<<2);
 
 			/* REG_PC will be incremented by 4 later... */
 			cpu->core[0].regs[REG_PC] -= 4;
@@ -276,28 +275,29 @@ int run(hardware_t *hw, bool debugging)
 
 		/* Load Byte Unsigned: RT = MEM[RS + SignExtImm] */
 		case OPCODE_LBU:
-			cpu->core[0].regs[GET_RT(inst)] =
-			       GET_BIGWORD(mem->raw,
-					   cpu->core[0].regs[GET_RS(inst)])
-				+ SIGN_EXTEND(GET_IMM(inst))
-				& LS_8B;
+			cpu->core[0].regs[GET_RT(inst)] = GET_BIGBYTE(mem->raw,
+					cpu->core[0].regs[GET_RS(inst)]	+
+					SIGN_EXTEND(GET_IMM(inst)));
 
 				break;
 		/* Load Halfword Unsigned: RT = MEM[RS + SignExtImm] */
 		case OPCODE_LHU:
-			cpu->core[0].regs[GET_RT(inst)] =
-			       GET_BIGWORD(mem->raw,
-					   cpu->core[0].regs[GET_RS(inst)])
-				+ SIGN_EXTEND(GET_IMM(inst))
-				& LS_16B;
+			cpu->core[0].regs[GET_RT(inst)] = GET_BIGHALF(mem->raw,
+					   cpu->core[0].regs[GET_RS(inst)]
+					   + SIGN_EXTEND(GET_IMM(inst)));
 			break;
 
 		/* Load Word: RT = M[RS + SignExtImm] */
 		case OPCODE_LW:
-			cpu->core[0].regs[GET_RT(inst)] =
-				GET_BIGWORD(mem->raw, cpu->core[0]
-					    .regs[GET_RS(inst)])
-				+ SIGN_EXTEND(GET_IMM(inst));
+			DUMP_MEM(mem->raw,
+				 cpu->core[0].regs[GET_RS(inst)] +
+				 SIGN_EXTEND(GET_IMM(inst)),
+				 32);
+
+			cpu->core[0].regs[GET_RT(inst)] = GET_BIGWORD(mem->raw,
+					cpu->core[0].regs[GET_RS(inst)]
+					+ SIGN_EXTEND(GET_IMM(inst)));
+
 			break;
 
 		/* Store Word: M[RS + SignExtImm] = RT */
