@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdint.h>
+
+
 #include "mips32.h"
 
 char* op_codes[] = {
@@ -135,5 +139,19 @@ char *funct_codes[] = {
 	"Invalid function",
 	NULL
 };
+
+
+void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n)
+{
+	int i;
+	for(i = 0; i < n; i++) {
+		if ((i % 16) == 0) {
+			printf("\n%08x ", addr+i);
+		}
+		printf("%02x ", mem[addr+i]);
+	}
+
+	printf("\n");
+}
 
 

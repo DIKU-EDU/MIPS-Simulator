@@ -24,11 +24,12 @@
   ((mem)[(addr) - MIPS_RESERVE + 3]))
 
 #define GET_BIGBYTE(mem, addr) ((uint32_t)(uint8_t) \
-  ((mem)[(addr) - MIPS_RESERVE + 0])
+  ((mem)[(addr) - MIPS_RESERVE]))
 
 #define GET_BIGHALF(mem, addr) ((uint32_t)(uint16_t) \
-  ((mem)[(addr) - MIPS_RESERVE + 0]) \
-  ((mem)[(addr) - MIPS_RESERVE + 1] << 8)
+  ((mem)[(addr) - MIPS_RESERVE + 0] << 8) | \
+  ((mem)[(addr) - MIPS_RESERVE + 1]))
+
 
 #define SET_BIGWORD(mem, addr, value) \
   (mem)[(addr) - MIPS_RESERVE + 0] = value >> 24; \
@@ -42,6 +43,14 @@
 #define SET_BIGHALF(mem, addr, value) \
   (mem)[(addr) - MIPS_RESERVE + 0] = value >> 8; \
   (mem)[(addr) - MIPS_RESERVE + 1] = value << 24 >> 24;
+
+
+/* Dumps the next n bytes to stdout */
+void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n);
+
+#define DUMP_MEM(mem, addr, n) do { \
+	dump_mem(mem, addr - MIPS_RESERVE, n);\
+	} while(0)
 
 
 // MIPS32 instruction parsing
