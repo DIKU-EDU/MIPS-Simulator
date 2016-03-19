@@ -289,11 +289,6 @@ int run(hardware_t *hw, bool debugging)
 
 		/* Load Word: RT = M[RS + SignExtImm] */
 		case OPCODE_LW:
-			DUMP_MEM(mem->raw,
-				 cpu->core[0].regs[GET_RS(inst)] +
-				 SIGN_EXTEND(GET_IMM(inst)),
-				 32);
-
 			cpu->core[0].regs[GET_RT(inst)] = GET_BIGWORD(mem->raw,
 					cpu->core[0].regs[GET_RS(inst)]
 					+ SIGN_EXTEND(GET_IMM(inst)));

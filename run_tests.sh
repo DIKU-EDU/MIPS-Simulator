@@ -14,7 +14,9 @@ do
 	c=$((c+1))
 
 	# Run the program
-	bin/mips-sim -p $f > /dev/null
+	 bin/mips-sim -p $f > /dev/null
+	# bin/mips-sim -p $f
+
 
 	# Get return value
 	result=$?
