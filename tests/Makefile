@@ -3,6 +3,7 @@ LD=mips-elf-ld
 AFLAGS=-mips32
 SRC=$(patsubst %.S,%.elf,$(wildcard *.S))
 
+.DEFAULT: all
 
 all: $(SRC)
 

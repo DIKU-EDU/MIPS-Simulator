@@ -1,5 +1,8 @@
 language: c
 
+install:
+        - ./tools/cross_compiler.sh
+
 script:
         - make all
         - ./run_tests.sh

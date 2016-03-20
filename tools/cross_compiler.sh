@@ -8,16 +8,16 @@ fi
 if ! [ "$NJOBS" ]; then # Passed as -j to all `make` runs
 NJOBS=4
 fi
-if ! [ "$OSM_DIR" ]; then
-OSM_DIR="$HOME/mips"
+if ! [ "$MIPS_DIR" ]; then
+MIPS_DIR="$HOME/mips"
 fi
-BUILD_DIR="$OSM_DIR/build"
+BUILD_DIR="$MIPS_DIR/build"
 
 BINUTILS_VERSION=2.26
 GCC_VERSION=5.3.0
 
-mkdir -p "$OSM_DIR"
-cd "$OSM_DIR"
+mkdir -p "$MIPS_DIR"
+cd "$MIPS_DIR"
 
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
@@ -36,7 +36,7 @@ mkdir build-binutils
 cd build-binutils
 CFLAGS='-Wno-unused-value -Wno-logical-not-parentheses' \
        ../binutils-$BINUTILS_VERSION/configure \
-       --target=mips-elf --prefix="$OSM_DIR"
+       --target=mips-elf --prefix="$MIPS_DIR"
        make -j $NJOBS
        make install
        cd ..
@@ -45,7 +45,7 @@ CFLAGS='-Wno-unused-value -Wno-logical-not-parentheses' \
        cd build-binutils
 CFLAGS='-Wno-unused-value -Wno-logical-not-parentheses' \
 	   ../binutils-$BINUTILS_VERSION/configure \
-	   --target=x86_64-elf --prefix="$OSM_DIR"
+	   --target=x86_64-elf --prefix="$MIPS_DIR"
 	   make -j $NJOBS
 	   make install
 
@@ -65,7 +65,7 @@ cd build-gcc
 ../gcc-$GCC_VERSION/configure --with-gnu-ld --with-gnu-as \
       --without-nls --enable-languages=c --disable-multilib \
       --disable-libssp --disable-libquadmath --target=mips-elf \
-      --disable-shared --prefix="$OSM_DIR"
+      --disable-shared --prefix="$MIPS_DIR"
 make -j $NJOBS
 make install
 cd ..
@@ -75,11 +75,11 @@ cd build-gcc
 ../gcc-$GCC_VERSION/configure --with-gnu-ld --with-gnu-as \
    --without-nls --enable-languages=c --disable-multilib \
    --disable-libssp --disable-libquadmath --target=x86_64-elf \
-   --disable-shared --prefix="$OSM_DIR"
+   --disable-shared --prefix="$MIPS_DIR"
    make -j $NJOBS
    make install
 fi
 
 
-
-echo "Please run: export PATH=\"$HOME/osm/bin:$PATH\""
+# PATH=$HOME/
+export PATH="$MIPS_DIR/bin:$PATH"
