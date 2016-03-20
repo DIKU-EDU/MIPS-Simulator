@@ -118,6 +118,7 @@ typedef struct core {
  */
 typedef struct cpu {
 	core_t *core;	/* The CPU cores. */
+	size_t num_cores;
 } cpu_t;
 
 

@@ -49,6 +49,7 @@ cpu_init(int n_cores)
 	cpu_t *cpu = (cpu_t*)calloc(1, sizeof(cpu_t));
 
 	cpu->core = cores;
+	cpu->num_cores = n_cores;
 
 	return cpu;
 }

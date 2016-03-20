@@ -70,6 +70,7 @@ void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n);
 #define OPCODE_LBU	(0x24)
 #define OPCODE_LHU	(0x25)
 #define OPCODE_LW       (0x23)
+#define OPCODE_LL	(0x30)
 #define OPCODE_SW       (0x2B)
 #define OPCODE_SB	(0x28)
 #define OPCODE_SC	(0x38)
