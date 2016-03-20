@@ -1,16 +1,14 @@
 #!/bin/sh
-set -e # Stop on first error.
-set -x # Print each command when executing it.
 
-if ! [ "$INSTALL_MIPS_UTILS" ]; then
-INSTALL_MIPS_UTILS=true
-fi
-if ! [ "$NJOBS" ]; then # Passed as -j to all `make` runs
+# Stop on first error
+set -e #
+
+# Print each command
+set -x
+
 NJOBS=4
-fi
-if ! [ "$MIPS_DIR" ]; then
+
 MIPS_DIR="$HOME/mips"
-fi
 BUILD_DIR="$MIPS_DIR/build"
 
 BINUTILS_VERSION=2.26
@@ -23,12 +21,9 @@ mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
 # Download.
-if [ "$INSTALL_MIPS_UTILS" = true ]; then
 wget http://ftp.gnu.org/gnu/binutils/binutils-$BINUTILS_VERSION.tar.gz
 wget ftp://ftp.mpi-sb.mpg.de/pub/gnu/mirror/gcc.gnu.org/pub/gcc/releases/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.gz
-fi
 
-if [ "$INSTALL_MIPS_UTILS" = true ]; then
 # Extract and build binutils for MIPS and x86_64.
 cd "$BUILD_DIR"
 tar zxvf binutils-$BINUTILS_VERSION.tar.gz
@@ -38,16 +33,8 @@ CFLAGS='-Wno-unused-value -Wno-logical-not-parentheses' \
        ../binutils-$BINUTILS_VERSION/configure \
        --target=mips-elf --prefix="$MIPS_DIR"
        make -j $NJOBS
-       make install
+       make install > /dev/null
        cd ..
-       rm -rf build-binutils
-       mkdir build-binutils
-       cd build-binutils
-CFLAGS='-Wno-unused-value -Wno-logical-not-parentheses' \
-	   ../binutils-$BINUTILS_VERSION/configure \
-	   --target=x86_64-elf --prefix="$MIPS_DIR"
-	   make -j $NJOBS
-	   make install
 
 # Extract and build gcc for MIPS and x86_64.
 cd "$BUILD_DIR"
@@ -67,19 +54,7 @@ cd build-gcc
       --disable-libssp --disable-libquadmath --target=mips-elf \
       --disable-shared --prefix="$MIPS_DIR"
 make -j $NJOBS
-make install
-cd ..
-rm -rf build-gcc
-mkdir build-gcc
-cd build-gcc
-../gcc-$GCC_VERSION/configure --with-gnu-ld --with-gnu-as \
-   --without-nls --enable-languages=c --disable-multilib \
-   --disable-libssp --disable-libquadmath --target=x86_64-elf \
-   --disable-shared --prefix="$MIPS_DIR"
-   make -j $NJOBS
-   make install
-fi
-
+make install > /dev/null
 
 # PATH=$HOME/
 export PATH="$MIPS_DIR/bin:$PATH"
