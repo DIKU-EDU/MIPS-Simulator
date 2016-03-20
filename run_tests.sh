@@ -37,3 +37,5 @@ done
 echo ""
 echo "$(($c-$c_failed)) out of $((c)) tests passed."
 
+# Return number of failed tests
+exit $c_failed
