@@ -2,6 +2,7 @@ language: c
 
 install:
         - ./tools/cross_compiler.sh > /dev/null
+        - export PATH=$PATH:$HOME/mips/bin/
 
 script:
         - make all
