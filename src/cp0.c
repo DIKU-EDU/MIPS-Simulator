@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "cp0.h"
 
 const char *cp0_reg_names[] = {
@@ -40,5 +41,5 @@ const char *cp0_reg_names[] = {
 	"WatchHi",
 	"PerfCtl",
 	"PerfCnt",
-}
-
+	NULL
+};

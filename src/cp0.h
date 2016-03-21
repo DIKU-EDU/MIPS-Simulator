@@ -10,7 +10,7 @@ const char *cp0_reg_names[];
 #define	REG_RANDOM	1
 #define	REG_ENTRYLO0	2
 #define	REG_ENTRYLO1	3
-#define	REG_CONTEXT	4
+#define	REG_CONTEXT2	4
 #define	REG_PAGEMASK	5
 #define	REG_WIRED	6
 #define	REG_ENTRYHI	7
@@ -45,7 +45,6 @@ const char *cp0_reg_names[];
 #define	REG_WATCHHI	36
 #define	REG_PERFCTL	37
 #define	REG_PERFCNT	38
-
 
 typedef struct cp0 {
 	uint32_t regs[CP0_NUM_REGS];
