@@ -18,11 +18,13 @@ static bool finished = false;
 /* Signals debugging */
 static bool debugging = false;
 
+
 void interpret_r(uint32_t inst, core_t *core)
 {
 	switch(GET_FUNCT(inst)) {
 	/* Jump register */ case FUNCT_JR:
 		core->regs[REG_PC] = core->regs[GET_RS(inst)];
+
 		/* 4 is added later. To negate that: */
 		core->regs[REG_PC] -= 4;
 		break;
@@ -164,6 +166,10 @@ void interpret(core_t *core, memory_t *mem)
 {
 	uint32_t inst = (uint32_t)GET_BIGWORD(mem->raw, core->regs[REG_PC]);
 
+	uint32_t s_addr = core->regs[GET_RS(inst)] + SIGN_EXTEND(GET_IMM(inst));
+
+
+
 	/* Debugging */
 	if(debugging)
 		debug(inst, core);
@@ -186,7 +192,7 @@ void interpret(core_t *core, memory_t *mem)
 	case OPCODE_J:
 		core->regs[REG_PC] = (core->regs[REG_PC]
 				      & 0xF0000000)
-			|(GET_ADDRESS(inst)<<2);
+		|(GET_ADDRESS(inst)<<2);
 
 		/* REG_PC will be incremented by 4 later... */
 		core->regs[REG_PC] -= 4;
@@ -195,12 +201,12 @@ void interpret(core_t *core, memory_t *mem)
 		/* Jump And Link: RA = PC + 8; PC = Imm;*/
 	case OPCODE_JAL:
 		core->regs[REG_RA] = core->regs[REG_PC]
-			+ 8;
+		+ 8;
 
 		/* Ordinary Jump */
 		core->regs[REG_PC] = (core->regs[REG_PC]
 				      & 0xF0000000)
-			|(GET_ADDRESS(inst)<<2);
+		|(GET_ADDRESS(inst)<<2);
 
 		/* REG_PC will be incremented by 4 later... */
 		core->regs[REG_PC] -= 4;
@@ -267,80 +273,108 @@ void interpret(core_t *core, memory_t *mem)
 		core->regs[GET_RT(inst)] =
 			core->regs[GET_RS(inst)]
 			| ZERO_EXTEND(GET_IMM(inst));
-		break;
+			break;
 
-		/* Load Upper Immediate: RT = Imm << 16 */
+			/* Load Upper Immediate: RT = Imm << 16 */
 	case OPCODE_LUI:
-		core->regs[GET_RT(inst)] =
-			((uint32_t)GET_IMM(inst) << 16);
-		break;
+			core->regs[GET_RT(inst)] =
+				((uint32_t)GET_IMM(inst) << 16);
+			break;
 
-		/* Load Byte Unsigned: RT = MEM[RS + SignExtImm] */
+			/* Load Byte Unsigned: RT = MEM[RS + SignExtImm] */
 	case OPCODE_LBU:
-		core->regs[GET_RT(inst)] = GET_BIGBYTE(mem->raw,
-						       core->regs[GET_RS(inst)]	+
-						       SIGN_EXTEND(GET_IMM(inst)));
+			core->regs[GET_RT(inst)] = GET_BIGBYTE(mem->raw,
+							       core->regs[GET_RS(inst)]	+
+							       SIGN_EXTEND(GET_IMM(inst)));
 
-		break;
-		/* Load Halfword Unsigned: RT = MEM[RS + SignExtImm] */
+			break;
+			/* Load Halfword Unsigned: RT = MEM[RS + SignExtImm] */
 	case OPCODE_LHU:
-		core->regs[GET_RT(inst)] = GET_BIGHALF(mem->raw,
-						       core->regs[GET_RS(inst)]
-						       + SIGN_EXTEND(GET_IMM(inst)));
-		break;
+			core->regs[GET_RT(inst)] = GET_BIGHALF(mem->raw,
+							       core->regs[GET_RS(inst)]
+							       + SIGN_EXTEND(GET_IMM(inst)));
+			break;
 
-		/* Load Word: RT = M[RS + SignExtImm] */
+			/* Load Word: RT = M[RS + SignExtImm] */
 	case OPCODE_LW:
-		core->regs[GET_RT(inst)] = GET_BIGWORD(mem->raw,
-						       core->regs[GET_RS(inst)]
-						       + SIGN_EXTEND(GET_IMM(inst)));
+			core->regs[GET_RT(inst)] = GET_BIGWORD(mem->raw,
+							       core->regs[GET_RS(inst)]
+							       + SIGN_EXTEND(GET_IMM(inst)));
 
-		break;
+			break;
 
 
-		/* Load Linked: RT = M[RS + SignExtImm] */
+			/* Load Linked: RT = M[RS + SignExtImm] */
 	case OPCODE_LL:
-		break;
+			core->regs[GET_RT(inst)] = GET_BIGWORD(mem->raw,
+							       core->regs[GET_RS(inst)]
+							       + SIGN_EXTEND(GET_IMM(inst)));
 
-		/* Store Word: M[RS + SignExtImm] = RT */
+			/* Store the address in CP0 */
+			core->cp0.regs[REG_LLADDR] = core->regs[GET_RS(inst)]
+			+ SIGN_EXTEND(GET_IMM(inst));
+
+			break;
+
+			/* Store Word: M[RS + SignExtImm] = RT */
 	case OPCODE_SW:
-		SET_BIGWORD(mem->raw,
-			    core->regs[GET_RS(inst)] +
-			    SIGN_EXTEND(GET_IMM(inst)),
-			    core->regs[GET_RT(inst)]);
-		break;
+			SET_BIGWORD(mem->raw,
+				    s_addr,
+				    core->regs[GET_RT(inst)]);
 
-		/* Store Byte: M[RS + SignExtImm] = RT */
+			/* If operation overwrites even part of the LLAddr, invalidate*/
+			if(abs(core->cp0.regs[REG_LLADDR] - s_addr) < 4)
+				core->cp0.regs[REG_LLADDR] = 0xffffffff;
+			break;
+
+			/* Store Byte: M[RS + SignExtImm] = RT */
 	case OPCODE_SB:
-		SET_BIGBYTE(mem->raw,
-			    core->regs[GET_RS(inst)] +
-			    SIGN_EXTEND(GET_IMM(inst)),
-			    core->regs[GET_RT(inst)]);
-		break;
+			SET_BIGBYTE(mem->raw,
+				    s_addr,
+				    core->regs[GET_RT(inst)]);
 
-		/* Store Halfword: M[RS + SignExtImm] = RT */
+			/* If operation overwrites even part of the LLAddr, invalidate*/
+			if(core->cp0.regs[REG_LLADDR] ==  s_addr)
+				core->cp0.regs[REG_LLADDR] = 0xffffffff;
+
+			break;
+
+			/* Store Halfword: M[RS + SignExtImm] = RT */
 	case OPCODE_SH:
-		SET_BIGHALF(mem->raw,
-			    core->regs[GET_RS(inst)] +
-			    SIGN_EXTEND(GET_IMM(inst)),
-			    core->regs[GET_RT(inst)]);
-		break;
+			SET_BIGHALF(mem->raw,
+				    s_addr,
+				    core->regs[GET_RT(inst)]);
 
-	/* SPECIAL OPCODES */
+			/* If operation overwrites even part of the LLAddr, invalidate*/
+			if(abs(core->cp0.regs[REG_LLADDR] - s_addr) < 2)
+				core->cp0.regs[REG_LLADDR] = 0xffffffff;
+
+			break;
+
+	case OPCODE_SC:
+			if(core->cp0.regs[REG_LLADDR] == s_addr) {
+				SET_BIGWORD(mem->raw, s_addr, core->regs[GET_RT(inst)]);
+				core->regs[GET_RT(inst)] = 1;
+			} else {
+				core->regs[GET_RT(inst)] = 0;
+			}
+			break;
+
+			/* SPECIAL OPCODES */
 	case OPCODE_CP0:
-		/* Function in encoded in RS */
-		switch(GET_RS(inst)) {
+			/* Function in encoded in RS */
+			switch(GET_RS(inst)) {
 
-		/* Move From CP0 */
-		case CP0_MFC0:
-			core->regs[GET_RT(inst)] = core->cp0.regs[GET_RD(inst)];
-			break;
+				/* Move From CP0 */
+			case CP0_MFC0:
+				core->regs[GET_RT(inst)] = core->cp0.regs[GET_RD(inst)];
+				break;
 
-		/* Move To CP0 */
-		case CP0_MTC0:
-			core->cp0.regs[GET_RD(inst)] = core->regs[GET_RT(inst)];
-			break;
-		}
+				/* Move To CP0 */
+			case CP0_MTC0:
+				core->cp0.regs[GET_RD(inst)] = core->regs[GET_RT(inst)];
+				break;
+			}
 
 
 	}

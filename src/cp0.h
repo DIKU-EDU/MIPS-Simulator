@@ -2,7 +2,7 @@
 #define _CP0_H
 #include <stdint.h>
 
-#define CP0_NUM_REGS	39
+#define CP0_NUM_REGS	40
 extern char *cp0_reg_names[CP0_NUM_REGS];
 
 
@@ -45,6 +45,9 @@ extern char *cp0_reg_names[CP0_NUM_REGS];
 #define	REG_WATCHHI	36
 #define	REG_PERFCTL	37
 #define	REG_PERFCNT	38
+
+/* XXX: Where is the LLVAL really stored? */
+#define REG_LLVAL	39
 
 typedef struct cp0 {
 	uint32_t regs[CP0_NUM_REGS];
