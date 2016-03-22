@@ -325,6 +325,24 @@ void interpret(core_t *core, memory_t *mem)
 			    SIGN_EXTEND(GET_IMM(inst)),
 			    core->regs[GET_RT(inst)]);
 		break;
+
+	/* SPECIAL OPCODES */
+	case OPCODE_CP0:
+		/* Function in encoded in RS */
+		switch(GET_RS(inst)) {
+
+		/* Move From CP0 */
+		case CP0_MFC0:
+			core->regs[GET_RT(inst)] = core->cp0.regs[GET_RD(inst)];
+			break;
+
+		/* Move To CP0 */
+		case CP0_MTC0:
+			core->cp0.regs[GET_RD(inst)] = core->regs[GET_RT(inst)];
+			break;
+		}
+
+
 	}
 
 	/* Move to next instr */
@@ -343,7 +361,6 @@ int run(hardware_t *hw)
 			interpret(&cpu->core[i], mem);
 		}
 	}
-
 	return cpu->core[0].regs[REG_V0];
 }
 

@@ -2,9 +2,9 @@
 #define _CP0_H
 #include <stdint.h>
 
-const char *cp0_reg_names[];
-
 #define CP0_NUM_REGS	39
+extern char *cp0_reg_names[CP0_NUM_REGS];
+
 
 #define	REG_CONTEXT	0
 #define	REG_RANDOM	1
@@ -50,5 +50,8 @@ typedef struct cp0 {
 	uint32_t regs[CP0_NUM_REGS];
 
 } cp0_t;
+
+
+void cp0_dump_registers(cp0_t *cp0);
 
 #endif /* _CP0_H */

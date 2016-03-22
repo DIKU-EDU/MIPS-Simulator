@@ -54,7 +54,7 @@ void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n);
 
 
 // MIPS32 instruction parsing
-
+/* OPCODES */
 #define OPCODE_R        (0x00)
 #define OPCODE_J        (0x02)
 #define OPCODE_JAL      (0x03)
@@ -76,7 +76,10 @@ void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n);
 #define OPCODE_SC	(0x38)
 #define OPCODE_SH	(0x29)
 
+/* Special OPCODES */
+#define OPCODE_CP0	(0x10)
 
+/* FUNCTS */
 #define FUNCT_JR        (0x08)
 #define FUNCT_SYSCALL   (0x0C)
 #define FUNCT_ADD       (0x20)
@@ -90,6 +93,11 @@ void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n);
 #define FUNCT_SLTU      (0x2B)
 #define FUNCT_SLL       (0x00)
 #define FUNCT_SRL       (0x02)
+
+/* Special RS-field encodings */
+#define CP0_MFC0 0x00
+#define CP0_MTC0 0x04
+
 
 extern char* op_codes[];
 extern char* funct_codes[];

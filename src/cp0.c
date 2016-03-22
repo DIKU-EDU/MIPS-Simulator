@@ -1,7 +1,8 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "cp0.h"
 
-const char *cp0_reg_names[] = {
+char *cp0_reg_names[] = {
 	"Context",	/* memory management (TLB) */
 	"Random",
 	"EntryLo0",
@@ -14,7 +15,7 @@ const char *cp0_reg_names[] = {
 	"BadVAddr",	/* Program address of the violation */
 	"Count",	/* high-resolution time */
 	"Compare",
-	"SR",		/* Status Register */
+	"Status",		/* Status Register */
 	"IntCtl",	/* Interrupt vector setup */
 	"SRSCtl",	/* Shadow register control */
 	"SRSMap",	/* Shadow register map */
@@ -43,3 +44,15 @@ const char *cp0_reg_names[] = {
 	"PerfCnt",
 	NULL
 };
+
+
+
+void cp0_dump_registers(cp0_t *cp0)
+{
+	int i;
+       for(i = 0; i < CP0_NUM_REGS; i++) {
+		printf("%s\t\t%d\n",cp0_reg_names[i], cp0->regs[i]);
+       }
+	return;
+}
+

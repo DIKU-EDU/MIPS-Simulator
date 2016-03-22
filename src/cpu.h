@@ -1,11 +1,11 @@
 #ifndef _CPU_H
 #define _CPU_H
 
-
 #include <stddef.h>
 #include <stdint.h>
 
 #include "mips32.h"
+#include "cp0.h"
 
 /* Registers */
 #define NUM_REGISTERS	33		/* PC included as 33 */
@@ -110,7 +110,10 @@ typedef union instr {
  */
 typedef struct core {
 	uint32_t regs[NUM_REGISTERS];
+	cp0_t cp0;
+
 } core_t;
+
 
 
 /*
