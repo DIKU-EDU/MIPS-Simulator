@@ -41,8 +41,7 @@ char *cp0_reg_names[] = {
 	"WatchLo",	/* Data watchpoint facility */
 	"WatchHi",
 	"PerfCtl",
-	"PerfCnt",
-	NULL
+	"PerfCnt"
 };
 
 
