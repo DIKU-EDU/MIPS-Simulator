@@ -50,6 +50,15 @@ void print_instruction(uint32_t instr, core_t *core)
 		       GET_IMM(instr));
 		return;
 
+
+	/* SPECIAL */
+	case OPCODE_CP0:
+		printf("%s, %s  rt = %s = %d,  rd = %s = %d\n",
+		       op_codes[GET_OPCODE(instr)],
+			cp0_codes[GET_RS(instr)],
+		       reg_names[GET_RT(instr)], core->regs[GET_RT(instr)],
+		       cp0_reg_names[GET_RD(instr)], core->cp0.regs[GET_RD(instr)]);
+		return;
 	default:
 		printf("Unknown instruction: 0x%08X", instr);
 	}

@@ -140,7 +140,13 @@ char *funct_codes[] = {
 	NULL
 };
 
-
+char* cp0_codes[] = {
+	"MFC0",
+	"UNKNOWN",
+	"UNKNOWN",
+	"UNKNOWN",
+	"MTC0"
+};
 void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n)
 {
 	int i;
