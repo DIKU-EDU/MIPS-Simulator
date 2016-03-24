@@ -105,6 +105,59 @@ typedef union instr {
 
 
 
+/* CPU Structs */
+/* Pipeline register */
+typedef struct reg_if_id {
+	uint32_t inst;
+	uint32_t next_pc;
+} if_id_t;
+
+typedef struct reg_id_ex {
+	bool reg_dst;
+	bool alu_src;
+	bool reg_write;
+	bool branch;
+	bool mem_read;
+	bool mem_write;
+	bool mem_to_reg;
+
+	uint8_t shamt;
+	uint8_t funct;
+
+	uint32_t next_pc;
+	uint32_t rs_value;
+	uint32_t rt_value;
+
+	int32_t sign_ext_imm;
+	uint8_t rs;
+	uint8_t rt;
+	uint8_t rd;
+} id_ex_t;
+
+typedef struct reg_ex_mem {
+	bool reg_write;
+	bool branch;
+	bool mem_read;
+	bool mem_write;
+	bool mem_to_reg;
+
+	uint32_t eff_addr;
+	uint32_t alu_res;
+	uint32_t rt_value;
+
+	uint8_t dest_reg;
+} ex_mem_t;
+
+typedef struct reg_mem_wb {
+	bool reg_write;
+	bool mem_to_reg;
+
+	uint32_t alu_res;
+	uint32_t read_data;
+
+	uint8_t dest_reg;
+} mem_wb_t;
+
 /*
  * Core structure of the CPU
  */
@@ -112,8 +165,12 @@ typedef struct core {
 	uint32_t regs[NUM_REGISTERS];
 	cp0_t cp0;
 
+	/* Pipeline registers */
+	if_id_t		if_id;
+	id_ex_t		id_ex;
+	ex_mem_t	ex_mem;
+	mem_wb_t	mem_wb;
 } core_t;
-
 
 
 /*

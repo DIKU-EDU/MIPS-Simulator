@@ -383,6 +383,28 @@ void interpret(core_t *core, memory_t *mem)
 	core->regs[REG_PC] += 4;
 }
 
+void interpret_if()
+{
+}
+
+void interpret_id()
+{
+}
+void interpret_ex()
+{
+}
+void interpret_mem()
+{
+}
+void interpret_wb()
+{
+}
+
+
+
+
+
+
 int run(hardware_t *hw)
 {
 	cpu_t* cpu = hw->cpu;
