@@ -5,9 +5,7 @@ c_failed=0
 c=0
 
 # Make the tests directory
-cd tests
-make all
-cd ..
+make -C tests all
 
 for f in tests/*.elf
 do
