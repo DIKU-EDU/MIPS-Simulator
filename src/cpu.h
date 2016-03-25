@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "mips32.h"
 #include "cp0.h"
@@ -113,16 +114,20 @@ typedef struct reg_if_id {
 } if_id_t;
 
 typedef struct reg_id_ex {
+	/* Control */
 	bool reg_dst;
+	uint8_t alu_op : 2;
 	bool alu_src;
-	bool reg_write;
 	bool branch;
 	bool mem_read;
 	bool mem_write;
+	bool reg_write;
 	bool mem_to_reg;
 
-	uint8_t shamt;
-	uint8_t funct;
+	uint8_t shamt : 5;
+	uint8_t funct : 6;
+
+
 
 	uint32_t next_pc;
 	uint32_t rs_value;
@@ -141,11 +146,14 @@ typedef struct reg_ex_mem {
 	bool mem_write;
 	bool mem_to_reg;
 
+	uint32_t branch_target;
+
 	uint32_t eff_addr;
 	uint32_t alu_res;
+
 	uint32_t rt_value;
 
-	uint8_t dest_reg;
+	uint8_t reg_dst;
 } ex_mem_t;
 
 typedef struct reg_mem_wb {
@@ -155,7 +163,7 @@ typedef struct reg_mem_wb {
 	uint32_t alu_res;
 	uint32_t read_data;
 
-	uint8_t dest_reg;
+	uint8_t reg_dst;
 } mem_wb_t;
 
 /*
