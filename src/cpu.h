@@ -115,14 +115,14 @@ typedef struct reg_if_id {
 
 typedef struct reg_id_ex {
 	/* Control */
-	bool reg_dst;
-	uint8_t alu_op : 2;
-	bool alu_src;
-	bool branch;
-	bool mem_read;
-	bool mem_write;
-	bool reg_write;
-	bool mem_to_reg;
+	bool c_reg_dst;
+	uint8_t c_alu_op : 2;
+	bool c_alu_src;
+	bool c_branch;
+	bool c_mem_read;
+	bool c_mem_write;
+	bool c_reg_write;
+	bool c_mem_to_reg;
 
 	uint8_t shamt : 5;
 	uint8_t funct : 6;
@@ -140,11 +140,12 @@ typedef struct reg_id_ex {
 } id_ex_t;
 
 typedef struct reg_ex_mem {
-	bool reg_write;
-	bool branch;
-	bool mem_read;
-	bool mem_write;
-	bool mem_to_reg;
+	/* Control */
+	bool c_reg_write;
+	bool c_branch;
+	bool c_mem_read;
+	bool c_mem_write;
+	bool c_mem_to_reg;
 
 	uint32_t branch_target;
 
@@ -157,8 +158,9 @@ typedef struct reg_ex_mem {
 } ex_mem_t;
 
 typedef struct reg_mem_wb {
-	bool reg_write;
-	bool mem_to_reg;
+	/* Control */
+	bool c_reg_write;
+	bool c_mem_to_reg;
 
 	uint32_t alu_res;
 	uint32_t read_data;

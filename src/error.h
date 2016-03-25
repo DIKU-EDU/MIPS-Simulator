@@ -5,8 +5,8 @@
 #include <errno.h>
 #include <string.h>
 
-#define LOG(str, ...) fprintf(stdout, "[LOG] %s:%d: " str "\n", \
-			      __FILE__, __LINE__, ##__VA_ARGS__)
+#define LOG(str, ...) fprintf(stdout, "[LOG] %s, %s():%d: " str "\n", \
+			      __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 #define ERROR(str, ...) fprintf(stderr, "[ERROR] %s:%d: " str "\n", \
 				__FILE__, __LINE__, ##__VA_ARGS__)

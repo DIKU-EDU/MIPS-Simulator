@@ -397,6 +397,8 @@ void interpret(core_t *core, memory_t *mem)
 
 void interpret_if(core_t *core, memory_t *mem)
 {
+	LOG();
+
 	/* Fetch the next instruction */
 	core->if_id.inst = GET_BIGWORD(mem->raw, core->regs[REG_PC]);
 
@@ -408,55 +410,59 @@ void interpret_if(core_t *core, memory_t *mem)
 /* Control unit in the ID stage */
 void interpret_id_control(core_t *core)
 {
+	LOG();
+
 	uint32_t inst = IF_ID.inst;
 
 	/* COD5, page 302, fig. 4.49 */
 	switch(GET_OPCODE(inst))
 	{
 	case OPCODE_R:
-		ID_EX.reg_dst		= 1;
-		ID_EX.alu_op		= 0x02;
-		ID_EX.alu_src		= 0;
-		ID_EX.branch		= 0;
-		ID_EX.mem_read		= 0;
-		ID_EX.mem_write		= 0;
-		ID_EX.reg_write		= 1;
-		ID_EX.mem_to_reg	= 0;
+		ID_EX.c_reg_dst		= 1;
+		ID_EX.c_alu_op		= 0x02;
+		ID_EX.c_alu_src		= 0;
+		ID_EX.c_branch		= 0;
+		ID_EX.c_mem_read	= 0;
+		ID_EX.c_mem_write	= 0;
+		ID_EX.c_reg_write	= 1;
+		ID_EX.c_mem_to_reg	= 0;
 		break;
 
 	case OPCODE_LW:
-		ID_EX.reg_dst		= 0;
-		ID_EX.alu_op		= 0x00;
-		ID_EX.alu_src		= 1;
-		ID_EX.branch		= 0;
-		ID_EX.mem_read		= 1;
-		ID_EX.mem_write		= 0;
-		ID_EX.reg_write		= 1;
-		ID_EX.mem_to_reg	= 1;
+		ID_EX.c_reg_dst		= 0;
+		ID_EX.c_alu_op		= 0x00;
+		ID_EX.c_alu_src		= 1;
+		ID_EX.c_branch		= 0;
+		ID_EX.c_mem_read	= 1;
+		ID_EX.c_mem_write	= 0;
+		ID_EX.c_reg_write	= 1;
+		ID_EX.c_mem_to_reg	= 1;
 		break;
 
 	case OPCODE_SW:
-		ID_EX.alu_op		= 0x00;
-		ID_EX.alu_src		= 1;
-		ID_EX.branch		= 0;
-		ID_EX.mem_read		= 0;
-		ID_EX.mem_write		= 1;
-		ID_EX.reg_write		= 0;
+		ID_EX.c_alu_op		= 0x00;
+		ID_EX.c_alu_src		= 1;
+		ID_EX.c_branch		= 0;
+		ID_EX.c_mem_read	= 0;
+		ID_EX.c_mem_write	= 1;
+		ID_EX.c_reg_write	= 0;
 		break;
 
 	case OPCODE_BEQ:
-		ID_EX.alu_op		= 0x01;
-		ID_EX.alu_src		= 0;
-		ID_EX.branch		= 1;
-		ID_EX.mem_read		= 0;
-		ID_EX.mem_write		= 0;
-		ID_EX.reg_write		= 0;
+		ID_EX.c_alu_op		= 0x01;
+		ID_EX.c_alu_src		= 0;
+		ID_EX.c_branch		= 1;
+		ID_EX.c_mem_read	= 0;
+		ID_EX.c_mem_write	= 0;
+		ID_EX.c_reg_write	= 0;
 		break;
 	}
 }
 
 void interpret_id(core_t *core)
 {
+	LOG();
+
 	uint32_t inst = IF_ID.inst;
 
 	ID_EX.rt = GET_RT(inst);
@@ -473,19 +479,22 @@ void interpret_id(core_t *core)
  * COD5, page 301, fig. 4.47 */
 void interpret_ex_alu(core_t *core)
 {
+	LOG();
+
+
 	uint32_t a = ID_EX.rs_value;
 
 	/* MUX for alu_src */
-	uint32_t b = ID_EX.alu_src == 0 ? ID_EX.rt_value : ID_EX.sign_ext_imm ;
+	uint32_t b = ID_EX.c_alu_src == 0 ? ID_EX.rt_value : ID_EX.sign_ext_imm ;
 
 	/* LW and SW */
-	if(ID_EX.alu_op == 0x00) {
+	if(ID_EX.c_alu_op == 0x00) {
 		EX_MEM.alu_res = a + b;
 		return;
 	}
 
 	/* Branch Equal */
-	if(ID_EX.alu_op == 0x01) {
+	if(ID_EX.c_alu_op == 0x01) {
 		EX_MEM.alu_res = a - b;
 		return;
 	}
@@ -543,17 +552,19 @@ void interpret_ex_alu(core_t *core)
 
 void interpret_ex(core_t *core)
 {
+	LOG();
+
 	/* Pipe to next pipeline registers */
 	/* MEM */
-	EX_MEM.branch		= ID_EX.branch;
-	EX_MEM.mem_read		= ID_EX.mem_read;
-	EX_MEM.mem_write	= ID_EX.mem_write;
+	EX_MEM.c_branch		= ID_EX.c_branch;
+	EX_MEM.c_mem_read	= ID_EX.c_mem_read;
+	EX_MEM.c_mem_write	= ID_EX.c_mem_write;
 	/* WB */
-	EX_MEM.reg_write	= ID_EX.reg_write;
-	EX_MEM.mem_to_reg	= ID_EX.mem_to_reg;
+	EX_MEM.c_reg_write	= ID_EX.c_reg_write;
+	EX_MEM.c_mem_to_reg	= ID_EX.c_mem_to_reg;
 
 	/* MUX for RegDST */
-	EX_MEM.reg_dst = ID_EX.reg_dst == 0 ? ID_EX.rt : ID_EX.rd;
+	EX_MEM.reg_dst = ID_EX.c_reg_dst == 0 ? ID_EX.rt : ID_EX.rd;
 
 	/* ALU */
 	interpret_ex_alu(core);
@@ -565,17 +576,19 @@ void interpret_ex(core_t *core)
 
 void interpret_mem(core_t *core, memory_t *mem)
 {
-	MEM_WB.reg_write	= EX_MEM.reg_write;
+	LOG();
+
+	MEM_WB.c_reg_write	= EX_MEM.c_reg_write;
 	MEM_WB.reg_dst		= EX_MEM.reg_dst;
-	MEM_WB.mem_to_reg	= EX_MEM.mem_to_reg;
+	MEM_WB.c_mem_to_reg	= EX_MEM.c_mem_to_reg;
 	MEM_WB.alu_res		= EX_MEM.alu_res;
 
 	/* If read */
-	if(EX_MEM.mem_read)
+	if(EX_MEM.c_mem_read)
 		MEM_WB.read_data = GET_BIGWORD(mem->raw, EX_MEM.alu_res);
 
 	/* If write */
-	if(EX_MEM.mem_write)
+	if(EX_MEM.c_mem_write)
 		SET_BIGWORD(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
 
 }
@@ -583,11 +596,13 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 void interpret_wb(core_t *core)
 {
+	LOG();
+
 	/* mem_to_reg MUS */
-	uint32_t data = MEM_WB.mem_to_reg ? MEM_WB.read_data : MEM_WB.alu_res;
+	uint32_t data = MEM_WB.c_mem_to_reg ? MEM_WB.read_data : MEM_WB.alu_res;
 
 	/* Write back */
-	if(MEM_WB.reg_write) {
+	if(MEM_WB.c_reg_write) {
 		core->regs[MEM_WB.reg_dst] = data;
 	}
 }
@@ -595,6 +610,8 @@ void interpret_wb(core_t *core)
 /* Simulates a clock-tick */
 void tick(hardware_t *hw)
 {
+	LOG("tick ... ");
+
 	cpu_t* cpu = hw->cpu;
 	memory_t* mem = hw->mem;
 
