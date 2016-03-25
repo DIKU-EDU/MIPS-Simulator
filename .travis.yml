@@ -1,9 +1,9 @@
 language: c
 
 install:
+        - make all
         - ./tools/cross_compiler.sh > /dev/null
         - export PATH=$PATH:$HOME/mips/bin/
 
 script:
-        - make all
         - ./run_tests.sh
