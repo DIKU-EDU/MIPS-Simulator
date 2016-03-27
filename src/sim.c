@@ -402,6 +402,10 @@ void interpret_if(core_t *core, memory_t *mem)
 	/* Fetch the next instruction */
 	core->if_id.inst = GET_BIGWORD(mem->raw, core->regs[REG_PC]);
 
+	DEBUG("PC = %d", core->regs[REG_PC]);
+
+	print_instruction(IF_ID.inst, core);
+
 	/* Point PC to next instruction and store in pipeline reg */
 	core->regs[REG_PC] += 4;
 	core->if_id.next_pc = PC;
@@ -470,6 +474,7 @@ void interpret_id(core_t *core)
 	ID_EX.rt_value = core->regs[GET_RT(inst)];
 	ID_EX.rt = GET_RT(inst);
 	ID_EX.sign_ext_imm = SIGN_EXTEND(GET_IMM(inst));
+	ID_EX.funct = GET_FUNCT(inst);
 
 	/* Control unit */
 	interpret_id_control(core);
@@ -480,7 +485,6 @@ void interpret_id(core_t *core)
 void interpret_ex_alu(core_t *core)
 {
 	LOG();
-
 
 	uint32_t a = ID_EX.rs_value;
 
@@ -543,6 +547,10 @@ void interpret_ex_alu(core_t *core)
 			/* Huh ? */
 			break;
 
+		case FUNCT_SYSCALL:
+			LOG("SYSCALL Caught");
+			finished = true;
+			break;
 		default:
 			ERROR("Unknown funct: 0x%x", ID_EX.funct);
 			break;
@@ -584,12 +592,23 @@ void interpret_mem(core_t *core, memory_t *mem)
 	MEM_WB.alu_res		= EX_MEM.alu_res;
 
 	/* If read */
-	if(EX_MEM.c_mem_read)
+	if(EX_MEM.c_mem_read) {
 		MEM_WB.read_data = GET_BIGWORD(mem->raw, EX_MEM.alu_res);
 
+
+		LOG("alu_res = %d\nread_data = %d", EX_MEM.alu_res,
+		    MEM_WB.read_data);
+	    }
+
 	/* If write */
-	if(EX_MEM.c_mem_write)
+	if(EX_MEM.c_mem_write) {
 		SET_BIGWORD(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+
+
+		LOG("alu_res = %d\nrt_value = %d", EX_MEM.alu_res,
+		    EX_MEM.rt_value);
+
+	}
 
 }
 
@@ -629,6 +648,7 @@ void tick(hardware_t *hw)
 int run(hardware_t *hw)
 {
 	while(finished == false) {
+		getchar();
 		tick(hw);
 	}
 
@@ -656,7 +676,7 @@ int simulate(char *program, bool debug)
 	/* Load the program into memory */
 	if(elf_dump(program, &(hardware.cpu->core[0].regs[REG_PC]),
 		    hardware.mem->raw, MEMSZ) != 0) {
-		printf("Elf file could not be read.\n");
+		ERROR("Elf file could not be read.");
 		exit(0);
 	}
 
