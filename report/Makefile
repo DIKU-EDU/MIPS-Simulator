@@ -1,15 +1,18 @@
 OUTDIR    = $(CURDIR)/output
 TARGET    = $(OUTDIR)/report.pdf
-SRC       = $(wildcard *.tex)
+SRC       = main
 COMPILE   = pdflatex -output-directory=$(OUTDIR) -file-line-error $(SRC)
 
-default: all
+default: view
 all:
 	-mkdir -p $(OUTDIR)
-	$(COMPILE) && $(COMPILE)
+	$(COMPILE)
+	bibtex $(SRC)
+	$(COMPILE)
+	$(COMPILE)
 
 view: all
-	xpdf $(OUTDIR)/main.pdf
+	evince $(OUTDIR)/main.pdf
 
 clean:
 	rm -r $(OUTDIR)
