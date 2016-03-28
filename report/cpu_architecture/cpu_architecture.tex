@@ -85,12 +85,22 @@ coprocessor COP1 (FPU), the user defined COP2.
 Each instruction in MIPS is 32-bit long, aligned to word. This simplifies the
 instruction fetching, decoding, as well as disassembly of the program.
 
-In MIPS, the instructions have 3 basic formats:
-\begin{center}
-\includegraphics{cpu_architecture/r_format.eps}
-\includegraphics{cpu_architecture/i_format.eps}
-\includegraphics{cpu_architecture/j_format.eps}
-\end{center}
+In MIPS, the instructions have 3 basic formats
+:
+\begin{figure}[ht]
+\centering
+\subfigure[R-Format]{%
+	\includegraphics{cpu_architecture/r_format.eps}
+	\label{fig:instruction_r_format}}
+\subfigure[I-Format]{%
+	\includegraphics{cpu_architecture/i_format.eps}
+	\label{fig:instruction_i_format}}
+\subfigure[J-Format]{%
+	\includegraphics{cpu_architecture/j_format.eps}
+	\label{fig:instruction_j_format}}
+\label{fig:instruction_formats}
+\end{figure}
 
-
+It is clear that as they have common fields, mainly the opcode field, they are
+easily distinguishable.
 
