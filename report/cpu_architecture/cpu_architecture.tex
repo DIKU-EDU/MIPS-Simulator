@@ -1,0 +1,96 @@
+At the heart of every computer lies the Central Processing Unit (CPU),
+which is
+an electronic circuit that carries out the basic arimethic- and logic
+calculation as well as process and redirect input and output to other devices
+in the computer.
+
+Most modern CPUs are contained on a very small, yet packed intergrated circuit
+chip, which can also house memory caches, multiple cores, and other processing
+units.
+
+The functionality of all processors is fundamentally the same. The processor
+executes some primitive operation by fetching an instruction in the form of
+binary signals, act upon the instruction and store the result in either
+one of the its registers, or in the main memory.
+
+Because it is hard and time-consuming to write programs using only the assembly language (writing
+only the instructions), compilers are used to remove this complexity. A
+compiler takes a high-level language, such as C, C++ or Java, and creates the
+corresponding assembly language program for the specific architecture,
+containing the instructions. This assembly language file is in turn assembled
+or translated to binary, that the particular CPU can understand.
+
+Besides hiding the complexity of the underlying architecture away from the
+programmer, it can usually also compile programs to multiple architectures as
+well as optimising the code to run faster.
+
+\subsection{Instruction Set Architectures}
+The instructions supported by a particular processor is determined by the
+Instruction Set Architecture (ISA), which is the specification of how the CPU
+works. An ISA determines the instructions
+supported, the registers available, memory architecture, addressing modes as
+well as handling of interrupts.
+
+There exists many different types of ISAs, with both their advantages and
+disadvantages. For example, some architectures have a very few instructions
+and
+registers, which is very practical for small embedded devices, whereas large
+servers might make use of a large array of registers for complex computations.
+
+Besides the current use of an architecture, designers must also take into
+account its future uses and applications. As the world of computation is ever
+growing and evolving at exponential rates, the architectures must be up to the
+challenge of future computing. Introducing a completely new architecture to
+the market is very troublesome, and causes a list of problems.
+One of the main issues is that old software written for older architectures
+will no longer work, and it requires to be either recompiled, rewritten,
+or even emulated. One such example is the Intel Itanium (IA-64) architecture,
+which had a very bad marked reception due to its lack of backwards compatibility
+with the x86 architecture. The emulation of the architecture on IA-64 yielded
+suboptimal performance and ultimately lost to the AMD x86\_64, which in turn was
+compatible.\cite{anandtech:1854}
+
+Indeed, there are a lot of factors to take into account when designing a new
+architecture, and every decision has big implications on the future of the
+whole ISA.
+
+\subsection{MIPS}
+MIPS is a reduced instruction set architecture (RISC) instruction set
+architecture, developed by MIPS technologies in 1981. As an RISC
+architecture, MIPS aims to implement only the most essential instructions, so
+that they in return can get highly optimised. This is the based on the RISC
+philosophy, that by implementing only the most common instructions, the
+architects can simplify the design and speed up the crucial parts of the
+instructions. This enables the processor to execute programs faster, but also
+removes a lot of complexity of implementing large programs.
+
+In contrast to RISC, complex instruction set architecture (CISC) aims
+to reduce the number of instructions needed to execute a program by
+implementing instructions packed with functionality. This means that a single
+instruction in CISC can execute several operations at once, such as loading from memory, arithmetic
+and storing. While complex programs indeed execute faster on a CISC architecture,
+the burden of implementing efficient and maintainable code and compilers can
+outweigh its advantages. \cite{Patterson:1980:CRI:641914.641917}
+
+The first versions of MIPS were 32-bit, moving on to creating 64-bit versions
+for computationally heavy applications. It has 31 general purpose (GP)
+registers, with additional registers per co-processing unit. MIPS supports up
+to 4 coprocessors (COP), with each COP extending on the basic functionality. The
+only required co-processor is COP0, which is the System Control Coprocessor.
+Other co-processors usually available, but not required, are the floating-point operation
+coprocessor COP1 (FPU), the user defined COP2.
+
+
+\subsection{MIPS Instruction Set}
+Each instruction in MIPS is 32-bit long, aligned to word. This simplifies the
+instruction fetching, decoding, as well as disassembly of the program.
+
+In MIPS, the instructions have 3 basic formats:
+\begin{center}
+\includegraphics{cpu_architecture/r_format.eps}
+\includegraphics{cpu_architecture/i_format.eps}
+\includegraphics{cpu_architecture/j_format.eps}
+\end{center}
+
+
+

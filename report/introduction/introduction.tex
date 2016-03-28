@@ -1,7 +1,9 @@
 This report describes the development of a MIPS simulator, intended to support
 the operating system KUDOS. The simulator will be written in C, and will
-support the most important processor features such as the translation lookaside
-buffer (TLB), memory management unit (MMU), user and kernel CPU modes, multiple
+support the most important processor features such as the translation
+lookaside
+buffer (TLB), memory management unit (MMU), user and kernel CPU modes,
+multiple
 cores (SMP), and I/O device emulation. \\
 
 
@@ -22,9 +24,9 @@ for the difference in the hardware of the host machine.
 Simulation is the act of imitating the operation of an existing system. In our
 case, we will be imitating, or rather, simulating a MIPS machine running
 KUDOS.\\
-Unlike emulating a system, the simulator will execute every instruction exactly
+Unlike emulating a system, the simulator will execute every instruction
+exactly
 as a hardware machine might do. This allows the developer to not only see how
 a program behaves, but also the internal state of the machine, its memory,
-registers and so on.
-
+registers and so on.\\
 
