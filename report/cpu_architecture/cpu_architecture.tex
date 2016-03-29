@@ -13,8 +13,12 @@ executes some primitive operation by fetching an instruction in the form of
 binary signals, act upon the instruction and store the result in either
 one of the its registers, or in the main memory.
 
-Because it is hard and time-consuming to write programs using only the assembly language (writing
-only the instructions), compilers are used to remove this complexity. A
+A single instruction does very little, but a collection of instructions make up
+a program. In the very early computing days, computers were programmed in an
+assembly language, which is simply human-readable instruction code. As the
+computers grew more powerful, more complex and much larger programs could be
+executed. Because it is hard and time-consuming to write programs using only the
+assembly language, compilers are used to remove this complexity. A
 compiler takes a high-level language, such as C, C++ or Java, and creates the
 corresponding assembly language program for the specific architecture,
 containing the instructions. This assembly language file is in turn assembled
@@ -33,8 +37,7 @@ well as handling of interrupts.
 
 There exists many different types of ISAs, with both their advantages and
 disadvantages. For example, some architectures have a very few instructions
-and
-registers, which is very practical for small embedded devices, whereas large
+and registers, which is very practical for small embedded devices, whereas large
 servers might make use of a large array of registers for complex computations.
 
 Besides the current use of an architecture, designers must also take into
@@ -54,9 +57,11 @@ Indeed, there are a lot of factors to take into account when designing a new
 architecture, and every decision has big implications on the future of the
 whole ISA.
 
-\subsection{MIPS}
-MIPS is a reduced instruction set architecture (RISC) instruction set
-architecture, developed by MIPS technologies in 1981. As an RISC
+\subsection{MIPS Architecture}
+The MIPS architecture (acronym for Microprocessor without Interlocked Pipeline
+Stages) was first created in the early 1980s.\cite{imgtec:MIPS_Overview}
+MIPS is a reduced instruction set architecture (RISC), developed by MIPS technologies, to bring new levels of
+performance and efficiency into the world of processing units. As an RISC
 architecture, MIPS aims to implement only the most essential instructions, so
 that they in return can get highly optimised. This is the based on the RISC
 philosophy, that by implementing only the most common instructions, the
@@ -72,22 +77,116 @@ and storing. While complex programs indeed execute faster on a CISC architecture
 the burden of implementing efficient and maintainable code and compilers can
 outweigh its advantages. \cite{Patterson:1980:CRI:641914.641917}
 
-The first versions of MIPS were 32-bit, moving on to creating 64-bit versions
-for computationally heavy applications. It has 31 general purpose (GP)
-registers, with additional registers per co-processing unit. MIPS supports up
-to 4 coprocessors (COP), with each COP extending on the basic functionality. The
-only required co-processor is COP0, which is the System Control Coprocessor.
-Other co-processors usually available, but not required, are the floating-point operation
-coprocessor COP1 (FPU), the user defined COP2.
+Besides the inspiration from RISC, MIPS has added its own design principles,
+which are honored and used to question every change, implementation, or design.
+These are:
+\begin{itemize}
+	\item \textit{Design Principle 1:} Simplicity favors regularity.
+	\item \textit{Design Principle 2:} Smaller is faster.
+	\item \textit{Design Principle 3:} Good design demands good compromises.
+	\item \textit{Design Principle 4:} Make common case fast.
+\end{itemize}
+These decisions withstood the trial by fire and proved, that honoring these
+principles yields good design, easing implementation as well as simplifying
+hardware.
 
 
-\subsection{MIPS Instruction Set}
+\section{MIPS Core Processing Unit}
+MIPS CPUs are pipelined, meaning that it implements a pipeline which enables it
+to execute different stages of multiple instructions at once. This gives the
+processor a higher throughput that would otherwise be possible at a given
+clock-rate. The processor has 31 general purpose (GP) registers, with additional registers
+per co-processing unit. Even the earliest models of the MIPS CPUs, such as the
+MIPS R2000, had memory caches and translation lookaside-buffer, which improves
+speed of the processor by reducing memory lookups.
+
+\subsection{Registers}
+MIPS contains multiple types of registers. The most common and most used
+registers are the general-purpose registers (GP), which can be used for
+virtually anything by the programmer. Special registers are registers
+implemented for cases where GP registers were either too small or otherwise
+unsuitable for the purpose.\\
+For additional functionality, the MIPS co-processor 0 also has its own set of
+registers that, along with the operating system, bring many features to the
+system.
+
+\subsubsection{General Purpose Registers}
+In MIPS, there are 32 general-purpose registers, all 32 bit wide. Although they
+can all theoretically be used however the programmer or assembler
+wants\footnote{Except the 0'th (\$0) register, which can only hold the value 0.}, there
+are some conventions for the use of the registers.
+\begin{center}
+    \begin{tabular}{ | l | l | l | c |}
+    \hline
+	\textbf{Name} & \textbf{\#} & \textbf{Use} \\ \hline \hline
+	\texttt{\$zero}		& 0 	& Constant Value 0 \\ \hline
+	\texttt{\$at}		& 1 	& Reserved Temporary \\ \hline
+	\texttt{\$v0-\$v1}	& 2-3 	& Function Results \\ \hline
+	\texttt{\$a0-\$a3}	& 4-7 	& Function Arguments \\ \hline
+	\texttt{\$t0-\$t7}	& 8-15 	& Temporaries  \\ \hline
+	\texttt{\$s0-\$s7}	& 16-23	& Saved Temporaries \\ \hline
+	\texttt{\$t8-\$t9}	& 24-25	& Temporaries \\ \hline
+	\texttt{\$k0-\$k1}	& 26-27	& Reserved for OS \\ \hline
+	\texttt{\$gp} 		& 28 	& Global Pointer \\ \hline
+	\texttt{\$sp}		& 29 	& Stack Pointer \\ \hline
+	\texttt{\$fp}		& 30 	& Frame Pointer \\ \hline
+	\texttt{\$ra}		& 31 	& Return Address \\ \hline
+    \end{tabular}
+\end{center}
+
+\subsubsection{Special Registers}
+The special registers in MIPS cannot directly be accessed from the program.
+Rather, they are modified by different instructions.
+\begin{center}
+    \begin{tabular}{ | l | l | l | c |}
+    \hline
+	\textbf{Name} & \textbf{\#} & \textbf{Use} \\ \hline \hline
+	\texttt{HI}		& - 	& Hi-word of 64bit value \\ \hline
+	\texttt{LO}		& - 	& Lo-word of 64bit value \\ \hline
+	\texttt{\$PC}		& - 	& Program Counter \\ \hline
+    \end{tabular}
+\end{center}
+\texttt{HI} and \texttt{LO} registers are used to contain the result of a
+multiplication or division, which, using 2 32bit registers, can end with a
+64bit result.\\
+The PC register is pretty self-explanatory, as it simply points the current
+location in the program (or "counts" the instructions). On other architectures,
+this register is better known as the Instruction Pointer.
+
+\subsubsection{Co-processor 0 registers}
+Registers in co-processor 0 are mainly used by the system, to provide
+additional features. The co-processor can have 32 registers, but only few of
+them are used consistently. Many of the empty registers are also defined by the
+manufacturer of the processor.
+\begin{center}
+    \begin{tabular}{ | l | l | l | c |}
+    \hline
+	\textbf{Name} & \textbf{\#} & \textbf{Use} \\ \hline \hline
+	\texttt{index}		& - 	& TLB entry index\\ \hline
+	\texttt{random}		& - 	& TLB random access register \\ \hline
+	\texttt{entrylo}	& - 	& Low order current TLB entry \\ \hline
+	\texttt{context}	& - 	& Page-Table lookup addr. \\ \hline
+	\texttt{vaddr}		& - 	& Virtual address of exceptions \\ \hline
+	\texttt{entryhi}	& - 	& High order current TLB entry\\ \hline
+	\texttt{status}		& - 	& Processor status \\ \hline
+	\texttt{cause}		& - 	& Exception cause \\ \hline
+	\texttt{epc}		& - 	& PC when exception occured \\ \hline
+    \end{tabular}
+\end{center}
+The \texttt{status} register is a bit-field of flags used to signal the current
+state of the processor. It is similar to the \texttt{EFLAGS} register on
+x86 architectures.
+
+The rest of the registers will be discussed in depth in the SMP chapter.
+
+
+\subsection{Instructions}
 Each instruction in MIPS is 32-bit long, aligned to word. This simplifies the
-instruction fetching, decoding, as well as disassembly of the program.
+instruction fetching, decoding, as well as disassembly of the program, for both
+the processor as well as the programmer.
 
-In MIPS, the instructions have 3 basic formats
-:
-\begin{figure}[ht]
+In MIPS, the instructions have 3 basic formats:
+\begin{figure}[H]
 \centering
 \subfigure[R-Format]{%
 	\includegraphics{cpu_architecture/r_format.eps}
@@ -101,6 +200,33 @@ In MIPS, the instructions have 3 basic formats
 \label{fig:instruction_formats}
 \end{figure}
 
-It is clear that as they have common fields, mainly the opcode field, they are
-easily distinguishable.
+It is clear that, as they have common fields, mainly the opcode field, they are
+easily distinguishable.\\
+The R-format instructions are mainly used when all the data being processed is
+located in the registers. That includes adding between registers, binary
+operations on values in registers as well as jumping to an address located in
+a register.\\\\
+The I-format instructions can operate on both data from registers and immediate
+values encoded directly in the instruction (thus the 16-bit immediate field).
+I-format instruction share a lot of common operations with the R-format, where
+one of the operands is the immediate.\\\\
+J-format instructions are used solely for jumping instructions, thus the large
+address address field.
+
+
+\subsection{Arithmetic}
+\subsection{Load and Store}
+\subsection{Jumping and Branching}
+\subsection{Interrupts}
+
+
+
+
+% MIPS supports up
+%to 4 coprocessors (COP), with each COP extending on the basic functionality. The
+%only required co-processor is COP0, which is the System Control Coprocessor.
+%Other co-processors usually available, but not required, are the floating-point operation
+%coprocessor COP1 (FPU), the user defined COP2.
+
+
 
