@@ -24,10 +24,10 @@
 
 
 /* Signals if program stopped */
-static bool finished = false;
+bool g_finished = false;
 
 /* Signals debugging */
-static bool debugging = false;
+bool g_debugging = false;
 
 
 void interpret_r(uint32_t inst, core_t *core)
@@ -139,12 +139,12 @@ void interpret(core_t *core, memory_t *mem)
 
 
 	/* Debugging */
-	if(debugging)
+	if(g_debugging)
 		debug(inst, core);
 
 	/* Return v0 on SYSCALL */
 	if(inst == FUNCT_SYSCALL)
-		finished = true;
+		g_finished = true;
 
 	/* Interpret instruction accordingly */
 	switch(GET_OPCODE(inst)) {
@@ -507,7 +507,7 @@ void interpret_ex_alu(core_t *core)
 
 		case FUNCT_SYSCALL:
 			LOG("SYSCALL Caught");
-			finished = true;
+			g_finished = true;
 			break;
 		default:
 			ERROR("Unknown funct: 0x%x", ID_EX.funct);
@@ -604,10 +604,14 @@ void tick(hardware_t *hw)
 
 int run(hardware_t *hw)
 {
-	while(finished == false) {
-		getchar();
+	while(g_finished == false) {
+
+		/* XXX: Assumes one core */
+		if(g_debugging) {
+			debug(GET_BIGWORD(hw->mem->raw, hw->cpu->core[0].regs[REG_PC]),
+			      &hw->cpu->core[0]);
+		}
 		tick(hw);
-		print_pipeline_registers(&hw->cpu->core[0]);
 	}
 
 	/* XXX */
@@ -617,7 +621,7 @@ int run(hardware_t *hw)
 int simulate(char *program, bool debug)
 {
 	/* Set debugging */
-	debugging = debug;
+	g_debugging = debug;
 
 	/* Hardware to simulate */
 	hardware_t hardware;

@@ -201,14 +201,4 @@ void cpu_free(cpu_t *cpu);
 
 /* Ticks of the clock */
 void cpu_tick(cpu_t *cpu);
-
-/* Prints all registers of a given core. */
-void print_registers(core_t *core);
-
-/* Dump registers except PC in hex. Used for testing */
-void dump_registers(core_t *core);
-
-/* Print pipeline registers in columns */
-void print_pipeline_registers(core_t *core);
-
 #endif	/* _CPU_H */
