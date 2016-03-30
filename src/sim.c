@@ -9,6 +9,7 @@
 #include "elf.h"
 #include "mips32.h"
 #include "disasm.h"
+#include "debug.h"
 #include "error.h"
 
 #define MEMSZ 0xA0000
@@ -128,49 +129,6 @@ void interpret_r(uint32_t inst, core_t *core)
 	}
 
 }
-
-void debug(uint32_t inst, core_t* core)
-{
-	print_instruction(inst, core);
-
-	unsigned char c[3] = {0};
-	bool stop = false;
-
-	while(stop == false) {
-		printf("> ");
-		fgets((char*)c, 3, stdin);
-
-		switch(c[0]) {
-			/* Print all registers */
-		case 'r':
-			print_registers(core);
-			break;
-
-			/* Print instruction */
-		case 'p':
-			print_instruction(inst, core);
-			break;
-
-			/* Print specified register only */
-		case 'v':
-		case 's':
-		case 't':
-			printf("%s = %u\n", c,
-			       core->regs[register_to_number((char*)c)]);
-			break;
-
-			/* Continue */
-		case 'c':
-			stop = true;
-
-		case '\n':
-		default:
-			break;
-		}
-	}
-	printf("\n");
-}
-
 
 void interpret(core_t *core, memory_t *mem)
 {
@@ -612,7 +570,6 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 }
 
-
 void interpret_wb(core_t *core)
 {
 	LOG();
@@ -650,6 +607,7 @@ int run(hardware_t *hw)
 	while(finished == false) {
 		getchar();
 		tick(hw);
+		print_pipeline_registers(&hw->cpu->core[0]);
 	}
 
 	/* XXX */
