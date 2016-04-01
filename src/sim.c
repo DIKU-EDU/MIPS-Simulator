@@ -355,14 +355,8 @@ void interpret(core_t *core, memory_t *mem)
 
 void interpret_if(core_t *core, memory_t *mem)
 {
-	LOG();
-
 	/* Fetch the next instruction */
 	core->if_id.inst = GET_BIGWORD(mem->raw, core->regs[REG_PC]);
-
-	DEBUG("PC = %d", core->regs[REG_PC]);
-
-	print_instruction(IF_ID.inst, core);
 
 	/* Point PC to next instruction and store in pipeline reg */
 	core->regs[REG_PC] += 4;
@@ -372,8 +366,6 @@ void interpret_if(core_t *core, memory_t *mem)
 /* Control unit in the ID stage */
 void interpret_id_control(core_t *core)
 {
-	LOG();
-
 	uint32_t inst = IF_ID.inst;
 
 	/* COD5, page 302, fig. 4.49 */
@@ -423,16 +415,14 @@ void interpret_id_control(core_t *core)
 
 void interpret_id(core_t *core)
 {
-	LOG();
-
 	uint32_t inst = IF_ID.inst;
 
-	ID_EX.rt = GET_RT(inst);
-	ID_EX.rs_value = core->regs[GET_RS(inst)];
-	ID_EX.rt_value = core->regs[GET_RT(inst)];
-	ID_EX.rt = GET_RT(inst);
-	ID_EX.sign_ext_imm = SIGN_EXTEND(GET_IMM(inst));
-	ID_EX.funct = GET_FUNCT(inst);
+	ID_EX.rt		= GET_RT(inst);
+	ID_EX.rs_value		= core->regs[GET_RS(inst)];
+	ID_EX.rt_value		= core->regs[GET_RT(inst)];
+	ID_EX.sign_ext_imm	= SIGN_EXTEND(GET_IMM(inst));
+	ID_EX.funct		= GET_FUNCT(inst);
+	ID_EX.inst		= IF_ID.inst;
 
 	/* Control unit */
 	interpret_id_control(core);
@@ -442,8 +432,6 @@ void interpret_id(core_t *core)
  * COD5, page 301, fig. 4.47 */
 void interpret_ex_alu(core_t *core)
 {
-	LOG();
-
 	uint32_t a = ID_EX.rs_value;
 
 	/* MUX for alu_src */
@@ -507,7 +495,7 @@ void interpret_ex_alu(core_t *core)
 
 		case FUNCT_SYSCALL:
 			LOG("SYSCALL Caught");
-			g_finished = true;
+			//	g_finished = true;
 			break;
 		default:
 			ERROR("Unknown funct: 0x%x", ID_EX.funct);
@@ -518,8 +506,6 @@ void interpret_ex_alu(core_t *core)
 
 void interpret_ex(core_t *core)
 {
-	LOG();
-
 	/* Pipe to next pipeline registers */
 	/* MEM */
 	EX_MEM.c_branch		= ID_EX.c_branch;
@@ -529,8 +515,10 @@ void interpret_ex(core_t *core)
 	EX_MEM.c_reg_write	= ID_EX.c_reg_write;
 	EX_MEM.c_mem_to_reg	= ID_EX.c_mem_to_reg;
 
+	EX_MEM.inst		= ID_EX.inst;
+
 	/* MUX for RegDST */
-	EX_MEM.reg_dst = ID_EX.c_reg_dst == 0 ? ID_EX.rt : ID_EX.rd;
+	EX_MEM.reg_dst = ID_EX.c_reg_dst == 0 ? ID_EX.rd : ID_EX.rt;
 
 	/* ALU */
 	interpret_ex_alu(core);
@@ -542,16 +530,19 @@ void interpret_ex(core_t *core)
 
 void interpret_mem(core_t *core, memory_t *mem)
 {
-	LOG();
 
 	MEM_WB.c_reg_write	= EX_MEM.c_reg_write;
 	MEM_WB.reg_dst		= EX_MEM.reg_dst;
 	MEM_WB.c_mem_to_reg	= EX_MEM.c_mem_to_reg;
 	MEM_WB.alu_res		= EX_MEM.alu_res;
 
+	MEM_WB.inst		= EX_MEM.inst;
+
 	/* If read */
 	if(EX_MEM.c_mem_read) {
-		MEM_WB.read_data = GET_BIGWORD(mem->raw, EX_MEM.alu_res);
+		DEBUG("READING DATA AT: 0x%08x", EX_MEM.alu_res + MIPS_RESERVE);
+		MEM_WB.read_data = GET_BIGWORD(mem->raw, EX_MEM.alu_res +
+					       MIPS_RESERVE);
 
 
 		LOG("alu_res = %d\nread_data = %d", EX_MEM.alu_res,
@@ -560,25 +551,25 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 	/* If write */
 	if(EX_MEM.c_mem_write) {
-		SET_BIGWORD(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+		DEBUG("writing %d to addr: 0x%08x", EX_MEM.rt_value,
+		      EX_MEM.alu_res);
 
+		SET_BIGWORD(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
 
 		LOG("alu_res = %d\nrt_value = %d", EX_MEM.alu_res,
 		    EX_MEM.rt_value);
 
 	}
-
 }
 
 void interpret_wb(core_t *core)
 {
-	LOG();
-
 	/* mem_to_reg MUS */
 	uint32_t data = MEM_WB.c_mem_to_reg ? MEM_WB.read_data : MEM_WB.alu_res;
 
 	/* Write back */
 	if(MEM_WB.c_reg_write) {
+		DEBUG("Writing %d to destionation register: %d", data, MEM_WB.reg_dst);
 		core->regs[MEM_WB.reg_dst] = data;
 	}
 }
@@ -613,6 +604,8 @@ int run(hardware_t *hw)
 		}
 		tick(hw);
 	}
+
+	DEBUG("RETURNED: %d", hw->cpu->core[0].regs[REG_V0]);
 
 	/* XXX */
 	return hw->cpu->core[0].regs[REG_V0];

@@ -127,8 +127,6 @@ typedef struct reg_id_ex {
 	uint8_t shamt : 5;
 	uint8_t funct : 6;
 
-
-
 	uint32_t next_pc;
 	uint32_t rs_value;
 	uint32_t rt_value;
@@ -137,6 +135,9 @@ typedef struct reg_id_ex {
 	uint8_t rs;
 	uint8_t rt;
 	uint8_t rd;
+
+	/* For debugging */
+	uint32_t inst;
 } id_ex_t;
 
 typedef struct reg_ex_mem {
@@ -155,6 +156,10 @@ typedef struct reg_ex_mem {
 	uint32_t rt_value;
 
 	uint8_t reg_dst;
+
+	/* For debugging */
+	uint32_t inst;
+
 } ex_mem_t;
 
 typedef struct reg_mem_wb {
@@ -166,6 +171,9 @@ typedef struct reg_mem_wb {
 	uint32_t read_data;
 
 	uint8_t reg_dst;
+
+	/* For debugging */
+	uint32_t inst;
 } mem_wb_t;
 
 /*

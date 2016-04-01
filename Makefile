@@ -1,5 +1,7 @@
 TARGET  =./bin/mips-sim
+#CC=clang
 CC=gcc
+#CFLAGS  =-g -Wno-parentheses -std=gnu99# -D DEBUG_LEVEL=ERROR_LVL -Wno-packed-bitfield-compat
 CFLAGS  =-g -Wall -Werror -Wno-parentheses -std=gnu99 -D DEBUG_LEVEL=ERROR_LVL -Wno-packed-bitfield-compat
 SRCDIR  = src/
 TESTDIR	= tests/

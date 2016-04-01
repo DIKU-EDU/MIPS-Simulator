@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "cpu.h"
 #include "disasm.h"
+#include "error.h"
 
 /* extern'd in sim.c */
 extern bool g_debugging;
@@ -64,11 +65,10 @@ q		- Quit\n\
 		/* Exit */
 		case 'q':
 			g_finished = true;
-			break;
+			return;
 		case '\n':
 		default:
-			stop = true;
-			break;
+			return;
 		}
 	}
 	printf("\n");
@@ -104,8 +104,16 @@ void print_pipeline_registers(core_t *core)
 #define EX_MEM (core->ex_mem)
 #define MEM_WB (core->mem_wb)
 #define PC (core->regs[REG_PC])
+#define INST_STR(inst) GET_OPCODE((inst)) == 0 ? funct_codes[GET_FUNCT((inst))]\
+						: op_codes[GET_OPCODE((inst))]
+
+	DEBUG();
 	printf("---------------------------------------------------------------------------------------------\n");
 	printf("IF/ID              ID/EX                      EX/MEM                      MEM/WB\n");
+	printf("%s                %s                        %s                         %s                        \n",
+	       INST_STR(IF_ID.inst), INST_STR(ID_EX.inst),INST_STR(EX_MEM.inst),
+	       INST_STR(MEM_WB.inst));
+
 	printf("---------------------------------------------------------------------------------------------\n");
 	printf("inst:    %08x  c_reg_dst:   %08x      c_reg_write: %08x      c_reg_write:  %08x\n",
 	      IF_ID.inst, ID_EX.c_reg_dst, EX_MEM.c_reg_write, MEM_WB.c_reg_write);
