@@ -273,16 +273,21 @@ void forwarding_unit(core_t *core)
 	   && MEM_WB.reg_dst != 0
 	   && !(EX_MEM.c_reg_write && EX_MEM.reg_dst != 0i
 		&& (EX_MEM.reg_dst != ID_EX.rs))
-	   && MEM_WB.reg_dst != ID_EX.reg_rs) {
-		ID_EX.rs_value = MEM_WB.alu_res;
+	   && MEM_WB.reg_dst != ID_EX.rs) {
+		/* WB MUX */
+		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
+					MEM_WB.read_data : MEM_WB.alu_res;
 	}
 
-	if(MEM_WB.reg_write == 1
+	if(MEM_WB.c_reg_write == 1
 	   && MEM_WB.reg_dst != 0
 	   && !(EX_MEM.c_reg_write && EX_MEM.reg_dst != 0
 		&& (EX_MEM.reg_dst != ID_EX.rs))
 	   && MEM_WB.reg_dst == ID_EX.rt) {
-		ID_EX.rt_value = MEM_WB.alu_res;
+		/* WB MUX */
+		ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
+					MEM_WB.read_data : MEM_WB.alu_res;
+
 	}
 }
 
