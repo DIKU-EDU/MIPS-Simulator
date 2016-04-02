@@ -30,329 +30,6 @@ bool g_finished = false;
 bool g_debugging = false;
 
 
-void interpret_r(uint32_t inst, core_t *core)
-{
-	switch(GET_FUNCT(inst)) {
-	/* Jump register */ case FUNCT_JR:
-		core->regs[REG_PC] = core->regs[GET_RS(inst)];
-
-		/* 4 is added later. To negate that: */
-		core->regs[REG_PC] -= 4;
-		break;
-
-	case FUNCT_SYSCALL:
-		/* TODO: System call */
-
-		break;
-	case FUNCT_ADD:
-		/* Signed addition */
-		core->regs[GET_RD(inst)] =
-			(int32_t)core->regs[GET_RS(inst)] +
-			(int32_t)core->regs[GET_RT(inst)];
-		break;
-	case FUNCT_ADDU:
-		/* Unsigned addition */
-		core->regs[GET_RD(inst)] =
-			(uint32_t)core->regs[GET_RS(inst)] +
-			(uint32_t)core->regs[GET_RT(inst)];
-		break;
-	case FUNCT_SUB:
-		/* Signed subtraction */
-		core->regs[GET_RD(inst)] =
-			(int32_t)core->regs[GET_RS(inst)] -
-			(int32_t)core->regs[GET_RT(inst)];
-
-		break;
-
-	case FUNCT_SUBU:
-		/* Unsigned subtraction */
-		core->regs[GET_RD(inst)] =
-			(uint32_t)core->regs[GET_RS(inst)] -
-			(uint32_t)core->regs[GET_RT(inst)];
-		break;
-
-	case FUNCT_AND:
-		/* Bitwise and */
-		core->regs[GET_RD(inst)] =
-			(uint32_t)core->regs[GET_RS(inst)] &
-			(uint32_t)core->regs[GET_RT(inst)];
-		break;
-
-	case FUNCT_OR:
-		/* Bitwise or */
-		core->regs[GET_RD(inst)] =
-			(uint32_t)core->regs[GET_RS(inst)] |
-			(uint32_t)core->regs[GET_RT(inst)];
-		break;
-
-	case FUNCT_NOR:
-		/* Bitwise nor (!(a | b)) */
-		core->regs[GET_RD(inst)] =
-			(!(uint32_t)core->regs[GET_RS(inst)] |
-			 (uint32_t)core->regs[GET_RT(inst)]);
-		break;
-
-	case FUNCT_SLT:
-		/* Signed Set Less Than: rd = rs < rt ? 1 : 0*/
-		core->regs[GET_RD(inst)] =
-			(int32_t)core->regs[GET_RS(inst)] <
-			(int32_t)core->regs[GET_RT(inst)] ? 1 : 0;
-		break;
-
-
-	case FUNCT_SLTU:
-		/* Unsigned Set Less Than: rd = rs < rt ? 1 : 0*/
-		core->regs[GET_RD(inst)] =
-			(uint32_t)core->regs[GET_RS(inst)] <
-			(uint32_t)core->regs[GET_RT(inst)] ? 1 : 0;
-		break;
-
-
-	case FUNCT_SLL:
-		/* Shift Left Logical: rd = rt << shamt */
-		core->regs[GET_RD(inst)] =
-			(uint32_t)core->regs[GET_RT(inst)] <<
-			(uint32_t)GET_SHAMT(inst);
-		break;
-
-
-	case FUNCT_SRL:
-		/* Shift Right Logical: rd = rt >> shamt */
-		core->regs[GET_RD(inst)] =
-			(uint32_t)core->regs[GET_RT(inst)] >>
-			(uint32_t)GET_SHAMT(inst);
-		break;
-
-	default:
-		/* TODO */
-		break;
-	}
-
-}
-
-void interpret(core_t *core, memory_t *mem)
-{
-	uint32_t inst = (uint32_t)GET_BIGWORD(mem->raw, core->regs[REG_PC]);
-
-	uint32_t s_addr = core->regs[GET_RS(inst)] + SIGN_EXTEND(GET_IMM(inst));
-
-
-
-	/* Debugging */
-	if(g_debugging)
-		debug(inst, core);
-
-	/* Return v0 on SYSCALL */
-	if(inst == FUNCT_SYSCALL)
-		g_finished = true;
-
-	/* Interpret instruction accordingly */
-	switch(GET_OPCODE(inst)) {
-	case OPCODE_R:
-		interpret_r(inst, core);
-		break;
-
-		/* Jump */
-		/* The new address is computed by taking the upper 4 bits of the
-		 * PC, concatenated to the 26 bit immediate value, and the lower
-		 * two bits are 00, so the address created remains word-aligned.
-		 */
-	case OPCODE_J:
-		core->regs[REG_PC] = (core->regs[REG_PC]
-				      & 0xF0000000)
-		|(GET_ADDRESS(inst)<<2);
-
-		/* REG_PC will be incremented by 4 later... */
-		core->regs[REG_PC] -= 4;
-		break;
-
-		/* Jump And Link: RA = PC + 8; PC = Imm;*/
-	case OPCODE_JAL:
-		core->regs[REG_RA] = core->regs[REG_PC]
-		+ 8;
-
-		/* Ordinary Jump */
-		core->regs[REG_PC] = (core->regs[REG_PC]
-				      & 0xF0000000)
-		|(GET_ADDRESS(inst)<<2);
-
-		/* REG_PC will be incremented by 4 later... */
-		core->regs[REG_PC] -= 4;
-		break;
-
-		/* Branch On Equal: if (RS == RT) { PC = PC + 4 + Imm; } */
-	case OPCODE_BEQ:
-		if(core->regs[GET_RS(inst)] ==
-		   core->regs[GET_RT(inst)])
-			core->regs[REG_PC] += (SIGN_EXTEND(
-							   GET_IMM(inst))
-					       << 2);
-		break;
-
-		/* Branch on Not Equal: If (RS != RT) { PC = PC + 4 + Imm} */
-	case OPCODE_BNE:
-		if(core->regs[GET_RS(inst)] !=
-		   core->regs[GET_RT(inst)])
-			core->regs[REG_PC] += (SIGN_EXTEND(
-							   GET_IMM(inst))
-					       << 2);
-		break;
-
-		/* Add Immediate: RT = RS + SignExtImm */
-	case OPCODE_ADDI:
-		core->regs[GET_RT(inst)] =
-			core->regs[GET_RS(inst)] +
-			SIGN_EXTEND(GET_IMM(inst));
-		break;
-
-		/* Add unsigned Immediate: RT = RS + SignExtImm */
-	case OPCODE_ADDIU:
-		core->regs[GET_RT(inst)] =
-			core->regs[GET_RS(inst)] +
-			SIGN_EXTEND(GET_IMM(inst));
-		break;
-
-		/* Set Less Than Immediate: RT = (RS < SignExtImm) ? 1 : 0 */
-	case OPCODE_SLTI:
-		core->regs[GET_RT(inst)] =
-			(core->regs[GET_RS(inst)] <
-			 SIGN_EXTEND((GET_IMM(inst)))) ?
-			1 : 0;
-		break;
-
-		/* Set Less Than Immediate Unsigned:
-		 * RT = (RS < SignExtImm) ? 1 : 0 */
-	case OPCODE_SLTIU:
-		core->regs[GET_RT(inst)] =
-			(core->regs[GET_RS(inst)] <
-			 SIGN_EXTEND((GET_IMM(inst)))) ?
-			1 : 0;
-		break;
-
-		/* And Immediate: RT = RS & ZeroExtImm */
-	case OPCODE_ANDI:
-		core->regs[GET_RT(inst)] =
-			core->regs[GET_RS(inst)] &
-			ZERO_EXTEND(GET_IMM(inst));
-		break;
-
-		/* Or Immediate: RT = RS | ZeroExtImm */
-	case OPCODE_ORI:
-		core->regs[GET_RT(inst)] =
-			core->regs[GET_RS(inst)]
-			| ZERO_EXTEND(GET_IMM(inst));
-			break;
-
-			/* Load Upper Immediate: RT = Imm << 16 */
-	case OPCODE_LUI:
-			core->regs[GET_RT(inst)] =
-				((uint32_t)GET_IMM(inst) << 16);
-			break;
-
-			/* Load Byte Unsigned: RT = MEM[RS + SignExtImm] */
-	case OPCODE_LBU:
-			core->regs[GET_RT(inst)] = GET_BIGBYTE(mem->raw,
-							       core->regs[GET_RS(inst)]	+
-							       SIGN_EXTEND(GET_IMM(inst)));
-
-			break;
-			/* Load Halfword Unsigned: RT = MEM[RS + SignExtImm] */
-	case OPCODE_LHU:
-			core->regs[GET_RT(inst)] = GET_BIGHALF(mem->raw,
-							       core->regs[GET_RS(inst)]
-							       + SIGN_EXTEND(GET_IMM(inst)));
-			break;
-
-			/* Load Word: RT = M[RS + SignExtImm] */
-	case OPCODE_LW:
-			core->regs[GET_RT(inst)] = GET_BIGWORD(mem->raw,
-							       core->regs[GET_RS(inst)]
-							       + SIGN_EXTEND(GET_IMM(inst)));
-
-			break;
-
-
-			/* Load Linked: RT = M[RS + SignExtImm] */
-	case OPCODE_LL:
-			core->regs[GET_RT(inst)] = GET_BIGWORD(mem->raw,
-							       core->regs[GET_RS(inst)]
-							       + SIGN_EXTEND(GET_IMM(inst)));
-
-			/* Store the address in CP0 */
-			core->cp0.regs[REG_LLADDR] = core->regs[GET_RS(inst)]
-			+ SIGN_EXTEND(GET_IMM(inst));
-
-			break;
-
-			/* Store Word: M[RS + SignExtImm] = RT */
-	case OPCODE_SW:
-			SET_BIGWORD(mem->raw,
-				    s_addr,
-				    core->regs[GET_RT(inst)]);
-
-			/* If operation overwrites even part of the LLAddr, invalidate*/
-			if(abs(core->cp0.regs[REG_LLADDR] - s_addr) < 4)
-				core->cp0.regs[REG_LLADDR] = 0xffffffff;
-			break;
-
-			/* Store Byte: M[RS + SignExtImm] = RT */
-	case OPCODE_SB:
-			SET_BIGBYTE(mem->raw,
-				    s_addr,
-				    core->regs[GET_RT(inst)]);
-
-			/* If operation overwrites even part of the LLAddr, invalidate*/
-			if(core->cp0.regs[REG_LLADDR] ==  s_addr)
-				core->cp0.regs[REG_LLADDR] = 0xffffffff;
-
-			break;
-
-			/* Store Halfword: M[RS + SignExtImm] = RT */
-	case OPCODE_SH:
-			SET_BIGHALF(mem->raw,
-				    s_addr,
-				    core->regs[GET_RT(inst)]);
-
-			/* If operation overwrites even part of the LLAddr, invalidate*/
-			if(abs(core->cp0.regs[REG_LLADDR] - s_addr) < 2)
-				core->cp0.regs[REG_LLADDR] = 0xffffffff;
-
-			break;
-
-	case OPCODE_SC:
-			if(core->cp0.regs[REG_LLADDR] == s_addr) {
-				SET_BIGWORD(mem->raw, s_addr, core->regs[GET_RT(inst)]);
-				core->regs[GET_RT(inst)] = 1;
-			} else {
-				core->regs[GET_RT(inst)] = 0;
-			}
-			break;
-
-			/* SPECIAL OPCODES */
-	case OPCODE_CP0:
-			/* Function in encoded in RS */
-			switch(GET_RS(inst)) {
-
-				/* Move From CP0 */
-			case CP0_MFC0:
-				core->regs[GET_RT(inst)] = core->cp0.regs[GET_RD(inst)];
-				break;
-
-				/* Move To CP0 */
-			case CP0_MTC0:
-				core->cp0.regs[GET_RD(inst)] = core->regs[GET_RT(inst)];
-				break;
-			}
-
-
-	}
-
-	/* Move to next instr */
-	core->regs[REG_PC] += 4;
-}
-
-
-
 void interpret_if(core_t *core, memory_t *mem)
 {
 	/* Fetch the next instruction */
@@ -574,6 +251,41 @@ void interpret_wb(core_t *core)
 	}
 }
 
+void forwarding_unit(core_t *core)
+{
+	/* EX Hazard
+	 * COD5 p. 308 */
+	/* Forward to A MUX */
+	if(EX_MEM.c_reg_write == 1
+	   && EX_MEM.reg_dst != 0
+	   && EX_MEM.reg_dst != ID_EX.rs) {
+		ID_EX.rs_value = EX_MEM.alu_res;
+	}
+	/* Forward to B MUX */
+	if(EX_MEM.c_reg_write == 1
+	   && EX_MEM.reg_dst != 0
+	   && EX_MEM.reg_dst != ID_EX.rt) {
+		ID_EX.rt_value = EX_MEM.alu_res;
+	}
+
+	/* MEM Hazard */
+	if(MEM_WB.c_reg_write == 1
+	   && MEM_WB.reg_dst != 0
+	   && !(EX_MEM.c_reg_write && EX_MEM.reg_dst != 0i
+		&& (EX_MEM.reg_dst != ID_EX.rs))
+	   && MEM_WB.reg_dst != ID_EX.reg_rs) {
+		ID_EX.rs_value = MEM_WB.alu_res;
+	}
+
+	if(MEM_WB.reg_write == 1
+	   && MEM_WB.reg_dst != 0
+	   && !(EX_MEM.c_reg_write && EX_MEM.reg_dst != 0
+		&& (EX_MEM.reg_dst != ID_EX.rs))
+	   && MEM_WB.reg_dst == ID_EX.rt) {
+		ID_EX.rt_value = MEM_WB.alu_res;
+	}
+}
+
 /* Simulates a clock-tick */
 void tick(hardware_t *hw)
 {
@@ -590,6 +302,8 @@ void tick(hardware_t *hw)
 		interpret_ex(cpu->core+i);
 		interpret_id(cpu->core+i);
 		interpret_if(cpu->core+i, mem);
+
+		forwarding_unit(cpu->core+i);
 	}
 }
 
