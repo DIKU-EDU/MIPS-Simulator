@@ -1,10 +1,9 @@
 This report describes the development of a MIPS simulator, intended to support
 the operating system KUDOS. The simulator will be written in C, and will
-support the most important processor features such as the translation
-lookaside
+support the most important processor required to run KUDOS, such as the
+translation lookaside
 buffer (TLB), memory management unit (MMU), user and kernel CPU modes,
-multiple
-cores (SMP), and I/O device emulation. \\
+multiple cores (SMP), and I/O device emulation. \\
 
 
 \subsection{Motivation}
@@ -12,7 +11,7 @@ KUDOS is a small operating system skeleton intended to be used by students
 attending operating system project courses at university of Copenhagen.
 It is used to explore operating system concepts by extending and improving on
 existing system.
-Initially, KUDOS targetsthe MIPS architecture, which leverages on the
+Initially, KUDOS targetsthe MIPS32 architecture, which leverages on the
 advantages of a
 reduced instruction set computing - RISC.\\
 To ease the development and debugging of KUDOS, it is desireable to run the OS
@@ -22,11 +21,12 @@ for the difference in the hardware of the host machine.
 
 \subsection{A simulator}
 Simulation is the act of imitating the operation of an existing system. In our
-case, we will be imitating, or rather, simulating a MIPS machine running
+case, we will be imitating, or rather, simulating a MIPS32 machine running
 KUDOS.\\
 Unlike emulating a system, the simulator will execute every instruction
-exactly
-as a hardware machine might do. This allows the developer to not only see how
-a program behaves, but also the internal state of the machine, its memory,
-registers and so on.\\
-
+comparably to as how a hardware machine might do.
+This involves modelling the internal state of the machine, which accuratelly
+reflects the target it is simulating.
+This allows the developer to not only see how
+a program behaves, but also observe properties of the machine which are also
+present in the original target.

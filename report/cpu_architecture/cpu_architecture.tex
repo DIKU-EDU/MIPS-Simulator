@@ -1,8 +1,8 @@
 At the heart of every computer lies the Central Processing Unit (CPU),
 which is
-an electronic circuit that carries out the basic arimethic- and logic
+an electronic circuit that carries out the basic arithmethic- and logic
 calculation as well as process and redirect input and output to other devices
-in the computer.
+in the computer, using the shared busses.
 
 Most modern CPUs are contained on a very small, yet packed intergrated circuit
 chip, which can also house memory caches, multiple cores, and other processing
@@ -13,11 +13,13 @@ executes some primitive operation by fetching an instruction in the form of
 binary signals, act upon the instruction and store the result in either
 one of the its registers, or in the main memory.
 
-A single instruction does very little, but a collection of instructions make up
+A single instruction does very little, but a collection of instructions
+make up
 a program. In the very early computing days, computers were programmed in an
 assembly language, which is simply human-readable instruction code. As the
-computers grew more powerful, more complex and much larger programs could be
-executed. Because it is hard and time-consuming to write programs using only the
+computers grew more powerful, more complex and much faster, larger programs could be
+executed. Because it is hard and time-consuming to write programs using
+only the
 assembly language, compilers are used to remove this complexity. A
 compiler takes a high-level language, such as C, C++ or Java, and creates the
 corresponding assembly language program for the specific architecture,
@@ -37,7 +39,8 @@ well as handling of interrupts.
 
 There exists many different types of ISAs, with both their advantages and
 disadvantages. For example, some architectures have a very few instructions
-and registers, which is very practical for small embedded devices, whereas large
+and registers, which is very practical for small embedded devices,
+whereas large
 servers might make use of a large array of registers for complex computations.
 
 Besides the current use of an architecture, designers must also take into
@@ -48,9 +51,11 @@ the market is very troublesome, and causes a list of problems.
 One of the main issues is that old software written for older architectures
 will no longer work, and it requires to be either recompiled, rewritten,
 or even emulated. One such example is the Intel Itanium (IA-64) architecture,
-which had a very bad marked reception due to its lack of backwards compatibility
+which had a very bad marked reception due to its lack of backwards
+compatibility
 with the x86 architecture. The emulation of the architecture on IA-64 yielded
-suboptimal performance and ultimately lost to the AMD x86\_64, which in turn was
+suboptimal performance and ultimately lost to the AMD x86\_64, which in
+turn was
 compatible.\cite{anandtech:1854}
 
 Indeed, there are a lot of factors to take into account when designing a new
@@ -60,7 +65,8 @@ whole ISA.
 \subsection{MIPS Architecture}
 The MIPS architecture (acronym for Microprocessor without Interlocked Pipeline
 Stages) was first created in the early 1980s.\cite{imgtec:MIPS_Overview}
-MIPS is a reduced instruction set architecture (RISC), developed by MIPS technologies, to bring new levels of
+MIPS is a reduced instruction set architecture (RISC), developed by MIPS
+technologies, to bring new levels of
 performance and efficiency into the world of processing units. As an RISC
 architecture, MIPS aims to implement only the most essential instructions, so
 that they in return can get highly optimised. This is the based on the RISC
@@ -72,18 +78,22 @@ removes a lot of complexity of implementing large programs.
 In contrast to RISC, complex instruction set architecture (CISC) aims
 to reduce the number of instructions needed to execute a program by
 implementing instructions packed with functionality. This means that a single
-instruction in CISC can execute several operations at once, such as loading from memory, arithmetic
-and storing. While complex programs indeed execute faster on a CISC architecture,
+instruction in CISC can execute several operations at once, such as loading
+from memory, arithmetic
+and storing. While complex programs indeed execute faster on a CISC
+architecture,
 the burden of implementing efficient and maintainable code and compilers can
 outweigh its advantages. \cite{Patterson:1980:CRI:641914.641917}
 
 Besides the inspiration from RISC, MIPS has added its own design principles,
-which are honored and used to question every change, implementation, or design.
-These are:
+which are honored and used to question every change, implementation,
+or design.
+These are \cite{COD5}:
 \begin{itemize}
 	\item \textit{Design Principle 1:} Simplicity favors regularity.
 	\item \textit{Design Principle 2:} Smaller is faster.
-	\item \textit{Design Principle 3:} Good design demands good compromises.
+	\item \textit{Design Principle 3:} Good design demands good
+	compromises.
 	\item \textit{Design Principle 4:} Make common case fast.
 \end{itemize}
 These decisions withstood the trial by fire and proved, that honoring these
@@ -92,45 +102,50 @@ hardware.
 
 
 \section{MIPS Core Processing Unit}
-MIPS CPUs are pipelined, meaning that it implements a pipeline which enables it
+MIPS CPUs are pipelined, meaning that it implements a pipeline which
+enables it
 to execute different stages of multiple instructions at once. This gives the
 processor a higher throughput that would otherwise be possible at a given
-clock-rate. The processor has 31 general purpose (GP) registers, with additional registers
-per co-processing unit. Even the earliest models of the MIPS CPUs, such as the
-MIPS R2000, had memory caches and translation lookaside-buffer, which improves
-speed of the processor by reducing memory lookups.
+clock-rate. The processor has 31 general purpose (GP) registers, with
+additional registers
+per co-processing unit. Even the first models of the MIPS CPUs, such as the
+MIPS R2000, had memory caches and a translation lookaside-buffer, which improves
+the speed of the processor by reducing the number of main memory lookups.
 
 \subsection{Registers}
 MIPS contains multiple types of registers. The most common and most used
 registers are the general-purpose registers (GP), which can be used for
-virtually anything by the programmer. Special registers are registers
+practically anything by the programmer. Special registers are registers
 implemented for cases where GP registers were either too small or otherwise
 unsuitable for the purpose.\\
 For additional functionality, the MIPS co-processor 0 also has its own set of
-registers that, along with the operating system, bring many features to the
+registers that, along with an operating system, bring many features to the
 system.
 
 \subsubsection{General Purpose Registers}
-In MIPS, there are 32 general-purpose registers, all 32 bit wide. Although they
+In MIPS, there are 32 general-purpose registers, all 32 bit wide. Although
+they
 can all theoretically be used however the programmer or assembler
-wants\footnote{Except the 0'th (\$0) register, which can only hold the value 0.}, there
+wants\footnote{Except the 0'th (\$0) register, which can only hold the
+value 0.}, there
 are some conventions for the use of the registers.
 \begin{center}
     \begin{tabular}{ | l | l | l | c |}
     \hline
-	\textbf{Name} & \textbf{\#} & \textbf{Use} \\ \hline \hline
-	\texttt{\$zero}		& 0 	& Constant Value 0 \\ \hline
-	\texttt{\$at}		& 1 	& Reserved Temporary \\ \hline
-	\texttt{\$v0-\$v1}	& 2-3 	& Function Results \\ \hline
-	\texttt{\$a0-\$a3}	& 4-7 	& Function Arguments \\ \hline
-	\texttt{\$t0-\$t7}	& 8-15 	& Temporaries  \\ \hline
-	\texttt{\$s0-\$s7}	& 16-23	& Saved Temporaries \\ \hline
-	\texttt{\$t8-\$t9}	& 24-25	& Temporaries \\ \hline
-	\texttt{\$k0-\$k1}	& 26-27	& Reserved for OS \\ \hline
-	\texttt{\$gp} 		& 28 	& Global Pointer \\ \hline
-	\texttt{\$sp}		& 29 	& Stack Pointer \\ \hline
-	\texttt{\$fp}		& 30 	& Frame Pointer \\ \hline
-	\texttt{\$ra}		& 31 	& Return Address \\ \hline
+	\textbf{Mnemonic\footnote{Textual mnemonic used in the assembly language}}%
+		 & \textbf{\#} & \textbf{Use} \\ \hline \hline
+	\texttt{\$zero}		& 0	& Constant Value 0 \\ \hline
+	\texttt{\$at}		& 1	& Reserved Temporary \\ \hline
+	\texttt{\$v0-\$v1}	& 2-3	& Function Results \\ \hline
+	\texttt{\$a0-\$a3}	& 4-7	& Function Arguments \\ \hline
+	\texttt{\$t0-\$t7}	& 8-15	& Temporaries  \\ \hline
+	\texttt{\$s0-\$s7}	& 16-23 & Saved Temporaries \\ \hline
+	\texttt{\$t8-\$t9}	& 24-25 & Temporaries \\ \hline
+	\texttt{\$k0-\$k1}	& 26-27 & Reserved for OS \\ \hline
+	\texttt{\$gp}		& 28	& Global Pointer \\ \hline
+	\texttt{\$sp}		& 29	& Stack Pointer \\ \hline
+	\texttt{\$fp}		& 30	& Frame Pointer \\ \hline
+	\texttt{\$ra}		& 31	& Return Address \\ \hline
     \end{tabular}
 \end{center}
 
@@ -141,39 +156,45 @@ Rather, they are modified by different instructions.
     \begin{tabular}{ | l | l | l | c |}
     \hline
 	\textbf{Name} & \textbf{\#} & \textbf{Use} \\ \hline \hline
-	\texttt{HI}		& - 	& Hi-word of 64bit value \\ \hline
-	\texttt{LO}		& - 	& Lo-word of 64bit value \\ \hline
-	\texttt{\$PC}		& - 	& Program Counter \\ \hline
+	\texttt{HI}		& -	& Hi-word of 64bit value \\ \hline
+	\texttt{LO}		& -	& Lo-word of 64bit value \\ \hline
+	\texttt{\$PC}		& -	& Program Counter \\ \hline
     \end{tabular}
 \end{center}
 \texttt{HI} and \texttt{LO} registers are used to contain the result of a
 multiplication or division, which, using 2 32bit registers, can end with a
 64bit result.\\
 The PC register is pretty self-explanatory, as it simply points the current
-location in the program (or "counts" the instructions). On other architectures,
-this register is better known as the Instruction Pointer.
+location in the program (or "counts" the instructions). On other
+architectures,
+this register is better known as the Instruction Pointer (IP).
 
 \subsubsection{Co-processor 0 registers}
 Registers in co-processor 0 are mainly used by the system, to provide
 additional features. The co-processor can have 32 registers, but only few of
-them are used consistently. Many of the empty registers are also defined by the
+them are used consistently. Many of the empty registers are also defined
+by the
 manufacturer of the processor.
 \begin{center}
     \begin{tabular}{ | l | l | l | c |}
     \hline
 	\textbf{Name} & \textbf{\#} & \textbf{Use} \\ \hline \hline
-	\texttt{index}		& - 	& TLB entry index\\ \hline
-	\texttt{random}		& - 	& TLB random access register \\ \hline
-	\texttt{entrylo}	& - 	& Low order current TLB entry \\ \hline
-	\texttt{context}	& - 	& Page-Table lookup addr. \\ \hline
-	\texttt{vaddr}		& - 	& Virtual address of exceptions \\ \hline
-	\texttt{entryhi}	& - 	& High order current TLB entry\\ \hline
-	\texttt{status}		& - 	& Processor status \\ \hline
-	\texttt{cause}		& - 	& Exception cause \\ \hline
-	\texttt{epc}		& - 	& PC when exception occured \\ \hline
+	\texttt{index}		& -	& TLB entry index\\ \hline
+	\texttt{random}		& -	& TLB random access register \\ \hline
+	\texttt{entrylo}	& -	& Low order current TLB entry \\
+	\hline
+	\texttt{context}	& -	& Page-Table lookup addr. \\ \hline
+	\texttt{vaddr}		& -	& Virtual address of exceptions
+	\\ \hline
+	\texttt{entryhi}	& -	& High order current TLB entry\\
+	\hline
+	\texttt{status}		& -	& Processor status \\ \hline
+	\texttt{cause}		& -	& Exception cause \\ \hline
+	\texttt{epc}		& -	& PC when exception occured \\ \hline
     \end{tabular}
 \end{center}
-The \texttt{status} register is a bit-field of flags used to signal the current
+The \texttt{status} register is a bit-field of flags used to signal the
+current
 state of the processor. It is similar to the \texttt{EFLAGS} register on
 x86 architectures.
 
@@ -182,7 +203,8 @@ The rest of the registers will be discussed in depth in the SMP chapter.
 
 \subsection{Instructions}
 Each instruction in MIPS is 32-bit long, aligned to word. This simplifies the
-instruction fetching, decoding, as well as disassembly of the program, for both
+instruction fetching, decoding, as well as disassembly of the program,
+for both
 the processor as well as the programmer.
 
 In MIPS, the instructions have 3 basic formats:
@@ -200,18 +222,20 @@ In MIPS, the instructions have 3 basic formats:
 \label{fig:instruction_formats}
 \end{figure}
 
-It is clear that, as they have common fields, mainly the opcode field, they are
+It is clear that, as they have common fields, mainly the opcode field,
+they are
 easily distinguishable.\\
 The R-format instructions are mainly used when all the data being processed is
 located in the registers. That includes adding between registers, binary
 operations on values in registers as well as jumping to an address located in
 a register.\\\\
-The I-format instructions can operate on both data from registers and immediate
+The I-format instructions can operate on both data from registers and
+immediate
 values encoded directly in the instruction (thus the 16-bit immediate field).
 I-format instruction share a lot of common operations with the R-format, where
 one of the operands is the immediate.\\\\
 J-format instructions are used solely for jumping instructions, thus the large
-address address field.
+address field.
 
 
 \subsection{Arithmetic}
@@ -223,9 +247,11 @@ address address field.
 
 
 % MIPS supports up
-%to 4 coprocessors (COP), with each COP extending on the basic functionality. The
+%to 4 coprocessors (COP), with each COP extending on the basic
+functionality. The
 %only required co-processor is COP0, which is the System Control Coprocessor.
-%Other co-processors usually available, but not required, are the floating-point operation
+%Other co-processors usually available, but not required, are the
+floating-point operation
 %coprocessor COP1 (FPU), the user defined COP2.
 
 
