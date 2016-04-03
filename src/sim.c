@@ -33,7 +33,19 @@ bool g_debugging = false;
 void interpret_if(core_t *core, memory_t *mem)
 {
 	/* Fetch the next instruction */
-	core->if_id.inst = GET_BIGWORD(mem->raw, core->regs[REG_PC]);
+	uint32_t inst = GET_BIGWORD(mem->raw, core->regs[REG_PC]);
+
+	/* Hazard control
+	 * COD5 p. 314 */
+	if(ID_EX.c_mem_read
+	   && ((ID_EX.rt == GET_RS(inst))
+	       || (ID_EX.rt == GET_RT(inst)))) {
+		/* Insert NOP */
+		IF_ID.inst = 0;
+		return;
+	}
+
+	core->if_id.inst = inst;
 
 	/* Point PC to next instruction and store in pipeline reg */
 	core->regs[REG_PC] += 4;
@@ -59,6 +71,9 @@ void interpret_id_control(core_t *core)
 		ID_EX.c_mem_to_reg	= 0;
 		break;
 
+
+	case OPCODE_LBU:
+	case OPCODE_LHU:
 	case OPCODE_LW:
 		ID_EX.c_reg_dst		= 0;
 		ID_EX.c_alu_op		= 0x00;
@@ -70,6 +85,15 @@ void interpret_id_control(core_t *core)
 		ID_EX.c_mem_to_reg	= 1;
 		break;
 
+	case OPCODE_LL:
+	case OPCODE_LUI:
+		ERROR("INSTRUCTION NOT IMPLEMENTED: %s",
+		      op_codes[GET_OPCODE(inst)]);
+		break;
+
+
+	case OPCODE_SB:
+	case OPCODE_SH:
 	case OPCODE_SW:
 		ID_EX.c_alu_op		= 0x00;
 		ID_EX.c_alu_src		= 1;
@@ -79,6 +103,12 @@ void interpret_id_control(core_t *core)
 		ID_EX.c_reg_write	= 0;
 		break;
 
+	case OPCODE_SC:
+		ERROR("INSTRUCTION NOT IMPLEMENTED: %s",
+		      op_codes[GET_OPCODE(inst)]);
+		break;
+
+
 	case OPCODE_BEQ:
 		ID_EX.c_alu_op		= 0x01;
 		ID_EX.c_alu_src		= 0;
@@ -87,6 +117,29 @@ void interpret_id_control(core_t *core)
 		ID_EX.c_mem_write	= 0;
 		ID_EX.c_reg_write	= 0;
 		break;
+
+	case OPCODE_BNE:
+		ERROR("INSTRUCTION NOT IMPLEMENTED: %s",
+		      op_codes[GET_OPCODE(inst)]);
+		break;
+
+
+	case OPCODE_SLTI:
+	case OPCODE_SLTIU:
+	case OPCODE_ORI:
+	case OPCODE_ANDI:
+	case OPCODE_ADDI:
+	case OPCODE_ADDIU:
+		ID_EX.c_reg_dst		= 0;
+		ID_EX.c_alu_op		= 0x03;
+		ID_EX.c_alu_src		= 1;
+		ID_EX.c_branch		= 0;
+		ID_EX.c_mem_read	= 0;
+		ID_EX.c_mem_write	= 0;
+		ID_EX.c_reg_write	= 1;
+		ID_EX.c_mem_to_reg	= 0;
+		break;
+
 	}
 }
 
@@ -95,6 +148,8 @@ void interpret_id(core_t *core)
 	uint32_t inst = IF_ID.inst;
 
 	ID_EX.rt		= GET_RT(inst);
+	ID_EX.rd		= GET_RD(inst);
+	ID_EX.rs		= GET_RS(inst);
 	ID_EX.rs_value		= core->regs[GET_RS(inst)];
 	ID_EX.rt_value		= core->regs[GET_RT(inst)];
 	ID_EX.sign_ext_imm	= SIGN_EXTEND(GET_IMM(inst));
@@ -111,8 +166,10 @@ void interpret_ex_alu(core_t *core)
 {
 	uint32_t a = ID_EX.rs_value;
 
-	/* MUX for alu_src */
+	/* MUX B for alu_src */
 	uint32_t b = ID_EX.c_alu_src == 0 ? ID_EX.rt_value : ID_EX.sign_ext_imm ;
+
+	DEBUG("EX ALU. A = %d\tB = %d", a, b);
 
 	/* LW and SW */
 	if(ID_EX.c_alu_op == 0x00) {
@@ -126,11 +183,48 @@ void interpret_ex_alu(core_t *core)
 		return;
 	}
 
+	/* I-Type */
+	if(ID_EX.c_alu_op == 0x03) {
+		switch(GET_OPCODE(ID_EX.inst)) {
+		case OPCODE_ADDI:
+			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
+			break;
+		case OPCODE_ADDIU:
+			EX_MEM.alu_res = a + b;
+			break;
+
+		case OPCODE_SLTI:
+			EX_MEM.alu_res = (int32_t)a < (int32_t) b ? 1 : 0;
+			break;
+
+		case OPCODE_SLTIU:
+			EX_MEM.alu_res = (uint32_t)a < (uint32_t) b ? 1 : 0;
+
+			break;
+
+		case OPCODE_ANDI:
+			EX_MEM.alu_res = a & b;
+			break;
+
+		case OPCODE_ORI:
+			EX_MEM.alu_res = a & b;
+			break;
+
+		case OPCODE_LUI:
+			/* XXX ? */
+			EX_MEM.alu_res = (uint32_t)b << 16;
+			break;
+		}
+	}
+
 	/* R-Type */
-	switch(ID_EX.funct) {
+	if(ID_EX.c_alu_op == 0x02) {
+		switch(ID_EX.funct) {
 		case FUNCT_ADD:
 		case FUNCT_ADDU:
 			EX_MEM.alu_res = a + b;
+
+			DEBUG("ADDING %d + %d = %d", a, b, EX_MEM.alu_res);
 			break;
 
 		case FUNCT_SUB:
@@ -177,6 +271,7 @@ void interpret_ex_alu(core_t *core)
 		default:
 			ERROR("Unknown funct: 0x%x", ID_EX.funct);
 			break;
+		}
 	}
 
 }
@@ -195,7 +290,7 @@ void interpret_ex(core_t *core)
 	EX_MEM.inst		= ID_EX.inst;
 
 	/* MUX for RegDST */
-	EX_MEM.reg_dst = ID_EX.c_reg_dst == 0 ? ID_EX.rd : ID_EX.rt;
+	EX_MEM.reg_dst = ID_EX.c_reg_dst == 0 ? ID_EX.rt : ID_EX.rd;
 
 	/* ALU */
 	interpret_ex_alu(core);
@@ -207,7 +302,6 @@ void interpret_ex(core_t *core)
 
 void interpret_mem(core_t *core, memory_t *mem)
 {
-
 	MEM_WB.c_reg_write	= EX_MEM.c_reg_write;
 	MEM_WB.reg_dst		= EX_MEM.reg_dst;
 	MEM_WB.c_mem_to_reg	= EX_MEM.c_mem_to_reg;
@@ -224,7 +318,7 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 		LOG("alu_res = %d\nread_data = %d", EX_MEM.alu_res,
 		    MEM_WB.read_data);
-	    }
+	}
 
 	/* If write */
 	if(EX_MEM.c_mem_write) {
@@ -241,6 +335,12 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 void interpret_wb(core_t *core)
 {
+	if(GET_OPCODE(MEM_WB.inst) == 0 &&
+	   GET_FUNCT(MEM_WB.inst) == FUNCT_SYSCALL) {
+		g_finished = true;
+	}
+
+
 	/* mem_to_reg MUS */
 	uint32_t data = MEM_WB.c_mem_to_reg ? MEM_WB.read_data : MEM_WB.alu_res;
 
@@ -254,29 +354,34 @@ void interpret_wb(core_t *core)
 void forwarding_unit(core_t *core)
 {
 	/* EX Hazard
-	 * COD5 p. 308 */
-	/* Forward to A MUX */
+	 * Forward to A MUX */
 	if(EX_MEM.c_reg_write == 1
 	   && EX_MEM.reg_dst != 0
-	   && EX_MEM.reg_dst != ID_EX.rs) {
+	   && EX_MEM.reg_dst == ID_EX.rs) {
 		ID_EX.rs_value = EX_MEM.alu_res;
+		DEBUG("Forwarding from MEM MUX A");
 	}
+
 	/* Forward to B MUX */
 	if(EX_MEM.c_reg_write == 1
 	   && EX_MEM.reg_dst != 0
-	   && EX_MEM.reg_dst != ID_EX.rt) {
-		ID_EX.rt_value = EX_MEM.alu_res;
+	   && EX_MEM.reg_dst == ID_EX.rt) {
+		ID_EX.rt_value = ID_EX.sign_ext_imm = EX_MEM.alu_res;
+		DEBUG("Forwarding from MEM to MUX B");
 	}
+
+
 
 	/* MEM Hazard */
 	if(MEM_WB.c_reg_write == 1
 	   && MEM_WB.reg_dst != 0
-	   && !(EX_MEM.c_reg_write && EX_MEM.reg_dst != 0i
+	   && !(EX_MEM.c_reg_write && EX_MEM.reg_dst != 0
 		&& (EX_MEM.reg_dst != ID_EX.rs))
-	   && MEM_WB.reg_dst != ID_EX.rs) {
+	   && MEM_WB.reg_dst == ID_EX.rs) {
 		/* WB MUX */
 		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
-					MEM_WB.read_data : MEM_WB.alu_res;
+			MEM_WB.read_data : MEM_WB.alu_res;
+		DEBUG("Forwarding from WB to MUX A");
 	}
 
 	if(MEM_WB.c_reg_write == 1
@@ -286,8 +391,9 @@ void forwarding_unit(core_t *core)
 	   && MEM_WB.reg_dst == ID_EX.rt) {
 		/* WB MUX */
 		ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
-					MEM_WB.read_data : MEM_WB.alu_res;
+			MEM_WB.read_data : MEM_WB.alu_res;
 
+		DEBUG("Forwarding from WB to MUX B");
 	}
 }
 

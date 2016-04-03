@@ -107,7 +107,6 @@ void print_pipeline_registers(core_t *core)
 #define INST_STR(inst) GET_OPCODE((inst)) == 0 ? funct_codes[GET_FUNCT((inst))]\
 						: op_codes[GET_OPCODE((inst))]
 
-	DEBUG();
 	printf("---------------------------------------------------------------------------------------------\n");
 	printf("IF/ID              ID/EX                      EX/MEM                      MEM/WB\n");
 	printf("%s                %s                        %s                         %s                        \n",
