@@ -103,11 +103,20 @@ void interpret_id_control(core_t *core)
 		break;
 
 	case OPCODE_LL:
-	case OPCODE_LUI:
-		ERROR("INSTRUCTION NOT IMPLEMENTED: %s",
-		      op_codes[GET_OPCODE(inst)]);
-		break;
 
+	/* LUI is similar to sll imm, 16 */
+	case OPCODE_LUI:
+		ID_EX.funct		= FUNCT_SLL;
+		ID_EX.c_alu_op		= 0x02;
+		ID_EX.c_reg_write	= 1;
+		ID_EX.c_reg_dst		= 1; /* write to RD */
+
+		ID_EX.rt_value		= ((uint32_t)GET_IMM(inst));
+		ID_EX.shamt		= 16;
+
+		/* Set RT to zero as to not forward any values */
+		ID_EX.rt		= 0;
+		break;
 
 	case OPCODE_SB:
 	case OPCODE_SH:
@@ -181,8 +190,6 @@ void interpret_id_control(core_t *core)
 		/* Write to register, of course */
 		ID_EX.c_reg_write = 1;
 		break;
-
-
 	}
 }
 
@@ -227,40 +234,6 @@ void interpret_ex_alu(core_t *core)
 		return;
 	}
 
-	/* I-Type */
-	if(ID_EX.c_alu_op == 0x03) {
-		switch(GET_OPCODE(ID_EX.inst)) {
-		case OPCODE_ADDI:
-			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
-			break;
-		case OPCODE_ADDIU:
-			EX_MEM.alu_res = a + b;
-			break;
-
-		case OPCODE_SLTI:
-			EX_MEM.alu_res = (int32_t)a < (int32_t) b ? 1 : 0;
-			break;
-
-		case OPCODE_SLTIU:
-			EX_MEM.alu_res = (uint32_t)a < (uint32_t) b ? 1 : 0;
-
-			break;
-
-		case OPCODE_ANDI:
-			EX_MEM.alu_res = a & b;
-			break;
-
-		case OPCODE_ORI:
-			EX_MEM.alu_res = a & b;
-			break;
-
-		case OPCODE_LUI:
-			/* XXX ? */
-			EX_MEM.alu_res = (uint32_t)b << 16;
-			break;
-		}
-	}
-
 	/* R-Type */
 	if(ID_EX.c_alu_op == 0x02) {
 		switch(ID_EX.funct) {
@@ -297,11 +270,14 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case FUNCT_SLL:
-			EX_MEM.alu_res = a << ID_EX.shamt;
+			EX_MEM.alu_res = b << ID_EX.shamt;
+			DEBUG("SHIFTING %d << %d = %d", b, ID_EX.shamt,
+			      EX_MEM.alu_res);
 			break;
 
+
 		case FUNCT_SRL:
-			EX_MEM.alu_res = a >> ID_EX.shamt;
+			EX_MEM.alu_res = b >> ID_EX.shamt;
 			break;
 
 		case FUNCT_JR:
@@ -317,6 +293,42 @@ void interpret_ex_alu(core_t *core)
 			break;
 		}
 	}
+
+	/* I-Type */
+	if(ID_EX.c_alu_op == 0x03) {
+		switch(GET_OPCODE(ID_EX.inst)) {
+		case OPCODE_ADDI:
+			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
+			break;
+		case OPCODE_ADDIU:
+			EX_MEM.alu_res = a + b;
+			break;
+
+		case OPCODE_SLTI:
+			EX_MEM.alu_res = (int32_t)a < (int32_t) b ? 1 : 0;
+			break;
+
+		case OPCODE_SLTIU:
+			EX_MEM.alu_res = (uint32_t)a < (uint32_t) b ? 1 : 0;
+
+			break;
+
+		case OPCODE_ANDI:
+			EX_MEM.alu_res = a & b;
+			break;
+
+		case OPCODE_ORI:
+			EX_MEM.alu_res = a & b;
+			break;
+
+		case OPCODE_LUI:
+			/* XXX ? */
+			EX_MEM.alu_res = (uint32_t)b << 16;
+			break;
+		}
+	}
+
+
 }
 
 void interpret_ex(core_t *core)
