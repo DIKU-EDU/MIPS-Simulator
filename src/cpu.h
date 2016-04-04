@@ -123,6 +123,7 @@ typedef struct reg_id_ex {
 	bool c_mem_write;
 	bool c_reg_write;
 	bool c_mem_to_reg;
+	bool c_jump;
 
 	uint8_t shamt : 5;
 	uint8_t funct : 6;

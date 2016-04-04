@@ -48,14 +48,26 @@ void interpret_if(core_t *core, memory_t *mem)
 	core->if_id.inst = inst;
 
 	/* Point PC to next instruction and store in pipeline reg */
-	core->regs[REG_PC] += 4;
-	core->if_id.next_pc = PC;
+	PC += 4;
+	IF_ID.next_pc = PC;
 }
 
 /* Control unit in the ID stage */
 void interpret_id_control(core_t *core)
 {
 	uint32_t inst = IF_ID.inst;
+
+	/* Clear all */
+	ID_EX.c_reg_dst		= 0;
+	ID_EX.c_alu_op		= 0x00;
+	ID_EX.c_alu_src		= 0;
+	ID_EX.c_branch		= 0;
+	ID_EX.c_mem_read	= 0;
+	ID_EX.c_mem_write	= 0;
+	ID_EX.c_reg_write	= 0;
+	ID_EX.c_mem_to_reg	= 0;
+	ID_EX.c_jump		= 0;
+
 
 	/* COD5, page 302, fig. 4.49 */
 	switch(GET_OPCODE(inst))
@@ -123,7 +135,6 @@ void interpret_id_control(core_t *core)
 		      op_codes[GET_OPCODE(inst)]);
 		break;
 
-
 	case OPCODE_SLTI:
 	case OPCODE_SLTIU:
 	case OPCODE_ORI:
@@ -138,6 +149,11 @@ void interpret_id_control(core_t *core)
 		ID_EX.c_mem_write	= 0;
 		ID_EX.c_reg_write	= 1;
 		ID_EX.c_mem_to_reg	= 0;
+		break;
+
+
+	case OPCODE_J:
+		ID_EX.c_jump		= 1;
 		break;
 
 	}
@@ -155,6 +171,7 @@ void interpret_id(core_t *core)
 	ID_EX.sign_ext_imm	= SIGN_EXTEND(GET_IMM(inst));
 	ID_EX.funct		= GET_FUNCT(inst);
 	ID_EX.inst		= IF_ID.inst;
+	ID_EX.next_pc		= IF_ID.next_pc;
 
 	/* Control unit */
 	interpret_id_control(core);
@@ -273,7 +290,6 @@ void interpret_ex_alu(core_t *core)
 			break;
 		}
 	}
-
 }
 
 void interpret_ex(core_t *core)
@@ -288,6 +304,16 @@ void interpret_ex(core_t *core)
 	EX_MEM.c_mem_to_reg	= ID_EX.c_mem_to_reg;
 
 	EX_MEM.inst		= ID_EX.inst;
+
+	/* On jump */
+	if(ID_EX.c_jump == 1) {
+		DEBUG("ID_EX.next_pc: %08x\nJ ADDR: %08x",ID_EX.next_pc,
+		      GET_ADDRESS(ID_EX.inst));
+
+		PC = (ID_EX.next_pc & 0xF0000000) | (GET_ADDRESS(ID_EX.inst)<<2);
+
+		DEBUG("JUMP, PC = %08x", PC);
+	}
 
 	/* MUX for RegDST */
 	EX_MEM.reg_dst = ID_EX.c_reg_dst == 0 ? ID_EX.rt : ID_EX.rd;
@@ -353,40 +379,45 @@ void interpret_wb(core_t *core)
 
 void forwarding_unit(core_t *core)
 {
-
 	/* Forward to A MUX */
-	/* MEM */
 	if(EX_MEM.c_reg_write == 1
-	   && EX_MEM.reg_dst != 0
-	   && EX_MEM.reg_dst == ID_EX.rs) {
-		ID_EX.rs_value = EX_MEM.alu_res;
-		DEBUG("Forwarding from MEM MUX A");
+	   && EX_MEM.reg_dst != 0) {
 
-	/* WB */
-	} else if(MEM_WB.c_reg_write == 1
-		  && MEM_WB.reg_dst != 0) {
-		/* WB MUX */
-		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
-			MEM_WB.read_data : MEM_WB.alu_res;
-		DEBUG("Forwarding from WB to MUX A");
+		/* MEM */
+		if(EX_MEM.reg_dst == ID_EX.rs) {
+			ID_EX.rs_value = EX_MEM.alu_res;
+			DEBUG("Forwarding from MEM MUX A");
+
+			/* WB */
+		} else if(MEM_WB.c_reg_write == 1
+			  && MEM_WB.reg_dst != 0) {
+			/* WB MUX */
+			ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
+				MEM_WB.read_data : MEM_WB.alu_res;
+			DEBUG("Forwarding from WB to MUX A");
+		}
 	}
 
+
 	/* Forward to B MUX */
-	/* MEM */
 	if(EX_MEM.c_reg_write == 1
-	   && EX_MEM.reg_dst != 0
-	   && EX_MEM.reg_dst == ID_EX.rt) {
-		ID_EX.rt_value = ID_EX.sign_ext_imm = EX_MEM.alu_res;
-		DEBUG("Forwarding from MEM to MUX B");
+	   && EX_MEM.reg_dst != 0) {
 
-	/* WB */
-	} else if(MEM_WB.c_reg_write == 1
-		&& MEM_WB.reg_dst != 0) {
+		/* MEM */
+		if(EX_MEM.reg_dst == ID_EX.rt) {
+			ID_EX.rt_value = ID_EX.sign_ext_imm = EX_MEM.alu_res;
+			DEBUG("Forwarding from MEM to MUX B");
 
-		ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
-			MEM_WB.read_data : MEM_WB.alu_res;
+			/* WB */
+		} else if(MEM_WB.c_reg_write == 1
+			  && MEM_WB.reg_dst != 0) {
 
-		DEBUG("Forwarding from wb to mux b");
+			ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
+				MEM_WB.read_data : MEM_WB.alu_res;
+
+			DEBUG("Forwarding from WB to MUX b");
+		}
+
 	}
 }
 
