@@ -109,7 +109,7 @@ void print_pipeline_registers(core_t *core)
 
 	printf("---------------------------------------------------------------------------------------------\n");
 	printf("IF/ID              ID/EX                      EX/MEM                      MEM/WB\n");
-	printf("%s                %s                        %s                         %s                        \n",
+	printf("%s                  %s                        %s                         %s                        \n",
 	       INST_STR(IF_ID.inst), INST_STR(ID_EX.inst),INST_STR(EX_MEM.inst),
 	       INST_STR(MEM_WB.inst));
 
@@ -130,10 +130,12 @@ void print_pipeline_registers(core_t *core)
 	       ID_EX.c_reg_write, EX_MEM.eff_addr);
 	printf("                   c_mem_to_reg:%08x      alu_res:     %08x\n",
 	       ID_EX.c_mem_to_reg, EX_MEM.alu_res);
-	printf("                   shamt:       %08x      rt_value:    %08x\n",
-	       ID_EX.shamt, EX_MEM.rt_value);
-	printf("                   funct:       %08x      reg_dst:     %08x \n",
-	       ID_EX.funct, EX_MEM.reg_dst);
+	printf("                   c_jump:      %08x      rt_value:    %08x\n",
+		ID_EX.c_jump, EX_MEM.rt_value);
+	printf("                   shamt:       %08x      reg_dst:     %08x\n",
+	       ID_EX.shamt, EX_MEM.reg_dst);
+	printf("                   funct:       %08x\n",
+	       ID_EX.funct);
 	printf("                   next_pc:     %8x\n",
 	       ID_EX.next_pc);
 	printf("                   rs_value:    %8x\n",
