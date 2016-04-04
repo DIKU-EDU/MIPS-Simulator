@@ -353,47 +353,40 @@ void interpret_wb(core_t *core)
 
 void forwarding_unit(core_t *core)
 {
-	/* EX Hazard
-	 * Forward to A MUX */
+
+	/* Forward to A MUX */
+	/* MEM */
 	if(EX_MEM.c_reg_write == 1
 	   && EX_MEM.reg_dst != 0
 	   && EX_MEM.reg_dst == ID_EX.rs) {
 		ID_EX.rs_value = EX_MEM.alu_res;
 		DEBUG("Forwarding from MEM MUX A");
-	}
 
-	/* Forward to B MUX */
-	if(EX_MEM.c_reg_write == 1
-	   && EX_MEM.reg_dst != 0
-	   && EX_MEM.reg_dst == ID_EX.rt) {
-		ID_EX.rt_value = ID_EX.sign_ext_imm = EX_MEM.alu_res;
-		DEBUG("Forwarding from MEM to MUX B");
-	}
-
-
-
-	/* MEM Hazard */
-	if(MEM_WB.c_reg_write == 1
-	   && MEM_WB.reg_dst != 0
-	   && !(EX_MEM.c_reg_write && EX_MEM.reg_dst != 0
-		&& (EX_MEM.reg_dst != ID_EX.rs))
-	   && MEM_WB.reg_dst == ID_EX.rs) {
+	/* WB */
+	} else if(MEM_WB.c_reg_write == 1
+		  && MEM_WB.reg_dst != 0) {
 		/* WB MUX */
 		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
 			MEM_WB.read_data : MEM_WB.alu_res;
 		DEBUG("Forwarding from WB to MUX A");
 	}
 
-	if(MEM_WB.c_reg_write == 1
-	   && MEM_WB.reg_dst != 0
-	   && !(EX_MEM.c_reg_write && EX_MEM.reg_dst != 0
-		&& (EX_MEM.reg_dst != ID_EX.rs))
-	   && MEM_WB.reg_dst == ID_EX.rt) {
-		/* WB MUX */
+	/* Forward to B MUX */
+	/* MEM */
+	if(EX_MEM.c_reg_write == 1
+	   && EX_MEM.reg_dst != 0
+	   && EX_MEM.reg_dst == ID_EX.rt) {
+		ID_EX.rt_value = ID_EX.sign_ext_imm = EX_MEM.alu_res;
+		DEBUG("Forwarding from MEM to MUX B");
+
+	/* WB */
+	} else if(MEM_WB.c_reg_write == 1
+		&& MEM_WB.reg_dst != 0) {
+
 		ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
 			MEM_WB.read_data : MEM_WB.alu_res;
 
-		DEBUG("Forwarding from WB to MUX B");
+		DEBUG("Forwarding from wb to mux b");
 	}
 }
 
