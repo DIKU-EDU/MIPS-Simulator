@@ -132,6 +132,7 @@ typedef struct reg_id_ex {
 	uint32_t rs_value;
 	uint32_t rt_value;
 	uint32_t jump_addr;
+	uint32_t branch_addr;
 
 	int32_t sign_ext_imm;
 	uint8_t rs;
@@ -149,8 +150,6 @@ typedef struct reg_ex_mem {
 	bool c_mem_read;
 	bool c_mem_write;
 	bool c_mem_to_reg;
-
-	uint32_t branch_target;
 
 	uint32_t eff_addr;
 	uint32_t alu_res;

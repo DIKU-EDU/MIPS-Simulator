@@ -124,8 +124,8 @@ void print_pipeline_registers(core_t *core)
 	       ID_EX.c_branch, EX_MEM.c_mem_write, MEM_WB.read_data);
 	printf("                   c_mem_read:  %08x      c_mem_to_reg:%08x      reg_dst:      %8d\n",
 	       ID_EX.c_mem_read, EX_MEM.c_mem_to_reg, MEM_WB.reg_dst);
-	printf("                   c_mem_write: %08x      branch_target%08x\n",
-	       ID_EX.c_mem_write, EX_MEM.branch_target);
+	printf("                   c_mem_write: %08x      \n",
+	       ID_EX.c_mem_write);
 	printf("                   c_reg_write: %08x      eff_addr:    %08x\n",
 	       ID_EX.c_reg_write, EX_MEM.eff_addr);
 	printf("                   c_mem_to_reg:%08x      alu_res:     %08x\n",

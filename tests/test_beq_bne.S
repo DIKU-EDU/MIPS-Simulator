@@ -20,6 +20,8 @@ equal:
 not_equal:
 	addi $v0, $v0, 1	# v0 = 2
 	syscall
+	nop
+	nop
 
 error:
 	addi $v0, $0, 0

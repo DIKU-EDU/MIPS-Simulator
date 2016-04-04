@@ -129,12 +129,9 @@ void interpret_id_control(core_t *core)
 
 
 	case OPCODE_BEQ:
-		ID_EX.c_alu_op		= 0x01;
-		ID_EX.c_alu_src		= 0;
-		ID_EX.c_branch		= 1;
-		ID_EX.c_mem_read	= 0;
-		ID_EX.c_mem_write	= 0;
-		ID_EX.c_reg_write	= 0;
+		ID_EX.c_branch		= REGS(GET_RS(IF_ID.inst)) ==
+						REGS(GET_RT(IF_ID.inst))
+						? 1 : 0;
 		break;
 
 	case OPCODE_BNE:
@@ -218,12 +215,6 @@ void interpret_ex_alu(core_t *core)
 	/* LW and SW */
 	if(ID_EX.c_alu_op == 0x00) {
 		EX_MEM.alu_res = a + b;
-		return;
-	}
-
-	/* Branch Equal */
-	if(ID_EX.c_alu_op == 0x01) {
-		EX_MEM.alu_res = a - b;
 		return;
 	}
 
@@ -320,7 +311,6 @@ void interpret_ex_alu(core_t *core)
 		}
 	}
 
-
 }
 
 void interpret_ex(core_t *core)
@@ -341,15 +331,18 @@ void interpret_ex(core_t *core)
 		DEBUG("JUMPING TO: %08x", ID_EX.jump_addr);
 		PC = ID_EX.jump_addr;
 	}
+	if(ID_EX.c_branch == 1) {
+		/* Calculate branch address */
+		PC = ID_EX.next_pc + (ID_EX.sign_ext_imm << 2)
+			- 0x08; /* XXX: We should not be subtracting at all? */
+		DEBUG("BRANCHING TO: %08x", PC);
+	}
 
 	/* MUX for RegDST */
 	EX_MEM.reg_dst = ID_EX.c_reg_dst == 0 ? ID_EX.rt : ID_EX.rd;
 
 	/* ALU */
 	interpret_ex_alu(core);
-
-	/* Calculate branch address */
-	EX_MEM.branch_target = ID_EX.next_pc + (ID_EX.sign_ext_imm << 2);
 }
 
 
