@@ -104,18 +104,11 @@ void interpret_id_control(core_t *core)
 
 	case OPCODE_LL:
 
-	/* LUI is similar to sll imm, 16 */
 	case OPCODE_LUI:
-		ID_EX.funct		= FUNCT_SLL;
-		ID_EX.c_alu_op		= 0x02;
+		ID_EX.c_alu_op		= 0x03;
+		ID_EX.c_alu_src		= 1;
 		ID_EX.c_reg_write	= 1;
-		ID_EX.c_reg_dst		= 1; /* write to RD */
-
-		ID_EX.rt_value		= ((uint32_t)GET_IMM(inst));
-		ID_EX.shamt		= 16;
-
-		/* Set RT to zero as to not forward any values */
-		ID_EX.rt		= 0;
+		ID_EX.c_reg_dst		= 0; /* write to RT */
 		break;
 
 	case OPCODE_SB:
@@ -322,7 +315,6 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case OPCODE_LUI:
-			/* XXX ? */
 			EX_MEM.alu_res = (uint32_t)b << 16;
 			break;
 		}
@@ -415,45 +407,52 @@ void interpret_wb(core_t *core)
 void forwarding_unit(core_t *core)
 {
 	/* Forward to A MUX */
+	/* MEM */
 	if(EX_MEM.c_reg_write == 1
-	   && EX_MEM.reg_dst != 0) {
+	   && EX_MEM.reg_dst != 0
+	   && EX_MEM.reg_dst == ID_EX.rs) {
+		ID_EX.rs_value = EX_MEM.alu_res;
+		DEBUG("Forwarding from MEM MUX A");
 
-		/* MEM */
-		if(EX_MEM.reg_dst == ID_EX.rs) {
-			ID_EX.rs_value = EX_MEM.alu_res;
-			DEBUG("Forwarding from MEM MUX A");
+	}
 
-			/* WB */
-		} else if(MEM_WB.c_reg_write == 1
-			  && MEM_WB.reg_dst != 0) {
-			/* WB MUX */
-			ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
-				MEM_WB.read_data : MEM_WB.alu_res;
-			DEBUG("Forwarding from WB to MUX A");
-		}
+	/* WB */
+	if(MEM_WB.c_reg_write == 1
+		&& MEM_WB.reg_dst != 0
+		&& !(EX_MEM.c_reg_write == 1
+		     && (EX_MEM.reg_dst != 0)
+		     && (EX_MEM.reg_dst == ID_EX.rs))
+		&& MEM_WB.reg_dst == ID_EX.rs) {
+		/* WB MUX */
+		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
+			MEM_WB.read_data : MEM_WB.alu_res;
+		DEBUG("Forwarding from WB to MUX A");
 	}
 
 
 	/* Forward to B MUX */
+	/* MEM */
 	if(EX_MEM.c_reg_write == 1
-	   && EX_MEM.reg_dst != 0) {
-
-		/* MEM */
-		if(EX_MEM.reg_dst == ID_EX.rt) {
-			ID_EX.rt_value = ID_EX.sign_ext_imm = EX_MEM.alu_res;
-			DEBUG("Forwarding from MEM to MUX B");
-
-			/* WB */
-		} else if(MEM_WB.c_reg_write == 1
-			  && MEM_WB.reg_dst != 0) {
-
-			ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
-				MEM_WB.read_data : MEM_WB.alu_res;
-
-			DEBUG("Forwarding from WB to MUX b");
-		}
+	   && EX_MEM.reg_dst != 0
+	   && EX_MEM.reg_dst == ID_EX.rt) {
+		ID_EX.rt_value = ID_EX.sign_ext_imm = EX_MEM.alu_res;
+		DEBUG("Forwarding from MEM to MUX B");
 
 	}
+
+	/* WB */
+	if(MEM_WB.c_reg_write == 1
+	   && MEM_WB.reg_dst != 0
+	   && !(EX_MEM.c_reg_write == 1
+		&& (EX_MEM.reg_dst != 0)
+		&& (EX_MEM.reg_dst == ID_EX.rt))
+	   && MEM_WB.reg_dst == ID_EX.rt) {
+		/* WB MUX */
+		ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
+			MEM_WB.read_data : MEM_WB.alu_res;
+		DEBUG("Forwarding from WB to MUX A");
+	}
+
 }
 
 /* Simulates a clock-tick */
