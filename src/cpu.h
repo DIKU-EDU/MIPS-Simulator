@@ -131,6 +131,7 @@ typedef struct reg_id_ex {
 	uint32_t next_pc;
 	uint32_t rs_value;
 	uint32_t rt_value;
+	uint32_t jump_addr;
 
 	int32_t sign_ext_imm;
 	uint8_t rs;

@@ -142,6 +142,8 @@ void print_pipeline_registers(core_t *core)
 	       ID_EX.rs_value);
 	printf("                   rt_value:    %8x\n",
 	       ID_EX.rt_value);
+	printf("                   jump_addr:   %8x\n",
+	       ID_EX.jump_addr);
 	printf("                   sign_ext_imm:%8x\n",
 	       ID_EX.sign_ext_imm);
 	printf("                   rs:          %8x\n",

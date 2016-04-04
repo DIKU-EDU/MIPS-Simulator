@@ -20,7 +20,7 @@
 #define EX_MEM (core->ex_mem)
 #define MEM_WB (core->mem_wb)
 #define PC (core->regs[REG_PC])
-
+#define REGS(x) (core->regs[(x)])
 
 
 /* Signals if program stopped */
@@ -73,16 +73,21 @@ void interpret_id_control(core_t *core)
 	switch(GET_OPCODE(inst))
 	{
 	case OPCODE_R:
-		ID_EX.c_reg_dst		= 1;
-		ID_EX.c_alu_op		= 0x02;
-		ID_EX.c_alu_src		= 0;
-		ID_EX.c_branch		= 0;
-		ID_EX.c_mem_read	= 0;
-		ID_EX.c_mem_write	= 0;
-		ID_EX.c_reg_write	= 1;
-		ID_EX.c_mem_to_reg	= 0;
+		/* If JR */
+		if(GET_FUNCT(ID_EX.inst) == FUNCT_JR) {
+			ID_EX.c_jump		= 1;
+			ID_EX.jump_addr		= REGS(GET_RS(ID_EX.inst));
+		} else {
+			ID_EX.c_reg_dst		= 1;
+			ID_EX.c_alu_op		= 0x02;
+			ID_EX.c_alu_src		= 0;
+			ID_EX.c_branch		= 0;
+			ID_EX.c_mem_read	= 0;
+			ID_EX.c_mem_write	= 0;
+			ID_EX.c_reg_write	= 1;
+			ID_EX.c_mem_to_reg	= 0;
+		}
 		break;
-
 
 	case OPCODE_LBU:
 	case OPCODE_LHU:
@@ -154,7 +159,29 @@ void interpret_id_control(core_t *core)
 
 	case OPCODE_J:
 		ID_EX.c_jump		= 1;
+		ID_EX.jump_addr = (ID_EX.next_pc & 0xF0000000)
+			| (GET_ADDRESS(ID_EX.inst)<<2);
 		break;
+
+	/* Same as JUMP, but store the next address in $ra */
+	case OPCODE_JAL:
+		ID_EX.c_jump		= 1;
+		ID_EX.jump_addr = (ID_EX.next_pc & 0xF0000000)
+			| (GET_ADDRESS(ID_EX.inst)<<2);
+
+		/* Value to store */
+		ID_EX.rs_value = ID_EX.next_pc + 0x04; /* after branch delay */
+
+		/* Save to RT register */
+		ID_EX.c_reg_dst = 0;
+
+		/* RT is return address register */
+		ID_EX.rt = REG_RA;
+
+		/* Write to register, of course */
+		ID_EX.c_reg_write = 1;
+		break;
+
 
 	}
 }
@@ -307,12 +334,8 @@ void interpret_ex(core_t *core)
 
 	/* On jump */
 	if(ID_EX.c_jump == 1) {
-		DEBUG("ID_EX.next_pc: %08x\nJ ADDR: %08x",ID_EX.next_pc,
-		      GET_ADDRESS(ID_EX.inst));
-
-		PC = (ID_EX.next_pc & 0xF0000000) | (GET_ADDRESS(ID_EX.inst)<<2);
-
-		DEBUG("JUMP, PC = %08x", PC);
+		DEBUG("JUMPING TO: %08x", ID_EX.jump_addr);
+		PC = ID_EX.jump_addr;
 	}
 
 	/* MUX for RegDST */
