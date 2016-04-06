@@ -120,8 +120,8 @@ void print_pipeline_registers(core_t *core)
 	       IF_ID.next_pc, ID_EX.c_alu_op, EX_MEM.c_branch, MEM_WB.c_mem_to_reg);
 	printf("                   c_alu_src:   %08x      c_mem_read:  %08x      alu_res:      %8x\n",
 	       ID_EX.c_alu_src, EX_MEM.c_mem_read, MEM_WB.alu_res);
-	printf("                   c_branch:    %08x      c_mem_write: %08x      read_data:    %8x\n",
-	       ID_EX.c_branch, EX_MEM.c_mem_write, MEM_WB.read_data);
+	printf("                   c_beq:       %08x      c_mem_write: %08x      read_data:    %8x\n",
+	       ID_EX.c_beq, EX_MEM.c_mem_write, MEM_WB.read_data);
 	printf("                   c_mem_read:  %08x      c_mem_to_reg:%08x      reg_dst:      %8d\n",
 	       ID_EX.c_mem_read, EX_MEM.c_mem_to_reg, MEM_WB.reg_dst);
 	printf("                   c_mem_write: %08x      \n",
@@ -134,6 +134,8 @@ void print_pipeline_registers(core_t *core)
 		ID_EX.c_jump, EX_MEM.rt_value);
 	printf("                   shamt:       %08x      reg_dst:     %08x\n",
 	       ID_EX.shamt, EX_MEM.reg_dst);
+	printf("                   c_bne:       %08x\n",
+		ID_EX.c_bne);
 	printf("                   funct:       %08x\n",
 	       ID_EX.funct);
 	printf("                   next_pc:     %8x\n",

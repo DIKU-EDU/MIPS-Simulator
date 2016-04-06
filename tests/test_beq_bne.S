@@ -9,13 +9,14 @@ _start:
 	beq $t0, $t1, equal	# jump to equal
 	nop
 	j error			# This point should not be reached
-
+	nop
 equal:
 	addi $v0, $0, 1		# v0 = 1
 	bne $t0, $t2, not_equal
 	nop
 	j error			# This point should not be reached
-
+	nop
+	nop
 
 not_equal:
 	addi $v0, $v0, 1	# v0 = 2
@@ -26,3 +27,5 @@ not_equal:
 error:
 	addi $v0, $0, 0
 	syscall
+	nop
+	nop

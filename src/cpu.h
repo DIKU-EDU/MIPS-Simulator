@@ -118,7 +118,8 @@ typedef struct reg_id_ex {
 	bool c_reg_dst;
 	uint8_t c_alu_op : 2;
 	bool c_alu_src;
-	bool c_branch;
+	bool c_beq;
+	bool c_bne;
 	bool c_mem_read;
 	bool c_mem_write;
 	bool c_reg_write;

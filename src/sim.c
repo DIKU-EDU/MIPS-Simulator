@@ -61,7 +61,8 @@ void interpret_id_control(core_t *core)
 	ID_EX.c_reg_dst		= 0;
 	ID_EX.c_alu_op		= 0x00;
 	ID_EX.c_alu_src		= 0;
-	ID_EX.c_branch		= 0;
+	ID_EX.c_beq		= 0;
+	ID_EX.c_bne		= 0;
 	ID_EX.c_mem_read	= 0;
 	ID_EX.c_mem_write	= 0;
 	ID_EX.c_reg_write	= 0;
@@ -80,24 +81,16 @@ void interpret_id_control(core_t *core)
 		} else {
 			ID_EX.c_reg_dst		= 1;
 			ID_EX.c_alu_op		= 0x02;
-			ID_EX.c_alu_src		= 0;
-			ID_EX.c_branch		= 0;
-			ID_EX.c_mem_read	= 0;
-			ID_EX.c_mem_write	= 0;
 			ID_EX.c_reg_write	= 1;
-			ID_EX.c_mem_to_reg	= 0;
 		}
 		break;
 
 	case OPCODE_LBU:
 	case OPCODE_LHU:
 	case OPCODE_LW:
-		ID_EX.c_reg_dst		= 0;
 		ID_EX.c_alu_op		= 0x00;
 		ID_EX.c_alu_src		= 1;
-		ID_EX.c_branch		= 0;
 		ID_EX.c_mem_read	= 1;
-		ID_EX.c_mem_write	= 0;
 		ID_EX.c_reg_write	= 1;
 		ID_EX.c_mem_to_reg	= 1;
 		break;
@@ -116,10 +109,7 @@ void interpret_id_control(core_t *core)
 	case OPCODE_SW:
 		ID_EX.c_alu_op		= 0x00;
 		ID_EX.c_alu_src		= 1;
-		ID_EX.c_branch		= 0;
-		ID_EX.c_mem_read	= 0;
 		ID_EX.c_mem_write	= 1;
-		ID_EX.c_reg_write	= 0;
 		break;
 
 	case OPCODE_SC:
@@ -127,16 +117,12 @@ void interpret_id_control(core_t *core)
 		      op_codes[GET_OPCODE(inst)]);
 		break;
 
-
 	case OPCODE_BEQ:
-		ID_EX.c_branch		= REGS(GET_RS(IF_ID.inst)) ==
-						REGS(GET_RT(IF_ID.inst))
-						? 1 : 0;
-		break;
+		ID_EX.c_beq		= 1;
+			break;
 
 	case OPCODE_BNE:
-		ERROR("INSTRUCTION NOT IMPLEMENTED: %s",
-		      op_codes[GET_OPCODE(inst)]);
+		ID_EX.c_bne		= 1;
 		break;
 
 	case OPCODE_SLTI:
@@ -145,14 +131,9 @@ void interpret_id_control(core_t *core)
 	case OPCODE_ANDI:
 	case OPCODE_ADDI:
 	case OPCODE_ADDIU:
-		ID_EX.c_reg_dst		= 0;
 		ID_EX.c_alu_op		= 0x03;
 		ID_EX.c_alu_src		= 1;
-		ID_EX.c_branch		= 0;
-		ID_EX.c_mem_read	= 0;
-		ID_EX.c_mem_write	= 0;
 		ID_EX.c_reg_write	= 1;
-		ID_EX.c_mem_to_reg	= 0;
 		break;
 
 
@@ -215,6 +196,12 @@ void interpret_ex_alu(core_t *core)
 	/* LW and SW */
 	if(ID_EX.c_alu_op == 0x00) {
 		EX_MEM.alu_res = a + b;
+		return;
+	}
+
+	/* BEQ */
+	if(ID_EX.c_alu_op == 0x01) {
+		/* UNUSED */
 		return;
 	}
 
@@ -317,7 +304,6 @@ void interpret_ex(core_t *core)
 {
 	/* Pipe to next pipeline registers */
 	/* MEM */
-	EX_MEM.c_branch		= ID_EX.c_branch;
 	EX_MEM.c_mem_read	= ID_EX.c_mem_read;
 	EX_MEM.c_mem_write	= ID_EX.c_mem_write;
 	/* WB */
@@ -331,11 +317,21 @@ void interpret_ex(core_t *core)
 		DEBUG("JUMPING TO: %08x", ID_EX.jump_addr);
 		PC = ID_EX.jump_addr;
 	}
-	if(ID_EX.c_branch == 1) {
-		/* Calculate branch address */
-		PC = ID_EX.next_pc + (ID_EX.sign_ext_imm << 2)
-			- 0x08; /* XXX: We should not be subtracting at all? */
-		DEBUG("BRANCHING TO: %08x", PC);
+	/* On BEQ */
+	if(ID_EX.c_beq == 1) {
+		if(ID_EX.rs_value == ID_EX.rt_value) {
+			/* Calculate branch address */
+			PC = ID_EX.next_pc + (ID_EX.sign_ext_imm << 2);
+			DEBUG("BRANCHING TO: %08x", PC);
+		}
+	}
+	/* On BNE */
+	if(ID_EX.c_bne == 1) {
+		if(ID_EX.rs_value != ID_EX.rt_value) {
+			/* Calculate branch address */
+			PC = ID_EX.next_pc + (ID_EX.sign_ext_imm << 2);
+			DEBUG("BRANCHING TO: %08x", PC);
+		}
 	}
 
 	/* MUX for RegDST */
