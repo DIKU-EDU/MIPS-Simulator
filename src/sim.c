@@ -230,7 +230,8 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case FUNCT_NOR:
-			EX_MEM.alu_res = !(a | b);
+			EX_MEM.alu_res = ~(uint32_t)((uint32_t)a | (uint32_t)b);
+			DEBUG("NOR: %08x", EX_MEM.alu_res);
 			break;
 
 		case FUNCT_SLT:
@@ -285,7 +286,7 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case OPCODE_ORI:
-			EX_MEM.alu_res = a & b;
+			EX_MEM.alu_res = a | b;
 			break;
 
 		case OPCODE_LUI:
