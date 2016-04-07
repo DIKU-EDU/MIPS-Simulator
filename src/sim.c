@@ -174,6 +174,7 @@ void interpret_id(core_t *core)
 	ID_EX.rt_value		= core->regs[GET_RT(inst)];
 	ID_EX.sign_ext_imm	= SIGN_EXTEND(GET_IMM(inst));
 	ID_EX.funct		= GET_FUNCT(inst);
+	ID_EX.shamt		= GET_SHAMT(inst);
 	ID_EX.inst		= IF_ID.inst;
 	ID_EX.next_pc		= IF_ID.next_pc;
 
