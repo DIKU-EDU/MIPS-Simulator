@@ -13,4 +13,4 @@ view: all
 	evince $(OUTDIR)/main.pdf
 
 clean:
-	rm -r $(OUTDIR)
+	rm -r *.pdf *.log *.aux *.blg *.out

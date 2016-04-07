@@ -235,23 +235,106 @@ values encoded directly in the instruction (thus the 16-bit immediate field).
 I-format instruction share a lot of common operations with the R-format, where
 one of the operands is the immediate.\\\\
 J-format instructions are used solely for jumping instructions, thus the large
-address field.
+address field. As it only has 26 bits to address an 32 byte memory location, it
+shifts the whole value twice to the left, as to align the value in words. The
+upper 4 bits are retrieved from PC. In practise, this is enough to jump to any
+address in the program.
+
+\subsection{Arithmetic Logic Unit}
+Without any extension co-processing unit, the Arithmentic Logic Unit (ALU) in
+MIPS32 only supports operations on integers. \\
+The ALU supports basic mathematical operations such as adding (\texttt{add}),
+subtracting (\texttt{sub}), as well as logical shifting to both left and right
+(\texttt{sll, srl}), which also can be used to division or multiplication by
+even numbers.
+
+All bitwise logical operators \texttt{and, or, and nor} are implemented Using
+these, which additional missing logical operations can be created, such as
+\texttt{nand} and \texttt{not}.\\
+Since both the operand and destination registers are 32 bit wide, an overflow
+in the result might occur - that is, the result is larger than what a 32 bit
+register can hold.
+In that situation, an exception is raised in the processor, and code to recover
+from this error is run\cite{COD5}. This will be explained in later sections.
 
 
-\subsection{Arithmetic}
 \subsection{Load and Store}
-\subsection{Jumping and Branching}
-\subsection{Interrupts}
+MIPS is a "load/store" architecture, where memory is only accessed by specific
+load and store instructions \cite{flynn1995computer}. This design is a very
+common for RISC architectures, as it greatly simplifies the pipeline stages and
+clock timings. In contrast, CISC architectures have many instructions that can
+do operations on both memory and registers at the same time. For example, on
+the x86\_64 architecture, the
+\texttt{MOVSW} instruction reads from a memory location pointed to by register
+SI, stores it in memory location DI, and at last, increments (or
+decrements\footnote{This is determined by the direction flag, which determines
+whether the CPU reads memory from top to bottom or in reverse.})
+both registers\cite{intelmanual}. This adds additional stall and hazard logic to
+the processor, and makes it is hard for the CPU to determine how many
+clock-ticks the instruction will take.\\\\
+MIPS32 uses \texttt{lw} for loading a word from the main memory into the register,
+and a \texttt{sw}, which stores the value from register into the specified
+memory location. In reality, MIPS32 also has \texttt{LH}, \texttt{LB} and
+their store counterparts \texttt{SH} \texttt{SB}, which operate on half-word
+and byte sized loads and stores. However, for performance reasons, the main
+memory always reads a word (4 bytes), and so, the desired size is computed in
+the CPU.
 
+
+
+\subsection{Jumping and Branching}
+To be turing complete, the processor needs to be able to do conditional jumps
+to other memory locations. This is done with the jumping instructions: jump
+(\texttt{j}), jump-register (\texttt{jr}) and jump-and-link (\texttt{jal}). The
+conditional jumps are: branch-equal (\texttt{beq}) and branch-not-equal
+(\texttt{bne}).\\
+On the bare-metal level of the processor, these instructions simply modify the
+value of the Program Counter register, which is otherwise inaccessible from
+assembly.
+
+\subsection{Interrupts}
+Interrupts is a special way to control what the CPU. It actively "interrupts"
+the CPU from its current job, and makes it execute a special function,
+specified by an interrupt number. There usually 3 types of interrupts\cite{osdev:interrupts}:
+\begin{itemize}
+	\item Exceptions\\
+	Exceptions occur in software, usually when an error has occurred that
+	needs attention from the kernel. This is usually caused by reading from
+	illegal memory addresses or when arithmetic overflow occurs.
+
+	\item Hardware Interrupt\\
+Hardware interrupts are initiated from hardware devices, such as a
+mouse or a keyboard. When a user presses a key or moves the mouse, the hardware
+devices send a signal to the CPU that something has happened that needs
+attention from the kernel.
+
+	\item System Call (syscall)\\
+	Syscalls are usually used by programs, when they need attention from
+the kernel. An operating system and the underlying kernel will usually expose
+an interface with a whole set of functions, that the program can access by
+syscalls. This can be everything from reporting termination of a program to
+writing data to the disk.
+\end{itemize}
+
+The action that the CPU has to perform is determined by an interrupt vector
+table. For each interrupt vector, there is specific code to be executed.
+Because the interrupt vector table is limited in size, operating systems, such
+as Linux, use a single interrupt vector number 0x80. Additional arguments for
+further determination of the service are passed in service number, which is
+stored in the general purpose registers, and if needed, in the stack.\\
+System call handling is made somewhat easier in MIPS. Whereas in x86\_64, you
+have to set the appropriate system-calls arguments and then do an interrupt on
+the correct vector, MIPS has a dedicated system-call instruction
+\texttt{syscall}. The operating system can choose however the arguments are
+passed, but usually, the service number is stored in \texttt{\$v0}, and the
+arguments in \texttt{\$a0-\$a3}\cite{COD5}.
 
 
 
 % MIPS supports up
-%to 4 coprocessors (COP), with each COP extending on the basic
-functionality. The
+%to 4 coprocessors (COP), with each COP extending on the basic functionality. The
 %only required co-processor is COP0, which is the System Control Coprocessor.
-%Other co-processors usually available, but not required, are the
-floating-point operation
+%Other co-processors usually available, but not required, are the floating-point operation
 %coprocessor COP1 (FPU), the user defined COP2.
 
 
