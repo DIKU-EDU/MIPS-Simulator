@@ -77,7 +77,6 @@ void interpret_id_control(core_t *core)
 		/* If JR */
 		if(GET_FUNCT(ID_EX.inst) == FUNCT_JR) {
 			ID_EX.c_jump		= 1;
-			ID_EX.jump_addr		= REGS(GET_RS(ID_EX.inst));
 		} else {
 			ID_EX.c_reg_dst		= 1;
 			ID_EX.c_alu_op		= 0x02;
@@ -191,8 +190,6 @@ void interpret_ex_alu(core_t *core)
 	/* MUX B for alu_src */
 	uint32_t b = ID_EX.c_alu_src == 0 ? ID_EX.rt_value : ID_EX.sign_ext_imm ;
 
-	DEBUG("EX ALU. A = %d\tB = %d", a, b);
-
 	/* LW and SW */
 	if(ID_EX.c_alu_op == 0x00) {
 		EX_MEM.alu_res = a + b;
@@ -209,13 +206,17 @@ void interpret_ex_alu(core_t *core)
 	if(ID_EX.c_alu_op == 0x02) {
 		switch(ID_EX.funct) {
 		case FUNCT_ADD:
+			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
+			break;
+
 		case FUNCT_ADDU:
 			EX_MEM.alu_res = a + b;
-
-			DEBUG("ADDING %d + %d = %d", a, b, EX_MEM.alu_res);
 			break;
 
 		case FUNCT_SUB:
+			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
+			break;
+
 		case FUNCT_SUBU:
 			EX_MEM.alu_res = a - b;
 			break;
@@ -246,13 +247,8 @@ void interpret_ex_alu(core_t *core)
 			      EX_MEM.alu_res);
 			break;
 
-
 		case FUNCT_SRL:
 			EX_MEM.alu_res = b >> ID_EX.shamt;
-			break;
-
-		case FUNCT_JR:
-			/* Huh ? */
 			break;
 
 		case FUNCT_SYSCALL:
@@ -312,8 +308,13 @@ void interpret_ex(core_t *core)
 
 	EX_MEM.inst		= ID_EX.inst;
 
-	/* On jump */
+	/* On J and JR */
 	if(ID_EX.c_jump == 1) {
+		if(GET_OPCODE(ID_EX.inst) == OPCODE_R
+		   && GET_FUNCT(ID_EX.inst) == FUNCT_JR) {
+			ID_EX.jump_addr = ID_EX.rs_value;
+		}
+
 		DEBUG("JUMPING TO: %08x", ID_EX.jump_addr);
 		PC = ID_EX.jump_addr;
 	}
