@@ -67,19 +67,55 @@ wait for the result from an earlier instruction. Suppose a program wants to
 calculate the sum of 4 integers:
 $$A = A + B + C + D$$
 In MIPS32 assembly, this would be written as:
-\begin{lstlisting}
-# t0 = A, t1 = B, t2 = C, t3 = D
-add $s0, $t0, $t1 	# s0 = A + B
-add $s1, $t2, $t3	# s1 = C + D
-add $v0, $s0, $s1
-\end{lstlisting}
-
+\begin{figure}[H]
+	\begin{lstlisting}
+	# t0 = A, t1 = B, t2 = C, t3 = D
+	add $s0, $t0, $t1 	# s0 = A + B
+	add $s1, $t2, $t3	# s1 = C + D
+	add $v0, $s0, $s1
+	\end{lstlisting}
+	\caption{Code exposing data hazard situation.}
+	\label{fig:data_hazard_code}
+\end{figure}
 Here, the first two instruction will have no trouble executing, as they do not
 share any source or destination registers. The third instruction however, will
 not be able to fetch the updated values. When it is in the ID stage, where it decodes the
 register \texttt{s0} and \texttt{s1} values, the previous instructions are
 still in the pipeline, in the EX and MEM stage! These instructions have not
 written back their results in the appropriate registers, and so, instruction 3
-cannot fetch the correct value of s0 and s1, unless it waits 3 clock cycles.
+cannot fetch the correct value of s0 and s1, unless it waits 3 clock
+cycles. This situation can be visualized in a sequential graph show in figure
+\ref{fig:data_hazard_code}, where it can be seen that the result of the first
+two instructions is needed in the third.\\
+\begin{figure}
+	\includegraphics[scale=0.4]{pipeline/data_hazard.eps}
+	\label{fig:data_hazard}
+	\caption{Time-sheet of the program listed in figure
+\ref{fig:data_hazard_code}.}
+\end{figure}
+The problem is very clear - the data is needed before it saved at the
+appropriate place. However, the data is usually already available in the EX
+stage in the ALU, and can therefore be used in the same clock-cycle in the ID
+stage. This is called forwarding or bypassing, and is handled by the
+Forwarding Unit. This unit is wired to both EX, MEM and WB stages, and has a
+logic unit that checks for matching registers in the instruction, in which case
+it forwards the correct unit back in the pipeline.
 
+\subsubsection{Control Hazard}
+Another type of hazard is the Control Hazard, which occurs when the processor
+must make a decision based on an instruction, while others are executing.
+Whether a branch is taken or not is determined in the EX stage, as that is the
+point where forwarding unit can bypass the most recent values, if any. If a
+branch is taken, the challenge emerges that we already the next instruction in
+the ID stage, even though the program has taken another branch. There are many
+possible ways to solve this issue, the most simple, but inefficient one, is to
+stall the pipeline by inserting NOP-instructions after the branch. This way,
+the instruction after the branch will do nothing, but in both situations, we
+loose a clock cycle. TO BE CONTINUED
 
+% https://www.cs.uaf.edu/2012/spring/cs641/lecture/01_24_encoding.html
+
+\subsection{Implementation}
+\subsubsection{Simulator structures}
+\subsubsection{Pipeline functions}
+\subsubsection{Hazard control / Forwarding Unit}
