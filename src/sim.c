@@ -193,6 +193,7 @@ void interpret_ex_alu(core_t *core)
 
 	/* LW and SW */
 	if(ID_EX.c_alu_op == 0x00) {
+		DEBUG("LW a: %d\t b: %d", a, b);
 		EX_MEM.alu_res = a + b;
 		return;
 	}
@@ -356,9 +357,8 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 	/* If read */
 	if(EX_MEM.c_mem_read) {
-		DEBUG("READING DATA AT: 0x%08x", EX_MEM.alu_res + MIPS_RESERVE);
-		MEM_WB.read_data = GET_BIGWORD(mem->raw, EX_MEM.alu_res +
-					       MIPS_RESERVE);
+		DEBUG("READING DATA AT: 0x%08x", EX_MEM.alu_res);
+		MEM_WB.read_data = GET_BIGWORD(mem->raw, EX_MEM.alu_res);
 
 
 		LOG("alu_res = %d\nread_data = %d", EX_MEM.alu_res,
