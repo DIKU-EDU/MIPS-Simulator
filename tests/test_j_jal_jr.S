@@ -6,6 +6,8 @@ _start:
 	jal label1		# Jump to label1
 	nop
 	nop
+	nop
+	nop
 
 	la $ra, cont		# Manually set return address
 	la $t0, label1		# Set the jump destination
@@ -15,12 +17,19 @@ _start:
 
 cont:
 	syscall
+	nop
+	nop
+	nop
 
 label1:
 	addi $v0, $v0, 1	# Increment v0
 	jr $ra
 	nop
 	nop
+	nop
+	nop
 
 error:
 	syscall
+	nop
+	nop

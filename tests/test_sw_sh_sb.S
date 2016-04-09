@@ -25,5 +25,4 @@ _start:
 	add $v0, $t1, $t0
 	add $v0, $v0, $t2
 
-
 	syscall

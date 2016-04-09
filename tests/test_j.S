@@ -2,10 +2,12 @@
 	.text
 _start:
 	.set noreorder
-	addi $t1, $0, 10
 	j _skip
-	add $t1, $0, $0		# Set t1 to 0
+	nop
+	nop
+	syscall
+	nop
 _skip:
-	add $v0, $0, $t1	# Set result
+	addi $v0, $0, 1	# Set result
 	syscall
 

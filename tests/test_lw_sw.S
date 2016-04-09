@@ -16,6 +16,7 @@ _start:
 
 	add $t0, $t0, $t1	# t0 = var1 + var2
 	beq $t0, $t2, equal
+	nop
 	syscall
 
 equal:

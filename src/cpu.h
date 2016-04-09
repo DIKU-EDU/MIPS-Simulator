@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "mips32.h"
 #include "cp0.h"
@@ -105,6 +106,75 @@ typedef union instr {
 
 
 
+/* CPU Structs */
+/* Pipeline register */
+typedef struct reg_if_id {
+	uint32_t inst;
+	uint32_t next_pc;
+} if_id_t;
+
+typedef struct reg_id_ex {
+	/* Control */
+	bool c_reg_dst;
+	uint8_t c_alu_op : 2;
+	bool c_alu_src;
+	bool c_beq;
+	bool c_bne;
+	bool c_mem_read;
+	bool c_mem_write;
+	bool c_reg_write;
+	bool c_mem_to_reg;
+	bool c_jump;
+
+	uint8_t shamt : 5;
+	uint8_t funct : 6;
+
+	uint32_t next_pc;
+	uint32_t rs_value;
+	uint32_t rt_value;
+	uint32_t jump_addr;
+	uint32_t branch_addr;
+
+	int32_t sign_ext_imm;
+	uint8_t rs;
+	uint8_t rt;
+	uint8_t rd;
+
+	uint32_t inst;
+} id_ex_t;
+
+typedef struct reg_ex_mem {
+	/* Control */
+	bool c_reg_write;
+	bool c_branch;
+	bool c_mem_read;
+	bool c_mem_write;
+	bool c_mem_to_reg;
+
+	uint32_t eff_addr;
+	uint32_t alu_res;
+
+	uint32_t rt_value;
+
+	uint8_t reg_dst;
+
+	uint32_t inst;
+
+} ex_mem_t;
+
+typedef struct reg_mem_wb {
+	/* Control */
+	bool c_reg_write;
+	bool c_mem_to_reg;
+
+	uint32_t alu_res;
+	uint32_t read_data;
+
+	uint8_t reg_dst;
+
+	uint32_t inst;
+} mem_wb_t;
+
 /*
  * Core structure of the CPU
  */
@@ -112,8 +182,12 @@ typedef struct core {
 	uint32_t regs[NUM_REGISTERS];
 	cp0_t cp0;
 
+	/* Pipeline registers */
+	if_id_t		if_id;
+	id_ex_t		id_ex;
+	ex_mem_t	ex_mem;
+	mem_wb_t	mem_wb;
 } core_t;
-
 
 
 /*
@@ -134,11 +208,4 @@ void cpu_free(cpu_t *cpu);
 
 /* Ticks of the clock */
 void cpu_tick(cpu_t *cpu);
-
-/* Prints all registers of a given core. */
-void print_registers(core_t *core);
-
-/* Dump registers except PC in hex. Used for testing */
-void dump_registers(core_t *core);
-
 #endif	/* _CPU_H */

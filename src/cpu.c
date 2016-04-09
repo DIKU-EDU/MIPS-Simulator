@@ -85,25 +85,3 @@ register_to_number(char *str)
 	return 0;
 }
 
-void
-print_registers(core_t *core)
-{
-	int i;
-	for(i = 0; i < NUM_REGISTERS; i++) {
-		printf("%s\t(s) %d\t(u) %u\t 0x%x\n",reg_names[i],
-		       (int32_t)core->regs[i], (uint32_t)core->regs[i],
-		       (uint32_t)core->regs[i]);
-	}
-}
-
-
-void
-dump_registers(core_t *core)
-{
-	size_t i;
-	/* PC is not included */
-	for(i = 0; i < NUM_REGISTERS - 1; i++) {
-		printf("%d\n", core->regs[i]);
-	}
-}
-
