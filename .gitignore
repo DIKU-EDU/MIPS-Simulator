@@ -1,6 +1,9 @@
+bin/
+*.pdf
 *.o
 *.elf
 *.swp
+*.out
 programs/*.o
 programs/*.elf
 programs/regs.txt
