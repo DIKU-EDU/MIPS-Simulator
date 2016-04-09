@@ -8,7 +8,7 @@ SOURCES =$(wildcard $(SRCDIR)*.c)
 OBJECTS =$(SOURCES:.c=.o)
 LFLAGS  =
 
-.PHONY: clean
+.PHONY: clean all
 
 all: $(TARGET)
 
