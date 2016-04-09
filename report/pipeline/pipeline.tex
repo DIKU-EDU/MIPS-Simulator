@@ -72,7 +72,7 @@ In MIPS32 assembly, this would be written as:
 	# t0 = A, t1 = B, t2 = C, t3 = D
 	add $s0, $t0, $t1 	# s0 = A + B
 	add $s1, $t2, $t3	# s1 = C + D
-	add $v0, $s0, $s1
+	add $v0, $s0, $s1	# $v0 = result
 	\end{lstlisting}
 	\caption{Code exposing data hazard situation.}
 	\label{fig:data_hazard_code}
@@ -106,16 +106,113 @@ Another type of hazard is the Control Hazard, which occurs when the processor
 must make a decision based on an instruction, while others are executing.
 Whether a branch is taken or not is determined in the EX stage, as that is the
 point where forwarding unit can bypass the most recent values, if any. If a
-branch is taken, the challenge emerges that we already the next instruction in
+branch is taken, the challenge emerges that we already have the next instruction in
 the ID stage, even though the program has taken another branch. There are many
 possible ways to solve this issue, the most simple, but inefficient one, is to
-stall the pipeline by inserting NOP-instructions after the branch. This way,
+stall the pipeline by inserting a No-Operation instructions after the branch. This way,
 the instruction after the branch will do nothing, but in both situations, we
-loose a clock cycle. TO BE CONTINUED
+loose a clock cycle. Although this does not sound like much, considering that
+branching instruction make up about 25\% of any assembly
+code\cite{instruction_frequency}, this can be a lot.
+A better, but much more complex technique to solve this issue to have a
+dedicated unit in the processor, which will predict whether a branch will be
+taken or not.
 
-% https://www.cs.uaf.edu/2012/spring/cs641/lecture/01_24_encoding.html
 
 \subsection{Implementation}
+The implementation of the pipelined simulator uses a very object-oriented
+approach, where each device or system has its own C structure.
+
 \subsubsection{Simulator structures}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.55]{pipeline/structure_layout.eps}
+	\caption{Relations between the simulator structures.}
+	\label{fig:structure_layout}
+\end{figure}
+In the simulator, the processor cores, pipeline registers, and memory unit all
+belong to a "hardware" structure, that binds them together, making up a
+simulated machine. The relations between the components can be seen in figure
+\ref{fig:structure_layout}.\\
+In the simulator, the hardware structure will be used to pass along the
+simulated hardware to functions, which then can access the underlying devices,
+modifying them properly.
+
 \subsubsection{Pipeline functions}
-\subsubsection{Hazard control / Forwarding Unit}
+The pipeline is implemented by running each pipeline stage separately. For each
+clock-tick, the pipeline stage functions are being called in reverse. This can
+seem very unnatural, but this prevents pipeline registers to be overwritten
+before they are used.
+\begin{verbatim}
+void tick() {
+        interpret_wb(...);
+        interpret_mem(...);
+        interpret_ex(...);
+        interpret_id(...);
+        interpret_if(...);
+}
+\end{verbatim}
+
+Each of the function receive the relevant pointer to the CPU core structure,
+which holds all the relevant information about the state of the core.
+
+\hl{In what level of detail should I describe the pipeline functions?}
+
+
+\subsubsection{Forwarding Unit}
+The pipeline stages work without regard for data hazards, which is where data
+is required for an instruction before it is stored by the previous instruction.
+Therefore, we add a forwarding unit function \texttt{forwarding\_unit()}, which
+is run by the end of each clock cycle. Being the last function, it has all the
+recent information in all the pipeline stages, which enables it to decide which
+values need to be forwarded.\\
+The forwarding unit only forwards values to the ALU input mutual exclusion
+units MUX A and MUX B. It does that by first checking if the previous
+instructions write to a register, that is, modify a register value. If it
+indeed is the case, the destination registers are compared, and if the match,
+the value from the previous instruction is bypassed. This is done for both the
+A and B input to the ALU in both Memory- and Writeback-stages. The code for
+forwarding values from stage MEM to EX can be seen in figure
+\ref{fig:forwarding_unit_code}. Forwarding from the WB stage is almost
+identical.
+
+\begin{figure}
+\centering
+\begin{lstlisting}[style=customc]
+/* Forward to A MUX */
+if(EX_MEM.c_reg_write == 1
+   && EX_MEM.reg_dst != 0
+   && EX_MEM.reg_dst == ID_EX.rs)
+       ID_EX.rs_value = EX_MEM.alu_res;
+
+/* Forward to B MUX */
+if(EX_MEM.c_reg_write == 1
+   && EX_MEM.reg_dst != 0
+   && EX_MEM.reg_dst == ID_EX.rt)
+      ID_EX.rt_value = EX_MEM.alu_res;
+\end{lstlisting}
+\label{fig:forwarding_unit_code}
+\caption{ALU result being forwarded from the MEM stage to EX.}
+\end{figure}
+
+
+\subsubsection{Hazard detection unit}
+Control hazards arise when the processor is branching to another execution path
+based on the result of the previous instructions. As there is no "correct"
+solution to the branching hazard, the MIPS CPU manufacturers often implement
+their own branch predictions based on the intended use of the processor. For
+simplicity in our simulator, we will always predict that the branch is
+\textit{not} taken. In that case, we always run the next instruction after the
+branch. This works well, because this is a widely accepted approach in many
+RISC architectures\cite{wiki:branch_delay_slots}.  Knowing that the instruction
+following a branch is always executed, many standard GNU compilers and assemblers
+restructure the code so that branch-delay slot is not wasted.\\
+For example, where assignment of a value to a register and a branch would
+consume 3 instructions, utilization of the branch-delay slot can bring it back
+to 2:
+\begin{lstlisting}
+addi $v0, $0, 10
+beq $0, $0, exit
+nop # branch delay slot
+\end{lstlisting}
+

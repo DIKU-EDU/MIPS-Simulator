@@ -13,7 +13,6 @@
 \usepackage{listings}
 \usepackage{mips}
 \usepackage{cite}
-\usepackage{subfigure}
 \usepackage{color}
 \usepackage{array}
 \usepackage{multicol}
@@ -22,11 +21,13 @@
 \usepackage{hyperref}
 \usepackage{float}
 \usepackage{xcolor,colortbl}
+\usepackage{soul}
 \usepackage{pdfpages}
 \usepackage{multirow}
 \usepackage[font={small,it}]{caption}
 \usepackage{tablefootnote}
 \usepackage{footnote}
+\usepackage{subcaption}
 \makesavenoteenv{tabular}
 % More subsubsub sections
 \usepackage{titlesec}
@@ -80,6 +81,23 @@
   escapeinside={\%*}{*)},            % if you want to add a comment within your code
   morekeywords={*,...}               % if you want to add more keywords to the set
 }
+
+\lstdefinestyle{customc}{
+  belowcaptionskip=1\baselineskip,
+  breaklines=true,
+  frame=L,
+  xleftmargin=\parindent,
+  language=C,
+  showstringspaces=false,
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\bfseries\color{green!40!black},
+  commentstyle=\itshape\color{purple!40!black},
+  identifierstyle=\color{blue},
+  stringstyle=\color{orange},
+}
+
+
+
 
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
