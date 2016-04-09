@@ -12,14 +12,14 @@ LFLAGS  =
 
 all: $(TARGET)
 
-$(TARGET): $(OBJECTS)
+$(TARGET): $(OBJECTS) Makefile
 	install -D /dev/null $(TARGET)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $(TARGET) $(LFLAGS)
 
-%.o: %.c
+%.o: %.c Makefile
 	$(CC) -o $@  $(CFLAGS) -c $<
 
-test: $(wildcard $(TESTDIR)*.S)
+test: $(wildcard $(TESTDIR)*.S) Makefile
 	make -C $(TESTDIR)
 
 clean:
