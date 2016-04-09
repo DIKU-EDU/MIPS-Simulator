@@ -87,7 +87,6 @@ void interpret_id_control(core_t *core)
 	case OPCODE_LBU:
 	case OPCODE_LHU:
 	case OPCODE_LW:
-		ID_EX.c_alu_op		= 0x00;
 		ID_EX.c_alu_src		= 1;
 		ID_EX.c_mem_read	= 1;
 		ID_EX.c_reg_write	= 1;
@@ -296,7 +295,6 @@ void interpret_ex_alu(core_t *core)
 			break;
 		}
 	}
-
 }
 
 void interpret_ex(core_t *core)
@@ -305,9 +303,11 @@ void interpret_ex(core_t *core)
 	/* MEM */
 	EX_MEM.c_mem_read	= ID_EX.c_mem_read;
 	EX_MEM.c_mem_write	= ID_EX.c_mem_write;
+	EX_MEM.rt_value		= ID_EX.rt_value;
 	/* WB */
 	EX_MEM.c_reg_write	= ID_EX.c_reg_write;
 	EX_MEM.c_mem_to_reg	= ID_EX.c_mem_to_reg;
+
 
 	EX_MEM.inst		= ID_EX.inst;
 
@@ -358,23 +358,40 @@ void interpret_mem(core_t *core, memory_t *mem)
 	/* If read */
 	if(EX_MEM.c_mem_read) {
 		DEBUG("READING DATA AT: 0x%08x", EX_MEM.alu_res);
-		MEM_WB.read_data = GET_BIGWORD(mem->raw, EX_MEM.alu_res);
 
+		switch(GET_OPCODE(MEM_WB.inst)) {
+		case OPCODE_LW:
+			MEM_WB.read_data = GET_BIGWORD(mem->raw, EX_MEM.alu_res);
+			break;
+		case OPCODE_LBU:
+			MEM_WB.read_data = GET_BIGBYTE(mem->raw, EX_MEM.alu_res);
 
-		LOG("alu_res = %d\nread_data = %d", EX_MEM.alu_res,
-		    MEM_WB.read_data);
-	}
+			break;
+		case OPCODE_LHU:
+			MEM_WB.read_data = GET_BIGHALF(mem->raw, EX_MEM.alu_res);
+			break;
+		}
+
+		LOG("alu_res = %d\nread_data = %d", EX_MEM.alu_res, MEM_WB.read_data);
 
 	/* If write */
-	if(EX_MEM.c_mem_write) {
+	} else if(EX_MEM.c_mem_write) {
 		DEBUG("writing %d to addr: 0x%08x", EX_MEM.rt_value,
 		      EX_MEM.alu_res);
-
-		SET_BIGWORD(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+		switch(GET_OPCODE(MEM_WB.inst)) {
+		case OPCODE_SW:
+			SET_BIGWORD(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+			break;
+		case OPCODE_SB:
+			SET_BIGBYTE(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+			break;
+		case OPCODE_SH:
+			SET_BIGHALF(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+			break;
+		}
 
 		LOG("alu_res = %d\nrt_value = %d", EX_MEM.alu_res,
 		    EX_MEM.rt_value);
-
 	}
 }
 

@@ -140,7 +140,6 @@ typedef struct reg_id_ex {
 	uint8_t rt;
 	uint8_t rd;
 
-	/* For debugging */
 	uint32_t inst;
 } id_ex_t;
 
@@ -159,7 +158,6 @@ typedef struct reg_ex_mem {
 
 	uint8_t reg_dst;
 
-	/* For debugging */
 	uint32_t inst;
 
 } ex_mem_t;
@@ -174,7 +172,6 @@ typedef struct reg_mem_wb {
 
 	uint8_t reg_dst;
 
-	/* For debugging */
 	uint32_t inst;
 } mem_wb_t;
 
