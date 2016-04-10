@@ -49,6 +49,50 @@ extern char *cp0_reg_names[CP0_NUM_REGS];
 /* XXX: Where is the LLVAL really stored? */
 #define REG_LLVAL	39
 
+
+/* Status register bits
+ * See Mips Run page 60. */
+#define SR_IE	(uint32_t)(1 << 0)
+#define SR_EXL	(uint32_t)(1 << 1)
+#define SR_ERL	(uint32_t)(1 << 2)
+#define SR_UX	(uint32_t)(1 << 5)
+#define SR_SX	(uint32_t)(1 << 6)
+#define SR_KX	(uint32_t)(1 << 7)
+/* Some space here */
+#define SR_NMI	(uint32_t)(1 << 19)
+#define SR_SR	(uint32_t)(1 << 20)
+#define SR_TS	(uint32_t)(1 << 21)
+#define SR_BEV	(uint32_t)(1 << 22)
+#define SR_PX	(uint32_t)(1 << 23)
+#define SR_MX	(uint32_t)(1 << 24)
+#define SR_RE	(uint32_t)(1 << 25)
+#define SR_FR	(uint32_t)(1 << 26)
+#define SR_RP	(uint32_t)(1 << 27)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 typedef struct cp0 {
 	uint32_t regs[CP0_NUM_REGS];
 
