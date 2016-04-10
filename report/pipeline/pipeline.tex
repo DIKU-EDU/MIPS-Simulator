@@ -18,22 +18,22 @@ forward it down the line. This greatly increases the throughput of a factory and
 decreases the labor need.
 In MIPS, this idea is implemented by separating the processor into 5 stages\cite{COD5}:
 \begin{itemize}
-	\item Instruction Fetch (IF)
+	\item Instruction Fetch (IF)\\
 Fetches the next instruction.
 
-	\item Instruction Decode (ID)
+	\item Instruction Decode (ID)\\
 Reads the instruction, sets the appropriate control flags, reads the relevant
 registers and sends the data to the next stage.
 
-	\item Execute
+	\item Execute\\
 Executes the instruction. This is typically done by the ALU with the appropriate
 operation supplied.
 
-	\item Memory Access
+	\item Memory Access\\
 All operations on memory happen here. This stage either loads a memory address
 or stores a value at an appropriate address.
 
-	\item Write Back
+	\item Write Back\\
 Writes the results to the CPU registers.
 \end{itemize}
 Each of these stages will naturally use less time than all of them combined, and
@@ -45,10 +45,12 @@ and \ref{fig:pipeline_time} show the timing of each instruction, and how
 pipelining might improve the whole process.
 \begin{figure}[H]
         \includegraphics{pipeline/single_cycle.eps}
+	\caption{Single cycle implementation.}
         \label{fig:single_cycle_time}
 \end{figure}
 \begin{figure}[H]
         \includegraphics{pipeline/pipeline.eps}
+	\caption{Pipelined approach.}
         \label{fig:pipeline_time}
 \end{figure}
 
@@ -68,11 +70,12 @@ calculate the sum of 4 integers:
 $$A = A + B + C + D$$
 In MIPS32 assembly, this would be written as:
 \begin{figure}[H]
+	\centering
 	\begin{lstlisting}
-	# t0 = A, t1 = B, t2 = C, t3 = D
-	add $s0, $t0, $t1 	# s0 = A + B
-	add $s1, $t2, $t3	# s1 = C + D
-	add $v0, $s0, $s1	# $v0 = result
+# t0 = A, t1 = B, t2 = C, t3 = D
+add $s0, $t0, $t1 	# s0 = A + B
+add $s1, $t2, $t3	# s1 = C + D
+add $v0, $s0, $s1	# $v0 = result
 	\end{lstlisting}
 	\caption{Code exposing data hazard situation.}
 	\label{fig:data_hazard_code}
@@ -83,11 +86,12 @@ not be able to fetch the updated values. When it is in the ID stage, where it de
 register \texttt{s0} and \texttt{s1} values, the previous instructions are
 still in the pipeline, in the EX and MEM stage! These instructions have not
 written back their results in the appropriate registers, and so, instruction 3
-cannot fetch the correct value of s0 and s1, unless it waits 3 clock
+cannot fetch the correct value of \texttt{s0} and \texttt{s1}, unless it waits 3 clock
 cycles. This situation can be visualized in a sequential graph show in figure
 \ref{fig:data_hazard_code}, where it can be seen that the result of the first
 two instructions is needed in the third.\\
-\begin{figure}
+\begin{figure}[H]
+	\centering
 	\includegraphics[scale=0.4]{pipeline/data_hazard.eps}
 	\label{fig:data_hazard}
 	\caption{Time-sheet of the program listed in figure
@@ -114,7 +118,7 @@ the instruction after the branch will do nothing, but in both situations, we
 loose a clock cycle. Although this does not sound like much, considering that
 branching instruction make up about 25\% of any assembly
 code\cite{instruction_frequency}, this can be a lot.
-A better, but much more complex technique to solve this issue to have a
+A better, but much more complex technique to solve this issue, is to have a
 dedicated unit in the processor, which will predict whether a branch will be
 taken or not.
 
@@ -176,7 +180,7 @@ forwarding values from stage MEM to EX can be seen in figure
 \ref{fig:forwarding_unit_code}. Forwarding from the WB stage is almost
 identical.
 
-\begin{figure}
+\begin{figure}[H]
 \centering
 \begin{lstlisting}[style=customc]
 /* Forward to A MUX */
@@ -191,10 +195,9 @@ if(EX_MEM.c_reg_write == 1
    && EX_MEM.reg_dst == ID_EX.rt)
       ID_EX.rt_value = EX_MEM.alu_res;
 \end{lstlisting}
-\label{fig:forwarding_unit_code}
 \caption{ALU result being forwarded from the MEM stage to EX.}
+\label{fig:forwarding_unit_code}
 \end{figure}
-
 
 \subsubsection{Hazard detection unit}
 Control hazards arise when the processor is branching to another execution path
@@ -209,10 +212,31 @@ following a branch is always executed, many standard GNU compilers and assembler
 restructure the code so that branch-delay slot is not wasted.\\
 For example, where assignment of a value to a register and a branch would
 consume 3 instructions, utilization of the branch-delay slot can bring it back
-to 2:
-\begin{lstlisting}
+to 2. The difference can be seen on figure \ref{fig:branch_delay_slot_compare}.
+Note that the order of the instruction does not matter in that case.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[t]{0.23\textwidth}
+    \begin{lstlisting}[numbers=none]
 addi $v0, $0, 10
 beq $0, $0, exit
-nop # branch delay slot
-\end{lstlisting}
+nop
+    \end{lstlisting}
+    \label{fig:non_utilized_branch_delay}
+
+   \end{subfigure}
+   % ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[t]{0.23\textwidth}
+     \begin{lstlisting}[numbers=none]
+beq $0, $0, exit
+addi $v0, $0, 10
+# ...
+   \end{lstlisting}
+        \label{fig:utilized_branch_delay}
+    \end{subfigure}
+\caption{Wasted branch delay slot (left) and utilized branch delay slot (right).}
+\label{fig:branch_delay_slot_compare}
+\end{figure}
+
 

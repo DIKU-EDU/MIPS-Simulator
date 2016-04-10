@@ -209,16 +209,23 @@ the processor as well as the programmer.
 
 In MIPS, the instructions have 3 basic formats:
 \begin{figure}[H]
-\centering
-\subfigure[R-Format]{%
+
+\begin{subfigure}[b]{0.3\textwidth}
 	\includegraphics{cpu_architecture/r_format.eps}
-	\label{fig:instruction_r_format}}
-\subfigure[I-Format]{%
+	\label{fig:instruction_r_format}
+\end{subfigure}
+
+\begin{subfigure}[b]{0.3\textwidth}
 	\includegraphics{cpu_architecture/i_format.eps}
-	\label{fig:instruction_i_format}}
-\subfigure[J-Format]{%
+	\label{fig:instruction_i_format}
+\end{subfigure}
+
+\begin{subfigure}[b]{0.3\textwidth}
 	\includegraphics{cpu_architecture/j_format.eps}
-	\label{fig:instruction_j_format}}
+	\label{fig:instruction_j_format}
+\end{subfigure}
+
+\caption{The 3 MIPS instruction formats.}
 \label{fig:instruction_formats}
 \end{figure}
 
@@ -293,6 +300,7 @@ value of the Program Counter register, which is otherwise inaccessible from
 assembly.
 
 \subsection{Interrupts}
+\label{sec:cpu_architecture_interrupts}
 Interrupts is a special way to control what the CPU. It actively "interrupts"
 the CPU from its current job, and makes it execute a special function,
 specified by an interrupt number. There usually 3 types of interrupts\cite{osdev:interrupts}:
@@ -321,7 +329,7 @@ table. For each interrupt vector, there is specific code to be executed.
 Because the interrupt vector table is limited in size, operating systems, such
 as Linux, use a single interrupt vector number 0x80. Additional arguments for
 further determination of the service are passed in service number, which is
-stored in the general purpose registers, and if needed, in the stack.\\
+stored in the general purpose registers, and if needed, on the stack.\\
 System call handling is made somewhat easier in MIPS. Whereas in x86\_64, you
 have to set the appropriate system-calls arguments and then do an interrupt on
 the correct vector, MIPS has a dedicated system-call instruction
@@ -331,4 +339,51 @@ arguments in \texttt{\$a0-\$a3}\cite{COD5}.
 
 
 \subsection{Memory}
-TODO
+Memory is an essential part of a working computer. The memory stores both the
+program code (the instructions) as well as the program variables, which cannot
+fit in all the CPU registers.\\
+The memory is a large chuck of consecutive bytes. While these can store
+practically anything, operating systems designate memory areas into multiple
+segments (also called sections), which eases memory management.
+While many operating systems create many different segments in the memory map
+of a program, these segments usually fall into 4 categories\cite{memory_sections}:
+\begin{itemize}
+\item \texttt{.text}\\
+This section consists of the executable contents of a program, which is the
+instructions. In modern processors and OS, this section cannot be written to.
+\item \texttt{.data}\\
+This segment contains the initialized variables used in the program. This section
+can be both written and read from, but is not executable.
+\item \texttt{.bss}\\
+Unitialized memory segment. This allocates memory for variables, which are not
+necessarily initialized by the OS, and can contain random values.
+
+\item \texttt{stack}\\
+The stack usually starts at the top of the memory area.
+It is a Last-In First-Out (LIFO) structure, meaning that elements added last are
+the first ones being removed, hence the name.
+The top of the stack is usually pointed to by a designated register in the CPU, in MIPS32, that is
+the \texttt{\$SP} register. The stack is used for local variables within
+functions, which usually have a very short lifespan.
+
+\item \texttt{heap}\\
+The heap starts immediatelly after the initialized segments (\texttt{.text} and
+\texttt{.data}), and is used for variables with a longer lifespan. This memory
+area is maintained by the program, and can store practically any variables and
+other data-structures. This area can also be extended by the operating system,
+which makes it ideal area for storing large amounts of data.
+\end{itemize}
+
+While the memory layout of a process is completelly implementation specific on
+the underlying operating-system, on most UNIX systems, the memory area is very
+similar to what can be seen on figure \ref{fig:memory_layout}.
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.40]{cpu_architecture/memory_layout.eps}
+	\caption{Process memory map.}
+	\label{fig:memory_layout}
+\end{figure}
+
+Although the address space is 32 bit, the top half is not available for the user,
+and it is usually used by the operating system\cite{memory_layout}.
+

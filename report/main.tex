@@ -24,7 +24,8 @@
 \usepackage{soul}
 \usepackage{pdfpages}
 \usepackage{multirow}
-\usepackage[font={small,it}]{caption}
+\usepackage[font={small,it},skip=0pt]{caption}
+\captionsetup[figure]{font={small,it},skip=2pt}
 \usepackage{tablefootnote}
 \usepackage{footnote}
 \usepackage{subcaption}
@@ -38,9 +39,11 @@
 {0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 
 
+\errorcontextlines 10000
+
+
 \raggedbottom
 
-%\nonstopmode
 
 \newcommand\floor[1]{\lfloor#1\rfloor}
 
@@ -56,44 +59,43 @@
 
 
 \lstset{ %
-  language=[mips]Assembler,       % the language of the code
-  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
-  numbers=left,                   % where to put the line-numbers
-  numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
-  stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
-                                  % will be numbered
-  numbersep=5pt,                  % how far the line-numbers are from the code
-  backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
-  showspaces=false,               % show spaces adding particular underscores
-  showstringspaces=false,         % underline spaces within strings
-  showtabs=false,                 % show tabs within strings adding particular underscores
-  frame=single,                   % adds a frame around the code
-  rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
-  tabsize=4,                      % sets default tabsize to 2 spaces
-  captionpos=b,                   % sets the caption-position to bottom
-  breaklines=true,                % sets automatic line breaking
-  breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
-  title=\lstname,                 % show the filename of files included with \lstinputlisting;
-                                  % also try caption instead of title
-  keywordstyle=\color{blue},          % keyword style
-  commentstyle=\color{dkgreen},       % comment style
-  stringstyle=\color{mauve},         % string literal style
-  escapeinside={\%*}{*)},            % if you want to add a comment within your code
-  morekeywords={*,...}               % if you want to add more keywords to the set
+	language=[mips]Assembler,       	% (small) MIPS assembly
+		basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+		numberstyle=\tiny\color{gray},  % the style that is used for the line-numbers
+		stepnumber=1,                   % the step between two line-numbers. If it's 1, each line
+		% will be numbered
+		numbersep=5pt,                  % how far the line-numbers are from the code
+		backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+		showspaces=false,               % show spaces adding particular underscores
+		showstringspaces=false,         % underline spaces within strings
+		showtabs=false,                 % show tabs within strings adding particular underscores
+		frame=single,                   % adds a frame around the code
+		rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. commens (green here))
+		tabsize=4,                      % sets default tabsize to 2 spaces
+		captionpos=b,                   % sets the caption-position to bottom
+		breaklines=true,                % sets automatic line breaking
+		breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+		title=\lstname,                 % show the filename of files included with \lstinputlisting;
+		keywordstyle=\color{blue},          % keyword style
+		commentstyle=\color{dkgreen},       % comment style
+		stringstyle=\color{mauve},         % string literal style
+		escapeinside={\%*}{*)},            % if you want to add a comment within your code
+		morekeywords={*,...}               % if you want to add more keywords to the set
 }
 
+
 \lstdefinestyle{customc}{
-  belowcaptionskip=1\baselineskip,
-  breaklines=true,
-  frame=L,
-  xleftmargin=\parindent,
-  language=C,
-  showstringspaces=false,
-  basicstyle=\footnotesize\ttfamily,
-  keywordstyle=\bfseries\color{green!40!black},
-  commentstyle=\itshape\color{purple!40!black},
-  identifierstyle=\color{blue},
-  stringstyle=\color{orange},
+	belowcaptionskip=1\baselineskip,
+		breaklines=true,
+		frame=L,
+		xleftmargin=\parindent,
+		language=C,
+		showstringspaces=false,
+		basicstyle=\footnotesize\ttfamily,
+		keywordstyle=\bfseries\color{green!40!black},
+		commentstyle=\itshape\color{purple!40!black},
+		identifierstyle=\color{blue},
+		stringstyle=\color{orange},
 }
 
 
@@ -106,8 +108,8 @@
 
 \newcommand{\pic}[3] {
 	\begin{figure}[ht]
-	\centering
-	\includegraphics[width=#3\textwidth]{#1}
+		\centering
+		\includegraphics[width=#3\textwidth]{#1}
 	\caption{#2}
 	\label{fig:#1}
 	\end{figure}
@@ -116,8 +118,8 @@
 
 \newcommand{\picappendix}[3] {
 	\begin{figure}[H]
-	\centering
-	\includegraphics[width=#3\textwidth]{#1}
+		\centering
+		\includegraphics[width=#3\textwidth]{#1}
 	\caption{#2}
 	\label{fig:#1}
 	\end{figure}
@@ -125,10 +127,10 @@
 
 \newcommand{\asmcode}[3] {
 	% \begin{figure}[H]
-	% \centering
-	\begin{Verbatim}[fontsize=\scriptsize]
+		% \centering
+		\begin{Verbatim}[fontsize=\scriptsize]
 #3
-	\end{Verbatim}
+		\end{Verbatim}
 	\caption{#2}
 	\label{fig:#1}
 	% \end{figure}
@@ -136,8 +138,8 @@
 
 \newcommand{\dpic}[5] {
 	\begin{figure}[h]
-	\centering
-	\begin{subfigure}{#5\textwidth}
+		\centering
+		\begin{subfigure}{#5\textwidth}
 	\centering
 		\includegraphics[width=.9\linewidth]{#1}
 	\caption{#2}
@@ -178,88 +180,89 @@
 %%%%% KU HEADER %%%%%%%%%%%%%%%%%%%%%%%
 %% Change `ku-farve` to `nat-farve` to use SCIENCE's old colors or
 %% `natbio-farve` to use SCIENCE's new colors and logo.
-\AddToShipoutPicture*{\put(0,0){\includegraphics*[viewport=0 0 700
-	600]{include/ku-farve}}}
-	\AddToShipoutPicture*{\put(0,602){\includegraphics*[viewport=0 600 700
-		1600]{include/ku-farve}}}
+\AddToShipoutPicture*{\put(0,0){\includegraphics*[viewport=0 0 700 600]{include/ku-farve}}}
+\AddToShipoutPicture*{\put(0,602){\includegraphics*[viewport=0 600 700 1600]{include/ku-farve}}}
 
-		%% Change `ku-en` to `nat-en` to use the `Faculty of Science` header
-		\AddToShipoutPicture*{\put(0,0){\includegraphics*{include/ku-en}}}
+%% Change `ku-en` to `nat-en` to use the `Faculty of Science` header
+\AddToShipoutPicture*{\put(0,0){\includegraphics*{include/ku-en}}}
 
 
-		%\clearpage
-		\maketitle
-		\pagenumbering{roman}
-		\thispagestyle{empty}
-		\newpage
-		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\clearpage
+\maketitle
+\pagenumbering{roman}
+\thispagestyle{empty}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-		\begin{abstract}
-		\thispagestyle{empty}
-		\input{abstract/abstract.tex}
-		\end{abstract}
+\begin{abstract}
+\thispagestyle{empty}
+\input{abstract/abstract.tex}
+\end{abstract}
 
-		\newpage
+\newpage
 
-		\twocolumn
+\twocolumn
 
-		%\thispagestyle{empty}
-		\tableofcontents
+%\thispagestyle{empty}
+\tableofcontents
 
-		\onecolumn
-		\newpage
-		\twocolumn
+\onecolumn
+\newpage
+\twocolumn
 
-		\clearpage
-		\pagenumbering{arabic}
-		\setcounter{page}{1}
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
 
-		\markboth{Name}{Report}
-		\noindent
-		%\underline{\textbf{Category}}\\
-			%Hardware emulation\\\\
-			%\underline{\textbf{Keywords}}\\
-			%Copenhagen, university, computer, science, simulation, MIPS
+\markboth{Name}{Report}
+\noindent
+%\underline{\textbf{Category}}\\
+%Hardware emulation\\\\
+%\underline{\textbf{Keywords}}\\
+%Copenhagen, university, computer, science, simulation, MIPS
 
 
-			\section{Introduction}
-			\input{introduction/introduction.tex}
+\section{Introduction}
+\input{introduction/introduction.tex}
 
 
 
-			\section{CPU Architectures}
-			\input{cpu_architecture/cpu_architecture.tex}
+\section{CPU Architectures}
+\input{cpu_architecture/cpu_architecture.tex}
 
 
-			\section{Pipeline}
-			\input{pipeline/pipeline.tex}
+\section{Pipeline}
+\input{pipeline/pipeline.tex}
 
 
-			\section{TLB}
+\section{Exceptions and Interrupts}
+\input{interrupts/interrupts.tex}
 
-			\section{MMU}
+\section{TLB}
 
-			\section{User and Kernel mode}
+\section{MMU}
 
-			\section{SMP}
+\section{User and Kernel mode}
 
-			\section{Tests}
+\section{SMP}
 
-			\section{Performance}
+\section{Tests}
 
-			\section{Conclusion}
+\section{Performance}
+
+\section{Conclusion}
 
 
-			\newpage
+\newpage
 
-			\bibliography{mybib}{}
-			\bibliographystyle{plain}
+\bibliography{mybib}{}
+\bibliographystyle{plain}
 
-			\newpage
+\newpage
 
-			\appendix
-			\begin{appendices}
-			% Appendix here
-			\end{appendices}
+\appendix
+\begin{appendices}
+% Appendix here
+\end{appendices}
 
-			\end{document}
+\end{document}
