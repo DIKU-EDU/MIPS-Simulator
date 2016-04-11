@@ -486,7 +486,6 @@ void tick(hardware_t *hw)
 int run(hardware_t *hw)
 {
 	while(g_finished == false) {
-
 		/* XXX: Assumes one core */
 		if(g_debugging) {
 			debug(GET_BIGWORD(hw->mem->raw, hw->cpu->core[0].regs[REG_PC]),

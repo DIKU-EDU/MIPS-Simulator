@@ -55,6 +55,7 @@ extern char *cp0_reg_names[CP0_NUM_REGS];
 #define SR_IE	(uint32_t)(1 << 0)
 #define SR_EXL	(uint32_t)(1 << 1)
 #define SR_ERL	(uint32_t)(1 << 2)
+#define SR_KSU  (uint32_t)(2 << 3)	/* 2 BITS! */
 #define SR_UX	(uint32_t)(1 << 5)
 #define SR_SX	(uint32_t)(1 << 6)
 #define SR_KX	(uint32_t)(1 << 7)
@@ -68,25 +69,6 @@ extern char *cp0_reg_names[CP0_NUM_REGS];
 #define SR_RE	(uint32_t)(1 << 25)
 #define SR_FR	(uint32_t)(1 << 26)
 #define SR_RP	(uint32_t)(1 << 27)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
