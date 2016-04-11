@@ -97,35 +97,42 @@ two instructions is needed in the third.\\
 	\caption{Time-sheet of the program listed in figure
 \ref{fig:data_hazard_code}.}
 \end{figure}
-The problem is very clear - the data is needed before it saved at the
+The problem is very clear - the data is needed before it is saved at the
 appropriate place. However, the data is usually already available in the EX
 stage in the ALU, and can therefore be used in the same clock-cycle in the ID
-stage. This is called forwarding or bypassing, and is handled by the
+stage. This is called forwarding or bypassing, and is handled by a dedicated
 Forwarding Unit. This unit is wired to both EX, MEM and WB stages, and has a
 logic unit that checks for matching registers in the instruction, in which case
-it forwards the correct unit back in the pipeline.
+it forwards the correct result back in the pipeline.
 
 \subsubsection{Control Hazard}
 Another type of hazard is the Control Hazard, which occurs when the processor
 must make a decision based on an instruction, while others are executing.
-Whether a branch is taken or not is determined in the EX stage, as that is the
-point where forwarding unit can bypass the most recent values, if any. If a
-branch is taken, the challenge emerges that we already have the next instruction in
-the ID stage, even though the program has taken another branch. There are many
+Whether a branch is taken or not can be determined by the ALU in the EX stage,
+which does a equality check on the two values. This does not add much additional
+logic to the circuit, as the forwarding unit already bypasses all the most recent
+results as the operands to the ALU. If a branch is taken, a challenge emerges
+that we already have the next instructions in both ID and IF stage, even though
+our program is inteded to branch away. There are many
 possible ways to solve this issue, the most simple, but inefficient one, is to
-stall the pipeline by inserting a No-Operation instructions after the branch. This way,
+stall the pipeline by inserting two No-Operation instructions after the branch. This way,
 the instruction after the branch will do nothing, but in both situations, we
-loose a clock cycle. Although this does not sound like much, considering that
-branching instruction make up about 25\% of any assembly
-code\cite{instruction_frequency}, this can be a lot.
+loose a 2 clock cycles. Although this does not sound like much, considering that
+branching instruction make up about 25\% of any assembly code\cite{instruction_frequency},
+this can be a lot.\\
+A way to ease the problem with this many wasted clock cycles is to move the
+branching calculation in the ID stage. A simple comparison unit for the register
+values is required, but the forwarding unit also needs to be be modified to
+forward results to the ID stage.\\
+
 A better, but much more complex technique to solve this issue, is to have a
-dedicated unit in the processor, which will predict whether a branch will be
-taken or not.
+dedicated "Prediction" unit in the processor, which will predict whether a branch will be
+taken or not, and fetch instructions to the IF stage accordingly.
 
 
 \subsection{Implementation}
-The implementation of the pipelined simulator uses a very object-oriented
-approach, where each device or system has its own C structure.
+The implementation of the pipelined simulator will group the devices in the
+machine together, so that each device or system has its own C structure.
 
 \subsubsection{Simulator structures}
 \begin{figure}[H]
@@ -135,8 +142,8 @@ approach, where each device or system has its own C structure.
 	\label{fig:structure_layout}
 \end{figure}
 In the simulator, the processor cores, pipeline registers, and memory unit all
-belong to a "hardware" structure, that binds them together, making up a
-simulated machine. The relations between the components can be seen in figure
+belong to a "hardware" structure, that binds them together, making up the state
+of the simulated machine. The relations between the components can be seen in figure
 \ref{fig:structure_layout}.\\
 In the simulator, the hardware structure will be used to pass along the
 simulated hardware to functions, which then can access the underlying devices,
@@ -146,7 +153,9 @@ modifying them properly.
 The pipeline is implemented by running each pipeline stage separately. For each
 clock-tick, the pipeline stage functions are being called in reverse. This can
 seem very unnatural, but this prevents pipeline registers to be overwritten
-before they are used.
+before they are used. This also prevents an instruction to get throught the
+pipeline in one tick of the clock, and simplifies the assignment of the pipeline
+registers.
 \begin{verbatim}
 void tick() {
         interpret_wb(...);
@@ -157,10 +166,8 @@ void tick() {
 }
 \end{verbatim}
 
-Each of the function receive the relevant pointer to the CPU core structure,
+Each of the functions receive the relevant pointer to the CPU core structure,
 which holds all the relevant information about the state of the core.
-
-\hl{In what level of detail should I describe the pipeline functions?}
 
 
 \subsubsection{Forwarding Unit}
@@ -205,10 +212,13 @@ based on the result of the previous instructions. As there is no "correct"
 solution to the branching hazard, the MIPS CPU manufacturers often implement
 their own branch predictions based on the intended use of the processor. For
 simplicity in our simulator, we will always predict that the branch is
-\textit{not} taken. In that case, we always run the next instruction after the
+\textit{not} taken. We will also simulate that the branching is decided in the
+ID stage\footnote{Technically, we are deciding this in the \texttt{interp\_ex} function,
+but this will have the same effect due to the reverse execution of our pipeline stages.}, so that only we only have 1 branch delay slot.
+In that case, we always run the next instruction after the
 branch. This works well, because this is a widely accepted approach in many
 RISC architectures\cite{wiki:branch_delay_slots}.  Knowing that the instruction
-following a branch is always executed, many standard GNU compilers and assemblers
+following a branch is always executed, many standard compilers and assemblers
 restructure the code so that branch-delay slot is not wasted.\\
 For example, where assignment of a value to a register and a branch would
 consume 3 instructions, utilization of the branch-delay slot can bring it back
