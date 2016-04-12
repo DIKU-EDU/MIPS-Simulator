@@ -207,6 +207,7 @@ void interpret_ex_alu(core_t *core)
 	if(ID_EX.c_alu_op == 0x02) {
 		switch(ID_EX.funct) {
 		case FUNCT_ADD:
+			DEBUG("A: %d   B: %d",a,b);
 			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
 			break;
 
@@ -403,11 +404,11 @@ void interpret_wb(core_t *core)
 	}
 
 
-	/* mem_to_reg MUS */
+	/* mem_to_reg MUX */
 	uint32_t data = MEM_WB.c_mem_to_reg ? MEM_WB.read_data : MEM_WB.alu_res;
 
 	/* Write back */
-	if(MEM_WB.c_reg_write) {
+	if(MEM_WB.c_reg_write && MEM_WB.reg_dst != 0) {
 		DEBUG("Writing %d to destionation register: %d", data, MEM_WB.reg_dst);
 		core->regs[MEM_WB.reg_dst] = data;
 	}
