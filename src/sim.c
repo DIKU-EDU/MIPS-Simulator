@@ -12,7 +12,7 @@
 #include "debug.h"
 #include "error.h"
 
-#define MEMSZ 0xA0000
+#define MEMSZ 0x20000000 /* 512 MiB */
 
 /* MACROS for less typing */
 #define IF_ID (core->if_id)
@@ -525,5 +525,10 @@ int simulate(char *program, bool debug)
 		exit(0);
 	}
 
-	return run(&hardware);
+	int ret = run(&hardware);
+
+	cpu_free(hardware.cpu);
+	mem_free(hardware.mem);
+
+	return ret;
 }
