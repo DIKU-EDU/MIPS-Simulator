@@ -12,7 +12,6 @@
 #include "debug.h"
 #include "error.h"
 
-#define MEMSZ 0x20000000 /* 512 MiB */
 
 /* MACROS for less typing */
 #define IF_ID (core->if_id)
@@ -33,7 +32,13 @@ bool g_debugging = false;
 void interpret_if(core_t *core, memory_t *mem)
 {
 	/* Fetch the next instruction */
-	uint32_t inst = GET_BIGWORD(mem->raw, core->regs[REG_PC]);
+	/* TODO: Check the exception */
+	uint32_t inst = 0;
+	exception_t e = mem_read(core, mem, REGS(REG_PC), &inst,
+				 MEM_OP_WORD);
+
+	/* Suppress error */
+	e = e;
 
 	/* Hazard control
 	 * COD5 p. 314 */
@@ -356,41 +361,52 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 	MEM_WB.inst		= EX_MEM.inst;
 
+
+	exception_t e;
+
 	/* If read */
 	if(EX_MEM.c_mem_read) {
 		DEBUG("READING DATA AT: 0x%08x", EX_MEM.alu_res);
 
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_LW:
-			MEM_WB.read_data = GET_BIGWORD(mem->raw, EX_MEM.alu_res);
-			break;
-		case OPCODE_LBU:
-			MEM_WB.read_data = GET_BIGBYTE(mem->raw, EX_MEM.alu_res);
+			e = mem_read(core, mem, EX_MEM.alu_res, &MEM_WB.read_data,
+				     MEM_OP_WORD);
 
 			break;
+		case OPCODE_LBU:
+			e = mem_read(core, mem, EX_MEM.alu_res, &MEM_WB.read_data,
+				     MEM_OP_HALF);
+			break;
 		case OPCODE_LHU:
-			MEM_WB.read_data = GET_BIGHALF(mem->raw, EX_MEM.alu_res);
+			e = mem_read(core, mem, EX_MEM.alu_res, &MEM_WB.read_data,
+				     MEM_OP_BYTE);
 			break;
 		}
 
 		LOG("alu_res = %d\nread_data = %d", EX_MEM.alu_res, MEM_WB.read_data);
 
-	/* If write */
+		/* If write */
 	} else if(EX_MEM.c_mem_write) {
 		DEBUG("writing %d to addr: 0x%08x", EX_MEM.rt_value,
 		      EX_MEM.alu_res);
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_SW:
-			SET_BIGWORD(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+			e = mem_write(core, mem, EX_MEM.alu_res, EX_MEM.rt_value,
+				  MEM_OP_WORD);
 			break;
 		case OPCODE_SB:
-			SET_BIGBYTE(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+			e = mem_write(core, mem, EX_MEM.alu_res, EX_MEM.rt_value,
+				  MEM_OP_BYTE);
 			break;
 		case OPCODE_SH:
-			SET_BIGHALF(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+			e = mem_write(core, mem, EX_MEM.alu_res, EX_MEM.rt_value,
+				  MEM_OP_HALF);
 			break;
 		}
 
+		/* Suppress error */
+		e = e;
 		LOG("alu_res = %d\nrt_value = %d", EX_MEM.alu_res,
 		    EX_MEM.rt_value);
 	}
@@ -489,8 +505,13 @@ int run(hardware_t *hw)
 	while(g_finished == false) {
 		/* XXX: Assumes one core */
 		if(g_debugging) {
-			debug(GET_BIGWORD(hw->mem->raw, hw->cpu->core[0].regs[REG_PC]),
-			      &hw->cpu->core[0]);
+			uint32_t inst = 0;
+			exception_t e = mem_read(&hw->cpu->core[0],
+						 hw->mem,
+						 hw->cpu->core[0].regs[REG_PC],
+						 &inst, MEM_OP_WORD);
+			e = e;
+			debug(inst, &hw->cpu->core[0]);
 		}
 		tick(hw);
 	}
@@ -501,7 +522,7 @@ int run(hardware_t *hw)
 	return hw->cpu->core[0].regs[REG_V0];
 }
 
-int simulate(char *program, bool debug)
+int simulate(char *program, size_t cores, size_t mem_size , bool debug)
 {
 	/* Set debugging */
 	g_debugging = debug;
@@ -510,23 +531,26 @@ int simulate(char *program, bool debug)
 	hardware_t hardware;
 
 	/* Initialize the memory */
-	hardware.mem = mem_init(MEMSZ);
+	hardware.mem = mem_init(mem_size);
 
 	/* Create a new CPU */
-	hardware.cpu = cpu_init(1);
+	hardware.cpu = cpu_init(cores);
 
 	/* Set stack pointer to top of memory */
-	hardware.cpu->core[0].regs[REG_SP] = MIPS_RESERVE + MEMSZ - 4;
+	hardware.cpu->core[0].regs[REG_SP] = mem_size - 4;
 
 	/* Load the program into memory */
 	if(elf_dump(program, &(hardware.cpu->core[0].regs[REG_PC]),
-		    hardware.mem->raw, MEMSZ) != 0) {
+		    hardware.mem->pmem, mem_size) != 0) {
 		ERROR("Elf file could not be read.");
 		exit(0);
 	}
 
+	hardware.cpu->core[0].regs[REG_PC] = KSEG1_START;
+
 	int ret = run(&hardware);
 
+	/* Free allocated resources */
 	cpu_free(hardware.cpu);
 	mem_free(hardware.mem);
 

@@ -9,6 +9,6 @@ typedef struct hardware {
 	memory_t *mem;
 } hardware_t;
 
-int simulate(char *program, bool debug);
+int simulate(char *program, size_t cores, size_t mem, bool debug);
 
 #endif /* _SIM_H */

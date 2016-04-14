@@ -7,7 +7,7 @@
 
 #include "cpu.h"
 #include "sim.h"
-
+#include "mem.h"
 #include "tools.h"
 
 
@@ -15,8 +15,9 @@
  *	-p <prog>	: Program to execute (MIPS32 ELF)
  *	-d		: debug
  *	-c <num>	: Number of cores
+ *      -m <bytes>        : Size of memory in bytes
  */
-#define OPTS "dc:p:"
+#define OPTS "dc:p:m:"
 
 
 int main(int argc, char **argv)
@@ -29,6 +30,9 @@ int main(int argc, char **argv)
 
 	/* Number of cores. 1 by default*/
 	size_t cores = 1;
+
+	/* Memory size */
+	size_t mem = MEMORY_SIZE;
 
 	/* Parse command line arguments. */
 	int c;
@@ -50,6 +54,14 @@ int main(int argc, char **argv)
 			program = optarg;
 			break;
 
+		case 'm':
+			begin = optarg;
+			mem = strtoul(begin, &optarg, 10);
+			if (begin == optarg || (cores == ULONG_MAX && errno == ERANGE)) {
+				fprintf(stderr, "Invalid memory size.\n");
+				exit(EXIT_FAILURE);
+			}
+
 		case '?':
 			printf("USAGE: %s -p <program_name> [-c <cores>]\n",
 			       argv[0]);
@@ -64,5 +76,5 @@ int main(int argc, char **argv)
 	}
 
 	cores = cores; /* Ignore warning */
-	return simulate(program, debug);
+	return simulate(program, cores, mem, debug);
 }

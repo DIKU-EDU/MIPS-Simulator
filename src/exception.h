@@ -5,6 +5,7 @@
 /* Exception codes
  * COD Green Card */
 typedef enum exceptions {
+	EXC_None,
 	EXC_Interrupt,
 	EXC_AddressErrorLoad,
 	EXC_AddressErrorStore,
@@ -17,7 +18,7 @@ typedef enum exceptions {
 	EXC_ArithmeticOverflow,
 	EXC_Trap,
 	EXC_FloatingPoint
-} exceptions_t;
+} exception_t;
 
 
 void raise_exception(uint32_t exception_code, core_t *core);

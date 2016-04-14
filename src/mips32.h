@@ -18,31 +18,31 @@
 #define MIPS_RESERVE  (0x400000)
 
 #define GET_BIGWORD(mem, addr) ((uint32_t) \
-  ((mem)[(addr) - MIPS_RESERVE + 0] << 24)  | \
-  ((mem)[(addr) - MIPS_RESERVE + 1] << 16)  | \
-  ((mem)[(addr) - MIPS_RESERVE + 2] << 8)   | \
-  ((mem)[(addr) - MIPS_RESERVE + 3]))
+  ((mem)[(addr) + 0] << 24)  | \
+  ((mem)[(addr) + 1] << 16)  | \
+  ((mem)[(addr) + 2] << 8)   | \
+  ((mem)[(addr) + 3]))
 
 #define GET_BIGBYTE(mem, addr) ((uint32_t)(uint8_t) \
-  ((mem)[(addr) - MIPS_RESERVE]))
+  ((mem)[(addr)]))
 
 #define GET_BIGHALF(mem, addr) ((uint32_t)(uint16_t) \
-  ((mem)[(addr) - MIPS_RESERVE + 0] << 8) | \
-  ((mem)[(addr) - MIPS_RESERVE + 1]))
+  ((mem)[(addr) + 0] << 8) | \
+  ((mem)[(addr) + 1]))
 
 
 #define SET_BIGWORD(mem, addr, value) \
-  (mem)[(addr) - MIPS_RESERVE + 0] = value >> 24; \
-  (mem)[(addr) - MIPS_RESERVE + 1] = value << 8 >> 24; \
-  (mem)[(addr) - MIPS_RESERVE + 2] = value << 16 >> 24; \
-  (mem)[(addr) - MIPS_RESERVE + 3] = value << 24 >> 24;
+  (mem)[(addr) + 0] = value >> 24; \
+  (mem)[(addr) + 1] = value << 8 >> 24; \
+  (mem)[(addr) + 2] = value << 16 >> 24; \
+  (mem)[(addr) + 3] = value << 24 >> 24;
 
 #define SET_BIGBYTE(mem, addr, value) \
-  (mem)[(addr) - MIPS_RESERVE + 0] = ((uint8_t)(value));
+  (mem)[(addr) + 0] = ((uint8_t)(value));
 
 #define SET_BIGHALF(mem, addr, value) \
-  (mem)[(addr) - MIPS_RESERVE + 0] = value >> 8; \
-  (mem)[(addr) - MIPS_RESERVE + 1] = value << 24 >> 24;
+  (mem)[(addr) + 0] = value >> 8; \
+  (mem)[(addr) + 1] = value << 24 >> 24;
 
 
 /* Dumps the next n bytes to stdout */
