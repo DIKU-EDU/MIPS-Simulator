@@ -1,4 +1,4 @@
-## EX data hazard ##
+## EX Data Hazard ##
 #
 # The value needed in EX stage has only just passed EX.
 #
