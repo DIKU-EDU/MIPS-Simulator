@@ -1,6 +1,6 @@
 AS=mips-elf-as
 LD=mips-elf-ld
-AFLAGS=-mips32
+AFLAGS=-mips32 --fatal-warnings
 SRC=$(patsubst %.S,%.elf,$(wildcard *.S))
 
 .DEFAULT: all
