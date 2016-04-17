@@ -13,6 +13,7 @@ extern bool g_finished;
 
 void debug(uint32_t inst, core_t* core)
 {
+	printf("PC: 0x%08x\n", core->regs[REG_PC]);
 	print_instruction(inst, core);
 
 	unsigned char c[3] = {0};
