@@ -198,6 +198,7 @@ void interpret_ex_alu(core_t *core)
 
 	/* LW and SW */
 	if(ID_EX.c_alu_op == 0x00) {
+		DEBUG("LW a: %d\t b: %d", a, b);
 		EX_MEM.alu_res = a + b;
 		return;
 	}
@@ -212,6 +213,7 @@ void interpret_ex_alu(core_t *core)
 	if(ID_EX.c_alu_op == 0x02) {
 		switch(ID_EX.funct) {
 		case FUNCT_ADD:
+			DEBUG("A: %d   B: %d",a,b);
 			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
 			break;
 
@@ -250,6 +252,8 @@ void interpret_ex_alu(core_t *core)
 
 		case FUNCT_SLL:
 			EX_MEM.alu_res = b << ID_EX.shamt;
+			DEBUG("SHIFTING %d << %d = %d", b, ID_EX.shamt,
+			      EX_MEM.alu_res);
 			break;
 
 		case FUNCT_SRL:
@@ -479,6 +483,8 @@ void forwarding_unit(core_t *core)
 /* Simulates a clock-tick */
 void tick(hardware_t *hw)
 {
+	LOG("tick ... ");
+
 	cpu_t* cpu = hw->cpu;
 	memory_t* mem = hw->mem;
 

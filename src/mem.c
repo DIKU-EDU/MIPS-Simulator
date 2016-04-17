@@ -103,7 +103,7 @@ uint32_t addr_translate(uint32_t vaddr)
 
 void mem_free(memory_t *mem)
 {
-	free(mem->pmem);
+	free(mem->raw);
 	free(mem);
 }
 

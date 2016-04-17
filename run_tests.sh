@@ -11,6 +11,7 @@ for f in tests/*.elf
 do
 	c=$((c+1))
 
+	echo -n Running $f
 	# Run the program
 	 bin/mips-sim -p $f > /dev/null
 	# bin/mips-sim -p $f
@@ -24,9 +25,9 @@ do
 
 
 	if [ "$result" == "$expected" ]; then
-		echo PASSED: $f
+		echo " ... PASSED"
 	else
-		echo FAILED $f. Expected value: $expected, returned value: $result
+		echo " ...FAILED . Expected value: $expected, returned value: $result"
 		c_failed=$((c_failed+1))
 	fi
 done
