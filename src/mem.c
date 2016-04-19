@@ -36,7 +36,11 @@ exception_t mem_read(core_t *core, memory_t *mem, int32_t vaddr, uint32_t *dst,
 		     mem_op_size_t op_size)
 {
 	/* Translated physical address */
-	uint32_t paddr = addr_translate(vaddr);
+	uint32_t paddr = vaddr_translate(vaddr);
+
+	/* Translate to actual address*/
+	uint8_t *aaddr = paddr_translate(paddr, mem);
+	aaddr = aaddr;
 
 	if(op_size == MEM_OP_BYTE) {
 		*dst = GET_BIGBYTE(mem->pmem, paddr);
@@ -53,7 +57,7 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t vaddr, uint32_t src,
 		      mem_op_size_t op_size)
 {
 	/* Translate to physical */
-	uint32_t paddr = addr_translate(vaddr);
+	uint32_t paddr = vaddr_translate(vaddr);
 
 	/* write */
 	if(op_size == MEM_OP_BYTE) {
@@ -68,7 +72,7 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t vaddr, uint32_t src,
 }
 
 
-uint32_t addr_translate(uint32_t vaddr)
+uint32_t vaddr_translate(uint32_t vaddr)
 {
 	uint32_t paddr = 0x00;
 
@@ -108,6 +112,55 @@ uint32_t addr_translate(uint32_t vaddr)
 	return paddr;
 }
 
+uint8_t* paddr_translate(uint32_t paddr, memory_t *mem)
+{
+	/* Actual address */
+	uint8_t *aaddr = NULL;
+
+	/* KSEG2 */
+	if(paddr >= KSEG0_SIZE + KSEG1_SIZE + KUSEG_SIZE) {
+		/* TODO */
+	/* KUSEG */
+	} else if(paddr >= KSEG1_SIZE + KSEG0_SIZE) {
+		/* Check if out of bounds */
+		if(paddr >= KSEG1_PSTART + mem->size_kseg0 + mem->size_kseg1 +
+		   mem->size_kuseg) {
+			/* TODO: Exception */
+			return aaddr;
+		}
+
+		/* Calculate the actual address in the simulator */
+		aaddr = mem->pmem + (paddr - KSEG1_PSTART - KSEG0_PSTART -
+				     KUSEG_PSTART);
+
+	/* KSEG0 */
+	} else if(paddr >= KSEG1_SIZE) {
+		/* Check if out of bounds */
+		if(paddr >= KSEG1_PSTART + mem->size_kseg0 + mem->size_kseg1) {
+			/* TODO: Exception */
+			return aaddr;
+		}
+
+		/* Calculate the actual address in the simulator */
+		aaddr = mem->pmem + (paddr - KSEG1_PSTART - KSEG0_PSTART);
+
+	/* KSEG1 */
+	} else {
+		/* Check if out of bounds */
+		if(paddr >= KSEG1_PSTART + mem->size_kseg0) {
+			/* TODO: Exception */
+			return aaddr;
+		}
+
+		/* Calculate the actual address in the simulator */
+		aaddr = mem->pmem + (paddr - KSEG1_PSTART);
+	}
+
+
+	DEBUG("Translated 0x%08X to %p.", paddr, aaddr);
+	return aaddr;
+
+}
 
 
 void mem_free(memory_t *mem)

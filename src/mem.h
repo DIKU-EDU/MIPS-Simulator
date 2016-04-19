@@ -1,6 +1,7 @@
 #ifndef _MEM_H
 #define _MEM_H
 
+#include "mem.h"
 #include "cpu.h"
 #include "exception.h"
 
@@ -54,7 +55,11 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t addr, uint32_t src,
 		      mem_op_size_t op_size);
 
 /* Translate virtual memory address to physical */
-uint32_t addr_translate(uint32_t vaddr);
+uint32_t vaddr_translate(uint32_t vaddr);
+
+/* Translate physical memory address to actual */
+uint8_t* paddr_translate(uint32_t paddr, memory_t *mem);
+
 
 /* Returns a new memory block */
 memory_t* mem_init(size_t size);
