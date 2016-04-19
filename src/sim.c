@@ -12,8 +12,6 @@
 #include "debug.h"
 #include "error.h"
 
-#define MEMSZ 0x20000000 /* 512 MiB */
-
 /* MACROS for less typing */
 #define IF_ID (core->if_id)
 #define ID_EX (core->id_ex)
@@ -523,7 +521,7 @@ int run(hardware_t *hw)
 	return hw->cpu->core[0].regs[REG_V0];
 }
 
-int simulate(char *program, bool debug)
+int simulate(char *program, size_t cores, size_t mem, bool debug)
 {
 	/* Set debugging */
 	g_debugging = debug;
@@ -532,10 +530,10 @@ int simulate(char *program, bool debug)
 	hardware_t hardware;
 
 	/* Initialize the memory */
-	hardware.mem = mem_init(MEMSZ);
+	hardware.mem = mem_init(mem);
 
 	/* Create a new CPU */
-	hardware.cpu = cpu_init(1);
+	hardware.cpu = cpu_init(cores);
 
 	/* Set stack pointer to top of memory */
 	hardware.cpu->core[0].regs[REG_SP] = (uint32_t)KUSEG_SIZE - 4;
@@ -544,12 +542,10 @@ int simulate(char *program, bool debug)
 	if(elf_dump(program,
 		    &(hardware.cpu->core[0].regs[REG_PC]),
 		    hardware.mem->pmem, /* Write to start -> kseg1*/
-		    MEMSZ) != 0) {
+		    mem) != 0) {
 		ERROR("Elf file could not be read.");
 		exit(0);
 	}
-
-	hardware.cpu->core[0].regs[REG_PC] = KSEG1_VSTART;
 
 	int ret = run(&hardware);
 

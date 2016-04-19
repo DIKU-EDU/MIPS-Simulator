@@ -5,10 +5,10 @@
 #include "exception.h"
 
 /* Sizes of virtual memory segments */
-#define KSEG2_SIZE 0x400000000
-#define KSEG1_SIZE 0x200000000
-#define KSEG0_SIZE 0x200000000
-#define KUSEG_SIZE 0x800000000
+#define KSEG2_SIZE 0x40000000
+#define KSEG1_SIZE 0x20000000
+#define KSEG0_SIZE 0x20000000
+#define KUSEG_SIZE 0x80000000
 
 /* Start of virtual memory segments */
 #define KSEG2_VSTART 0xC0000000

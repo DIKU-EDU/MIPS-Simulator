@@ -23,6 +23,13 @@
 #include <stdlib.h>   // exit
 #include <string.h>   // memset
 
+#if 0
+/* ------------- */
+#undef _ERROR_H
+#include "error.h"
+/* ------------- */
+#endif
+
 #define EI_MAG0   (0)
 #define EI_MAG1   (1)
 #define EI_MAG2   (2)
@@ -409,6 +416,8 @@ elf_dump(const char *path, uint32_t *entry,
 		error(0, 0, "couldn't get started on the ELF file.");
 		return retval;
 	}
+
+
 
 	*entry = file.ehdr.e_entry;
 

@@ -90,12 +90,21 @@ uint32_t addr_translate(uint32_t vaddr)
 		/* Strip off first bit by ANDing */
 		paddr = vaddr & 0x7FFFFFFF;
 	/* kuseg */
-	} else {
+	}
+	if(vaddr < KSEG0_PSTART) {
+		DEBUG("USER ADDR DETECTED");
 		/* XXX: For now, KUSEG is located immediatelly after KUSEG0 */
+		DEBUG("PADDR BEFORE: 0x%08X, KSEG0_SIZE = 0x%08X, KSEG1_SIZE = 0x%08X"
+		      , paddr,  (uint32_t)KSEG0_SIZE, (uint32_t) KSEG1_SIZE);
+
 		paddr = vaddr + KSEG0_SIZE + KSEG1_SIZE;
+
+		DEBUG("PADDR AFTER: 0x%08X, KSEG0_SIZE = 0x%08X, KSEG1_SIZE = 0x%08X"
+			, paddr, (uint32_t)KSEG0_SIZE,  (uint32_t)KSEG1_SIZE);
+
 	}
 
-	DEBUG("Translated 0x%08x to 0x%08x.", vaddr, paddr);
+	DEBUG("Translated 0x%08X to 0x%08X.", vaddr, paddr);
 	return paddr;
 }
 
@@ -103,7 +112,7 @@ uint32_t addr_translate(uint32_t vaddr)
 
 void mem_free(memory_t *mem)
 {
-	free(mem->raw);
+	free(mem->pmem);
 	free(mem);
 }
 

@@ -7,6 +7,9 @@
 
 void print_instruction(uint32_t instr, core_t *core)
 {
+	/* Print the hex */
+	printf("0x%08X\t",instr);
+
 	switch(GET_OPCODE(instr)) {
 		/* R-type */
 	case OPCODE_R:

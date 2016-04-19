@@ -9,7 +9,7 @@
 #include "sim.h"
 #include "mem.h"
 #include "tools.h"
-
+#include "error.h"
 
 /* Command-line options:
  *	-p <prog>	: Program to execute (MIPS32 ELF)
@@ -18,10 +18,16 @@
  *      -m <bytes>        : Size of memory in bytes
  */
 #define OPTS "dc:p:m:"
+#define MEMORY_SIZE 0x20000000 /* 512 MiB */
+
 
 
 int main(int argc, char **argv)
 {
+		DEBUG("KSEG0_SIZE = 0x%08X, KSEG1_SIZE = 0x%08X",
+		 (uint32_t)KSEG0_SIZE,  (uint32_t)KSEG1_SIZE);
+
+
 	/* Program to simulate */
 	char *program = NULL;
 
