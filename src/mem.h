@@ -23,6 +23,36 @@
 #define KUSEG_PSTART (KSEG1_PSTART + KSEG0_PSTART)
 #define KSEG2_PSTART (KUSEG_PSTART + KUSEG_SIZE)
 
+/* Macros for reading from memory */
+#define GET_BIGWORD(addr) ((uint32_t) \
+  ((addr)[0] << 24)  | \
+  ((addr)[1] << 16)  | \
+  ((addr)[2] << 8)   | \
+  ((addr)[3]))
+
+#define GET_BIGBYTE(addr) ((uint32_t)(uint8_t) \
+  ((addr)[0]))
+
+#define GET_BIGHALF(addr) ((uint32_t)(uint16_t) \
+  ((addr)[0] << 8) | \
+  ((addr)[1]))
+
+
+#define SET_BIGWORD(addr, value) \
+  (addr)[0] = value >> 24; \
+  (addr)[1] = value << 8 >> 24; \
+  (addr)[2] = value << 16 >> 24; \
+  (addr)[3] = value << 24 >> 24;
+
+#define SET_BIGBYTE(addr, value) \
+  (addr)[0] = ((uint8_t)(value));
+
+#define SET_BIGHALF(addr, value) \
+  (addr)[0] = value >> 8; \
+  (addr)[1] = value << 24 >> 24;
+
+
+
 
 /* Memory operations size */
 typedef enum {

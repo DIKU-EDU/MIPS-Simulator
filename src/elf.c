@@ -23,7 +23,7 @@
 #include <stdlib.h>   // exit
 #include <string.h>   // memset
 
-#if 0
+#if 1
 /* ------------- */
 #undef _ERROR_H
 #include "error.h"
@@ -270,7 +270,8 @@ copy_segment(FILE *stream, struct p_header *phdr,
 	uint32_t offset;
 	unsigned char *segmem;
 
-	offset = phdr->p_vaddr - MIPS_RESERVE;
+	offset = phdr->p_vaddr - KSEG0_VSTART;
+	DEBUG("ELF OFFSET: 0x%08X", offset);
 
 	if (memsz < offset + phdr->p_memsz) {
 		return ELF_ERROR_OUT_OF_MEM;
@@ -291,7 +292,7 @@ copy_segment(FILE *stream, struct p_header *phdr,
 		return ELF_ERROR_IO_ERROR;
 	}
 
-	printf("Hello %x %x\n", offset, segmem[0x19]);
+	DEBUG("Hello %x %x\n", offset, segmem[0x19]);
 
 	return 0;
 }

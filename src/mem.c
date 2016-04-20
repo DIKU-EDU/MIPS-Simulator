@@ -40,14 +40,15 @@ exception_t mem_read(core_t *core, memory_t *mem, int32_t vaddr, uint32_t *dst,
 
 	/* Translate to actual address*/
 	uint8_t *aaddr = paddr_translate(paddr, mem);
-	aaddr = aaddr;
+
+	DEBUG("WILL READ FROM: %p", aaddr);
 
 	if(op_size == MEM_OP_BYTE) {
-		*dst = GET_BIGBYTE(mem->pmem, paddr);
+		*dst = GET_BIGBYTE(aaddr);
 	} else if(op_size == MEM_OP_HALF) {
-		*dst = GET_BIGHALF(mem->pmem, paddr);
+		*dst = GET_BIGHALF(aaddr);
 	} else if(op_size == MEM_OP_WORD) {
-		*dst = GET_BIGWORD(mem->pmem, paddr);
+		*dst = GET_BIGWORD(aaddr);
 	}
 
 	return EXC_None;
@@ -59,13 +60,16 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t vaddr, uint32_t src,
 	/* Translate to physical */
 	uint32_t paddr = vaddr_translate(vaddr);
 
+	/* Translate to actual address*/
+	uint8_t *aaddr = paddr_translate(paddr, mem);
+
 	/* write */
 	if(op_size == MEM_OP_BYTE) {
-		SET_BIGBYTE(mem->pmem, paddr, src);
+		SET_BIGBYTE(aaddr, src);
 	} else if(op_size == MEM_OP_HALF) {
-		SET_BIGHALF(mem->pmem, paddr, src);
+		SET_BIGHALF(aaddr, src);
 	} else if(op_size == MEM_OP_WORD) {
-		SET_BIGHALF(mem->pmem, paddr, src);
+		SET_BIGHALF(aaddr, src);
 	}
 
 	return EXC_None;
@@ -117,15 +121,18 @@ uint8_t* paddr_translate(uint32_t paddr, memory_t *mem)
 	/* Actual address */
 	uint8_t *aaddr = NULL;
 
+	DEBUG("TRANSLATING ADDRESS: 0x%08X", paddr);
+
 	/* KSEG2 */
 	if(paddr >= KSEG0_SIZE + KSEG1_SIZE + KUSEG_SIZE) {
 		/* TODO */
 	/* KUSEG */
 	} else if(paddr >= KSEG1_SIZE + KSEG0_SIZE) {
 		/* Check if out of bounds */
-		if(paddr >= KSEG1_PSTART + mem->size_kseg0 + mem->size_kseg1 +
+		if(paddr >= KUSEG_PSTART + mem->size_kseg0 + mem->size_kseg1 +
 		   mem->size_kuseg) {
 			/* TODO: Exception */
+			ERROR("ADDRESS OVERFLOW");
 			return aaddr;
 		}
 
@@ -136,8 +143,9 @@ uint8_t* paddr_translate(uint32_t paddr, memory_t *mem)
 	/* KSEG0 */
 	} else if(paddr >= KSEG1_SIZE) {
 		/* Check if out of bounds */
-		if(paddr >= KSEG1_PSTART + mem->size_kseg0 + mem->size_kseg1) {
+		if(paddr >= KSEG0_PSTART + mem->size_kseg0 + mem->size_kseg1) {
 			/* TODO: Exception */
+			ERROR("ADDRESS OVERFLOW");
 			return aaddr;
 		}
 
@@ -149,6 +157,7 @@ uint8_t* paddr_translate(uint32_t paddr, memory_t *mem)
 		/* Check if out of bounds */
 		if(paddr >= KSEG1_PSTART + mem->size_kseg0) {
 			/* TODO: Exception */
+			ERROR("ADDRESS OVERFLOW");
 			return aaddr;
 		}
 

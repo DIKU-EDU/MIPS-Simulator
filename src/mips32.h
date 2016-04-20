@@ -17,6 +17,7 @@
 
 #define MIPS_RESERVE  (0x400000)
 
+#if 0
 #define GET_BIGWORD(mem, addr) ((uint32_t) \
   ((mem)[(addr) + 0] << 24)  | \
   ((mem)[(addr) + 1] << 16)  | \
@@ -43,7 +44,7 @@
 #define SET_BIGHALF(mem, addr, value) \
   (mem)[(addr) + 0] = value >> 8; \
   (mem)[(addr) + 1] = value << 24 >> 24;
-
+#endif
 
 /* Dumps the next n bytes to stdout */
 void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n);

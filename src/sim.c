@@ -539,11 +539,12 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 	hardware.cpu->core[0].regs[REG_SP] = (uint32_t)KUSEG_SIZE - 4;
 
 	/* Load the program into memory */
-	if(elf_dump(program,
+	int retval;
+	if((retval = elf_dump(program,
 		    &(hardware.cpu->core[0].regs[REG_PC]),
 		    hardware.mem->pmem, /* Write to start -> kseg1*/
-		    mem) != 0) {
-		ERROR("Elf file could not be read.");
+		    hardware.mem->size_kseg1)) != 0) {
+		ERROR("Elf file could not be read: %d.", retval);
 		exit(0);
 	}
 

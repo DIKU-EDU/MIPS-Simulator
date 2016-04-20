@@ -11,6 +11,7 @@
 
 #include <stddef.h> // size_t
 #include <stdint.h> // uint32_t
+#include "mem.h"
 
 #define ELF_ERROR_IO_ERROR        (-1)
 #define ELF_ERROR_OUT_OF_MEM      (-2)
