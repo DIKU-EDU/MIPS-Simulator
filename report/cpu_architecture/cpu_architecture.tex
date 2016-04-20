@@ -132,7 +132,7 @@ are some conventions for the use of the registers.
 \begin{center}
     \begin{tabular}{ | l | l | l | c |}
     \hline
-	\textbf{Mnemonic\footnote{Textual mnemonic used in the assembly language}}%
+	\textbf{Mnemonic\footnote{Textual representation used in the assembly language}}%
 		 & \textbf{\#} & \textbf{Use} \\ \hline \hline
 	\texttt{\$zero}		& 0	& Constant Value 0 \\ \hline
 	\texttt{\$at}		& 1	& Reserved Temporary \\ \hline
@@ -151,13 +151,13 @@ are some conventions for the use of the registers.
 
 \subsubsection{Special Registers}
 The special registers in MIPS cannot directly be accessed from the program.
-Rather, they are modified by different instructions.
+Rather, they are modified by dedicated instructions.
 \begin{center}
     \begin{tabular}{ | l | l | l | c |}
     \hline
 	\textbf{Name} & \textbf{\#} & \textbf{Use} \\ \hline \hline
-	\texttt{HI}		& -	& Hi-word of 64bit value \\ \hline
-	\texttt{LO}		& -	& Lo-word of 64bit value \\ \hline
+	\texttt{\$HI}		& -	& Hi-word of 64bit value \\ \hline
+	\texttt{\$LO}		& -	& Lo-word of 64bit value \\ \hline
 	\texttt{\$PC}		& -	& Program Counter \\ \hline
     \end{tabular}
 \end{center}
@@ -172,9 +172,10 @@ this register is better known as the Instruction Pointer (IP).
 \subsubsection{Co-processor 0 registers}
 Registers in co-processor 0 are mainly used by the system, to provide
 additional features. The co-processor can have 32 registers, but only few of
-them are used consistently. Many of the empty registers are also defined
-by the
-manufacturer of the processor.
+them are used consistently across the different CPU implementations. That is
+due to the wide applications of the MIPS architecture, where manufacturers
+only define and implement the truly necessary co-processor registers.
+
 \begin{center}
     \begin{tabular}{ | l | l | l | c |}
     \hline
@@ -301,9 +302,9 @@ assembly.
 
 \subsection{Interrupts}
 \label{sec:cpu_architecture_interrupts}
-Interrupts is a special way to control what the CPU. It actively "interrupts"
-the CPU from its current job, and makes it execute a special function,
-specified by an interrupt number. There usually 3 types of interrupts\cite{osdev:interrupts}:
+Interrupts are a special way to control what the CPU. It actively "interrupts"
+the CPU from its current job, and makes it execute a special procedure,
+specified by an interrupt number. There are usually 3 types of interrupts\cite{osdev:interrupts}:
 \begin{itemize}
 	\item Exceptions\\
 	Exceptions occur in software, usually when an error has occurred that
@@ -346,7 +347,8 @@ The memory is a large chuck of consecutive bytes. While these can store
 practically anything, operating systems designate memory areas into multiple
 segments (also called sections), which eases memory management.
 While many operating systems create many different segments in the memory map
-of a program, these segments usually fall into 4 categories\cite{memory_sections}:
+of a program, these segments usually fall into 4
+categories\cite{memory_sections}\cite{COD5}\cite{see_mips_run}:
 \begin{itemize}
 \item \texttt{.text}\\
 This section consists of the executable contents of a program, which is the
@@ -355,11 +357,11 @@ instructions. In modern processors and OS, this section cannot be written to.
 This segment contains the initialized variables used in the program. This section
 can be both written and read from, but is not executable.
 \item \texttt{.bss}\\
-Unitialized memory segment. This allocates memory for variables, which are not
+Uninitialized memory segment. This allocates memory for variables, which are not
 necessarily initialized by the OS, and can contain random values.
 
 \item \texttt{stack}\\
-The stack usually starts at the top of the memory area.
+The stack usually starts at the top of the user memory area.
 It is a Last-In First-Out (LIFO) structure, meaning that elements added last are
 the first ones being removed, hence the name.
 The top of the stack is usually pointed to by a designated register in the CPU, in MIPS32, that is
@@ -367,15 +369,17 @@ the \texttt{\$SP} register. The stack is used for local variables within
 functions, which usually have a very short lifespan.
 
 \item \texttt{heap}\\
-The heap starts immediatelly after the initialized segments (\texttt{.text} and
+The heap starts immediately after the initialized segments (\texttt{.text} and
 \texttt{.data}), and is used for variables with a longer lifespan. This memory
-area is maintained by the program, and can store practically any variables and
+area grows from bottom up, that is, starting at a lower address, moving to
+higher addresses.
+This memory area is maintained by the program, and can store practically any variables and
 other data-structures. This area can also be extended by the operating system,
 which makes it ideal area for storing large amounts of data.
 \end{itemize}
 
-While the memory layout of a process is completelly implementation specific on
-the underlying operating-system, on most UNIX systems, the memory area is very
+While the memory layout of a process is completely implementation specific on
+the underlying operating-system, on most 32-bit UNIX systems, the memory area is very
 similar to what can be seen on figure \ref{fig:memory_layout}.
 \begin{figure}[H]
 	\centering
