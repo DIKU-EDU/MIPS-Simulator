@@ -4,14 +4,14 @@
 #include "cpu.h"
 #include "disasm.h"
 #include "error.h"
-
+#include "mem.h"
 /* extern'd in sim.c */
 extern bool g_debugging;
 
 /* extern'd in sim.c */
 extern bool g_finished;
 
-void debug(uint32_t inst, core_t* core)
+void debug(uint32_t inst, core_t* core, memory_t *mem)
 {
 	printf("PC: 0x%08X\n", core->regs[REG_PC]);
 	print_instruction(inst, core);
@@ -31,6 +31,7 @@ r		- Prints all GP registers\n\
 p		- Prints pipeline registers\n\
 i		- Prints current instruction\n\
 [v|s|t]<N>	- Prints register v/s/t number <N>\n\
+m		- Print from memory (will ask for addr)\n\
 c		- Continue executing\n\
 q		- Quit\n\
 '\\n'		- Step\n\n");
@@ -46,6 +47,18 @@ q		- Quit\n\
 			print_instruction(inst, core);
 			break;
 
+		/* inspect memory */
+		case 'm':
+			printf("@ 0x");
+			uint32_t addr = 0;
+			uint32_t word = 0;
+			if(scanf("%X", &addr) > 0) {
+				mem_read(core, mem, addr, &word, MEM_OP_WORD);
+			}
+			fseek(stdin,0,SEEK_END);
+
+			printf("[0x%08X] = 0x%08X\n", addr, word);
+			break;
 		case 'p':
 			print_pipeline_registers(core);
 			break;

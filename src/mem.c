@@ -41,8 +41,6 @@ exception_t mem_read(core_t *core, memory_t *mem, int32_t vaddr, uint32_t *dst,
 	/* Translate to actual address*/
 	uint8_t *aaddr = paddr_translate(paddr, mem);
 
-	DEBUG("WILL READ FROM: %p", aaddr);
-
 	if(op_size == MEM_OP_BYTE) {
 		*dst = GET_BIGBYTE(aaddr);
 	} else if(op_size == MEM_OP_HALF) {
@@ -50,6 +48,8 @@ exception_t mem_read(core_t *core, memory_t *mem, int32_t vaddr, uint32_t *dst,
 	} else if(op_size == MEM_OP_WORD) {
 		*dst = GET_BIGWORD(aaddr);
 	}
+	DEBUG("%X READ FROM: %p", *dst, aaddr);
+
 
 	return EXC_None;
 }
@@ -63,6 +63,8 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t vaddr, uint32_t src,
 	/* Translate to actual address*/
 	uint8_t *aaddr = paddr_translate(paddr, mem);
 
+	DEBUG("WILL WRITE TO: %d to %p", src, aaddr);
+
 	/* write */
 	if(op_size == MEM_OP_BYTE) {
 		SET_BIGBYTE(aaddr, src);
@@ -72,6 +74,7 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t vaddr, uint32_t src,
 		SET_BIGHALF(aaddr, src);
 	}
 
+	DEBUG("WRITTEN: %d", *aaddr);
 	return EXC_None;
 }
 
@@ -100,19 +103,9 @@ uint32_t vaddr_translate(uint32_t vaddr)
 	/* kuseg */
 	}
 	if(vaddr < KSEG0_PSTART) {
-		DEBUG("USER ADDR DETECTED");
-		/* XXX: For now, KUSEG is located immediatelly after KUSEG0 */
-		DEBUG("PADDR BEFORE: 0x%08X, KSEG0_SIZE = 0x%08X, KSEG1_SIZE = 0x%08X"
-		      , paddr,  (uint32_t)KSEG0_SIZE, (uint32_t) KSEG1_SIZE);
-
 		paddr = vaddr + KSEG0_SIZE + KSEG1_SIZE;
-
-		DEBUG("PADDR AFTER: 0x%08X, KSEG0_SIZE = 0x%08X, KSEG1_SIZE = 0x%08X"
-			, paddr, (uint32_t)KSEG0_SIZE,  (uint32_t)KSEG1_SIZE);
-
 	}
 
-	DEBUG("Translated 0x%08X to 0x%08X.", vaddr, paddr);
 	return paddr;
 }
 
@@ -120,8 +113,6 @@ uint8_t* paddr_translate(uint32_t paddr, memory_t *mem)
 {
 	/* Actual address */
 	uint8_t *aaddr = NULL;
-
-	DEBUG("TRANSLATING ADDRESS: 0x%08X", paddr);
 
 	/* KSEG2 */
 	if(paddr >= KSEG0_SIZE + KSEG1_SIZE + KUSEG_SIZE) {
@@ -165,8 +156,6 @@ uint8_t* paddr_translate(uint32_t paddr, memory_t *mem)
 		aaddr = mem->pmem + (paddr - KSEG1_PSTART);
 	}
 
-
-	DEBUG("Translated 0x%08X to %p.", paddr, aaddr);
 	return aaddr;
 
 }

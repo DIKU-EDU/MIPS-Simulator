@@ -39,17 +39,17 @@
 
 
 #define SET_BIGWORD(addr, value) \
-  (addr)[0] = value >> 24; \
-  (addr)[1] = value << 8 >> 24; \
-  (addr)[2] = value << 16 >> 24; \
-  (addr)[3] = value << 24 >> 24;
+  *(addr + 0) = value >> 24; \
+  *(addr + 1) = value << 8 >> 24; \
+  *(addr + 2) = value << 16 >> 24; \
+  *(addr + 3) = value << 24 >> 24;
 
 #define SET_BIGBYTE(addr, value) \
-  (addr)[0] = ((uint8_t)(value));
+  *(addr + 0) = ((uint8_t)(value));
 
 #define SET_BIGHALF(addr, value) \
-  (addr)[0] = value >> 8; \
-  (addr)[1] = value << 24 >> 24;
+  *(addr + 0) = value >> 8; \
+  *(addr + 1) = value << 24 >> 24;
 
 
 
@@ -80,7 +80,6 @@ exception_t mem_read(core_t *core, memory_t *mem, int32_t vaddr, uint32_t *dst,
 		     mem_op_size_t op_size);
 
 /* Writes src to addr. Returns a relevant exception. */
-
 exception_t mem_write(core_t *core, memory_t *mem, int32_t addr, uint32_t src,
 		      mem_op_size_t op_size);
 
