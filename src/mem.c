@@ -36,10 +36,10 @@ exception_t mem_read(core_t *core, memory_t *mem, int32_t vaddr, uint32_t *dst,
 		     mem_op_size_t op_size)
 {
 	/* Translated physical address */
-	uint32_t paddr = vaddr_translate(vaddr);
+	uint32_t paddr = translate_vaddr(vaddr);
 
 	/* Translate to actual address*/
-	uint8_t *aaddr = paddr_translate(paddr, mem);
+	uint8_t *aaddr = translate_paddr(paddr, mem);
 
 	if(op_size == MEM_OP_BYTE) {
 		*dst = GET_BIGBYTE(aaddr);
@@ -59,10 +59,10 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t vaddr, uint32_t src,
 		      mem_op_size_t op_size)
 {
 	/* Translate to physical */
-	uint32_t paddr = vaddr_translate(vaddr);
+	uint32_t paddr = translate_vaddr(vaddr);
 
 	/* Translate to actual address*/
-	uint8_t *aaddr = paddr_translate(paddr, mem);
+	uint8_t *aaddr = translate_paddr(paddr, mem);
 
 
 	/* write */
@@ -82,7 +82,7 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t vaddr, uint32_t src,
 }
 
 
-uint32_t vaddr_translate(uint32_t vaddr)
+uint32_t translate_vaddr(uint32_t vaddr)
 {
 	uint32_t paddr = 0x00;
 
@@ -112,7 +112,7 @@ uint32_t vaddr_translate(uint32_t vaddr)
 	return paddr;
 }
 
-uint8_t* paddr_translate(uint32_t paddr, memory_t *mem)
+uint8_t* translate_paddr(uint32_t paddr, memory_t *mem)
 {
 	/* Actual address */
 	uint8_t *aaddr = NULL;

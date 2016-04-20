@@ -57,7 +57,7 @@ typedef enum {
 	MEM_OP_BYTE,
 	MEM_OP_HALF,
 	MEM_OP_WORD
-} mem_op_size_t; /* Memory Operation Size*/
+} mem_op_size_t; /* Memory Operation Size */
 
 
 
@@ -82,10 +82,10 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t addr, uint32_t src,
 		      mem_op_size_t op_size);
 
 /* Translate virtual memory address to physical */
-uint32_t vaddr_translate(uint32_t vaddr);
+uint32_t translate_vaddr(uint32_t vaddr);
 
 /* Translate physical memory address to actual */
-uint8_t* paddr_translate(uint32_t paddr, memory_t *mem);
+uint8_t* translate_paddr(uint32_t paddr, memory_t *mem);
 
 
 /* Returns a new memory block */

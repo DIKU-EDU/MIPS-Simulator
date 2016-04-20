@@ -20,6 +20,6 @@
 
 int
 elf_dump(const char *path, uint32_t *entry,
-  unsigned char *mem, size_t memsz);
+  memory_t *mem);
 
 #endif // DiMS_ELF_H

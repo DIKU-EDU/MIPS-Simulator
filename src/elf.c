@@ -23,6 +23,7 @@
 #include <stdlib.h>   // exit
 #include <string.h>   // memset
 
+#include "mem.h"
 #if 1
 /* ------------- */
 #undef _ERROR_H
@@ -266,18 +267,20 @@ read_ehdr(struct elf_file *file) {
 // After this function, stream will point to one past the end of the segment.
 static inline int
 copy_segment(FILE *stream, struct p_header *phdr,
-	     unsigned char *mem, size_t memsz) {
-	uint32_t offset;
-	unsigned char *segmem;
+	     memory_t *mem) {
 
-	offset = phdr->p_vaddr - KSEG0_VSTART;
-	DEBUG("ELF OFFSET: 0x%08X", offset);
+	/* Translate address */
+	uint32_t paddr = translate_vaddr(phdr->p_vaddr);
+	uint8_t *segmem = translate_paddr(paddr, mem);
 
+	DEBUG("ELF LOADING TO: %p", segmem);
+
+	/*
+	 * TODO: Verify size
 	if (memsz < offset + phdr->p_memsz) {
 		return ELF_ERROR_OUT_OF_MEM;
 	}
-
-	segmem = mem + offset;
+	*/
 
 	// Zero out the memory before copying segment from file.
 	memset(segmem, 0, phdr->p_memsz);
@@ -292,8 +295,6 @@ copy_segment(FILE *stream, struct p_header *phdr,
 		return ELF_ERROR_IO_ERROR;
 	}
 
-	DEBUG("Hello %x %x\n", offset, segmem[0x19]);
-
 	return 0;
 }
 
@@ -301,7 +302,7 @@ copy_segment(FILE *stream, struct p_header *phdr,
 // After this function, stream points to one past the end of the associated
 // segment. Also, the first 6 words of the p_header will be set.
 static inline int
-copy_cur_segment_aux(FILE *stream, unsigned char *mem, size_t memsz) {
+copy_cur_segment_aux(FILE *stream, memory_t *mem) {
 	int retval = 0;
 
 	struct p_header phdr;
@@ -318,7 +319,7 @@ copy_cur_segment_aux(FILE *stream, unsigned char *mem, size_t memsz) {
 		// Naïvely skip the above.
 		break;
 	case PT_LOAD:
-		retval = copy_segment(stream, &phdr, mem, memsz);
+		retval = copy_segment(stream, &phdr, mem);
 		break;
 	default:
 		error(0, 0, "unknown program header entry type 0x%x", phdr.p_type);
@@ -332,7 +333,7 @@ copy_cur_segment_aux(FILE *stream, unsigned char *mem, size_t memsz) {
 // After this function, stream points to one past the end of the current program
 // header entry. Also, the first 6 words of the p_header will be set.
 static inline int
-copy_cur_segment(struct elf_file *file, unsigned char *mem, size_t memsz) {
+copy_cur_segment(struct elf_file *file, memory_t *mem) {
 	struct ehdr *ehdr = &file->ehdr;
 	long origin = 0;
 	int retval = 0;
@@ -343,7 +344,7 @@ copy_cur_segment(struct elf_file *file, unsigned char *mem, size_t memsz) {
 		return ELF_ERROR_IO_ERROR;
 	}
 
-	retval = copy_cur_segment_aux(file->stream, mem, memsz);
+	retval = copy_cur_segment_aux(file->stream, mem);
 
 	// Restore stream to next program header entry (if any).
 	if (fseek(file->stream, origin + ehdr->e_phentsize, SEEK_SET) != 0) {
@@ -357,7 +358,7 @@ copy_cur_segment(struct elf_file *file, unsigned char *mem, size_t memsz) {
 // After this function, stream point to one past the end of the last program
 // header entry.
 static inline int
-copy_all_segments(struct elf_file *file, unsigned char *mem, size_t memsz) {
+copy_all_segments(struct elf_file *file, memory_t *mem) {
 	struct ehdr *ehdr = &file->ehdr;
 	size_t i = 0;
 	int retval = 0;
@@ -368,7 +369,7 @@ copy_all_segments(struct elf_file *file, unsigned char *mem, size_t memsz) {
 	}
 
 	for (i = 0; i < ehdr->e_phnum; ++i) {
-		retval = copy_cur_segment(file, mem, memsz);
+		retval = copy_cur_segment(file, mem);
 		if (retval != 0) return retval;
 	}
 
@@ -408,7 +409,7 @@ elf_close(struct elf_file *file) {
 
 int
 elf_dump(const char *path, uint32_t *entry,
-	 unsigned char *mem, size_t memsz) {
+	 memory_t *mem) {
 	struct elf_file file;
 	int retval = 0;
 
@@ -418,11 +419,9 @@ elf_dump(const char *path, uint32_t *entry,
 		return retval;
 	}
 
-
-
 	*entry = file.ehdr.e_entry;
 
-	retval = copy_all_segments(&file, mem, memsz);
+	retval = copy_all_segments(&file, mem);
 	if (retval != 0) {
 		error(0, 0, "couldn't read prog segments.");
 		return retval;
