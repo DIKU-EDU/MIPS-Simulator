@@ -48,8 +48,9 @@ exception_t mem_read(core_t *core, memory_t *mem, int32_t vaddr, uint32_t *dst,
 	} else if(op_size == MEM_OP_WORD) {
 		*dst = GET_BIGWORD(aaddr);
 	}
-	DEBUG("%X READ FROM: %p", *dst, aaddr);
 
+	DEBUG("READ: 0x%08X FROM VADDR: 0x%08X, AADDR: %p", *((uint32_t*)dst), vaddr,
+	      aaddr);
 
 	return EXC_None;
 }
@@ -63,7 +64,6 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t vaddr, uint32_t src,
 	/* Translate to actual address*/
 	uint8_t *aaddr = paddr_translate(paddr, mem);
 
-	DEBUG("WILL WRITE TO: %d to %p", src, aaddr);
 
 	/* write */
 	if(op_size == MEM_OP_BYTE) {
@@ -71,10 +71,13 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t vaddr, uint32_t src,
 	} else if(op_size == MEM_OP_HALF) {
 		SET_BIGHALF(aaddr, src);
 	} else if(op_size == MEM_OP_WORD) {
-		SET_BIGHALF(aaddr, src);
+		DEBUG("WRITING WORD");
+		SET_BIGWORD(aaddr, src);
 	}
 
-	DEBUG("WRITTEN: %d", *aaddr);
+	DEBUG("WRITTEN: 0x%08X to VADDR: 0x%08X, AADDR: %p", *((uint32_t*)aaddr), vaddr,
+	      aaddr);
+
 	return EXC_None;
 }
 
@@ -159,7 +162,6 @@ uint8_t* paddr_translate(uint32_t paddr, memory_t *mem)
 	return aaddr;
 
 }
-
 
 void mem_free(memory_t *mem)
 {

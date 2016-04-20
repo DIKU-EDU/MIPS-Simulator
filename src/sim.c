@@ -196,7 +196,6 @@ void interpret_ex_alu(core_t *core)
 
 	/* LW and SW */
 	if(ID_EX.c_alu_op == 0x00) {
-		DEBUG("LW a: %d\t b: %d", a, b);
 		EX_MEM.alu_res = a + b;
 		return;
 	}
@@ -211,7 +210,6 @@ void interpret_ex_alu(core_t *core)
 	if(ID_EX.c_alu_op == 0x02) {
 		switch(ID_EX.funct) {
 		case FUNCT_ADD:
-			DEBUG("A: %d   B: %d",a,b);
 			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
 			break;
 
@@ -237,7 +235,6 @@ void interpret_ex_alu(core_t *core)
 
 		case FUNCT_NOR:
 			EX_MEM.alu_res = ~(uint32_t)((uint32_t)a | (uint32_t)b);
-			DEBUG("NOR: %08x", EX_MEM.alu_res);
 			break;
 
 		case FUNCT_SLT:
@@ -250,8 +247,6 @@ void interpret_ex_alu(core_t *core)
 
 		case FUNCT_SLL:
 			EX_MEM.alu_res = b << ID_EX.shamt;
-			DEBUG("SHIFTING %d << %d = %d", b, ID_EX.shamt,
-			      EX_MEM.alu_res);
 			break;
 
 		case FUNCT_SRL:
@@ -365,8 +360,6 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 	/* If read */
 	if(EX_MEM.c_mem_read) {
-		DEBUG("READING DATA AT: 0x%08x", EX_MEM.alu_res);
-
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_LW:
 			e = mem_read(core, mem, EX_MEM.alu_res, &MEM_WB.read_data,
@@ -375,20 +368,16 @@ void interpret_mem(core_t *core, memory_t *mem)
 			break;
 		case OPCODE_LBU:
 			e = mem_read(core, mem, EX_MEM.alu_res, &MEM_WB.read_data,
-				     MEM_OP_HALF);
+				     MEM_OP_BYTE);
 			break;
 		case OPCODE_LHU:
 			e = mem_read(core, mem, EX_MEM.alu_res, &MEM_WB.read_data,
-				     MEM_OP_BYTE);
+				     MEM_OP_HALF);
 			break;
 		}
 
-		LOG("alu_res = %d\nread_data = %d", EX_MEM.alu_res, MEM_WB.read_data);
-
-		/* If write */
+	/* If write */
 	} else if(EX_MEM.c_mem_write) {
-		DEBUG("writing %d to addr: 0x%08x", EX_MEM.rt_value,
-		      EX_MEM.alu_res);
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_SW:
 			e = mem_write(core, mem, EX_MEM.alu_res, EX_MEM.rt_value,
@@ -406,8 +395,6 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 		/* Suppress error */
 		e = e;
-		LOG("alu_res = %d\nrt_value = %d", EX_MEM.alu_res,
-		    EX_MEM.rt_value);
 	}
 }
 
@@ -424,7 +411,6 @@ void interpret_wb(core_t *core)
 
 	/* Write back */
 	if(MEM_WB.c_reg_write && MEM_WB.reg_dst != 0) {
-		DEBUG("Writing %d to destionation register: %d", data, MEM_WB.reg_dst);
 		core->regs[MEM_WB.reg_dst] = data;
 	}
 }
@@ -437,8 +423,6 @@ void forwarding_unit(core_t *core)
 	   && EX_MEM.reg_dst != 0
 	   && EX_MEM.reg_dst == ID_EX.rs) {
 		ID_EX.rs_value = EX_MEM.alu_res;
-		DEBUG("Forwarding from MEM MUX A");
-
 	}
 
 	/* Forward to B MUX */
@@ -447,8 +431,6 @@ void forwarding_unit(core_t *core)
 	   && EX_MEM.reg_dst != 0
 	   && EX_MEM.reg_dst == ID_EX.rt) {
 		ID_EX.rt_value = EX_MEM.alu_res;
-		DEBUG("Forwarding from MEM to MUX B");
-
 	}
 
 	/* WB */
@@ -461,7 +443,6 @@ void forwarding_unit(core_t *core)
 		/* WB MUX */
 		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
 			MEM_WB.read_data : MEM_WB.alu_res;
-		DEBUG("Forwarding from WB to MUX A");
 	}
 
 	/* WB */
@@ -474,7 +455,6 @@ void forwarding_unit(core_t *core)
 		/* WB MUX */
 		ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
 			MEM_WB.read_data : MEM_WB.alu_res;
-		DEBUG("Forwarding from WB to MUX A");
 	}
 }
 
@@ -510,7 +490,7 @@ int run(hardware_t *hw)
 						 hw->cpu->core[0].regs[REG_PC],
 						 &inst, MEM_OP_WORD);
 			e = e;
-			debug(inst, &hw->cpu->core[0]);
+			debug(inst, &hw->cpu->core[0], hw->mem);
 		}
 		tick(hw);
 	}

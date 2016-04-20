@@ -24,10 +24,6 @@
 
 int main(int argc, char **argv)
 {
-		DEBUG("KSEG0_SIZE = 0x%08X, KSEG1_SIZE = 0x%08X",
-		 (uint32_t)KSEG0_SIZE,  (uint32_t)KSEG1_SIZE);
-
-
 	/* Program to simulate */
 	char *program = NULL;
 

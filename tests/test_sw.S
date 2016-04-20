@@ -9,12 +9,3 @@ _start:
 	sw $0, var1($zero)
 	lw $v0, var1($zero)
 	syscall
-
-	# just in case
-	nop
-	nop
-	nop
-	nop
-	nop
-
-

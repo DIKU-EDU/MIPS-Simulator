@@ -39,17 +39,17 @@
 
 
 #define SET_BIGWORD(addr, value) \
-  (addr)[0] = (uint8_t)((value) >> 24); \
-  (addr)[1] = (uint8_t)((value) << 8 >> 24); \
-  (addr)[2] = (uint8_t)((value) << 16 >> 24); \
-  (addr)[3] = (uint8_t)((value) << 24 >> 24);
+  (addr)[0] = ((value) >> 24); \
+  (addr)[1] = ((value) << 8 >> 24); \
+  (addr)[2] = ((value) << 16 >> 24); \
+  (addr)[3] = ((value) << 24 >> 24);
 
 #define SET_BIGBYTE(addr, value) \
-  (addr)[0] = ((uint8_t)(value));
+  (addr)[0] = ((value));
 
 #define SET_BIGHALF(addr, value) \
-  (addr)[0] = (uint8_t)(value) >> 8; \
-  (addr)[1] = (uint8_t)(value) << 24 >> 24;
+  (addr)[0] = (value) >> 8; \
+  (addr)[1] = (value) << 24 >> 24;
 
 
 /* Memory operations size */
