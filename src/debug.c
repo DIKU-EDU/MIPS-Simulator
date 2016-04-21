@@ -5,6 +5,8 @@
 #include "disasm.h"
 #include "error.h"
 #include "mem.h"
+#include "exception.h"
+
 /* extern'd in sim.c */
 extern bool g_debugging;
 
@@ -171,6 +173,15 @@ void print_pipeline_registers(core_t *core)
 	       ID_EX.rt);
 	printf("                   rd:          %8x\n",
 	       ID_EX.rd);
+	printf("EXC:    %6s  EXC:   %6s      EXC: %6s      EXC:  %6s\n",
+	      exc_names[IF_ID.exception],
+	       exc_names[ID_EX.exception],
+	       exc_names[EX_MEM.exception],
+	       exc_names[MEM_WB.exception]);
+
+
+
+
 
 	printf("\n\n");
 }
