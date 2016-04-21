@@ -111,6 +111,8 @@ typedef union instr {
 typedef struct reg_if_id {
 	uint32_t inst;
 	uint32_t next_pc;
+
+	exception_t exception;
 } if_id_t;
 
 typedef struct reg_id_ex {
@@ -141,6 +143,9 @@ typedef struct reg_id_ex {
 	uint8_t rd;
 
 	uint32_t inst;
+
+	exception_t exception;
+
 } id_ex_t;
 
 typedef struct reg_ex_mem {
@@ -160,6 +165,8 @@ typedef struct reg_ex_mem {
 
 	uint32_t inst;
 
+	exception_t exception;
+
 } ex_mem_t;
 
 typedef struct reg_mem_wb {
@@ -173,6 +180,8 @@ typedef struct reg_mem_wb {
 	uint8_t reg_dst;
 
 	uint32_t inst;
+
+	exception_t exception;
 } mem_wb_t;
 
 /*

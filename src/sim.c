@@ -33,11 +33,8 @@ void interpret_if(core_t *core, memory_t *mem)
 	/* Fetch the next instruction */
 	/* TODO: Check the exception */
 	uint32_t inst = 0;
-	exception_t e = mem_read(core, mem, REGS(REG_PC), &inst,
+	IF_ID.exception = mem_read(core, mem, REGS(REG_PC), &inst,
 				 MEM_OP_WORD);
-
-	/* Suppress error */
-	e = e;
 
 	/* Hazard control
 	 * COD5 p. 314 */
@@ -180,6 +177,7 @@ void interpret_id(core_t *core)
 	ID_EX.shamt		= GET_SHAMT(inst);
 	ID_EX.inst		= IF_ID.inst;
 	ID_EX.next_pc		= IF_ID.next_pc;
+	ID_EX.exception		= IF_ID.exception;
 
 	/* Control unit */
 	interpret_id_control(core);
@@ -196,6 +194,11 @@ void interpret_ex_alu(core_t *core)
 
 	/* LW and SW */
 	if(ID_EX.c_alu_op == 0x00) {
+		/* Check for overflow */
+		if(check_overflow(a,b) == 1) {
+			EX_MEM.exception = EXC_ArithmeticOverflow;
+		}
+
 		EX_MEM.alu_res = a + b;
 		return;
 	}
@@ -214,6 +217,11 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case FUNCT_ADDU:
+			/* Check for overflow */
+			if(check_overflow(a,b) == 1) {
+				EX_MEM.exception = EXC_ArithmeticOverflow;
+			}
+
 			EX_MEM.alu_res = a + b;
 			break;
 
@@ -254,8 +262,7 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case FUNCT_SYSCALL:
-			LOG("SYSCALL Caught");
-			//	g_finished = true;
+			EX_MEM.exception = EXC_Syscall;
 			break;
 		default:
 			ERROR("Unknown funct: 0x%x", ID_EX.funct);
@@ -270,6 +277,11 @@ void interpret_ex_alu(core_t *core)
 			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
 			break;
 		case OPCODE_ADDIU:
+			/* Check for overflow */
+			if(check_overflow(a,b) == 1) {
+				EX_MEM.exception = EXC_ArithmeticOverflow;
+			}
+
 			EX_MEM.alu_res = a + b;
 			break;
 
@@ -307,7 +319,6 @@ void interpret_ex(core_t *core)
 	/* WB */
 	EX_MEM.c_reg_write	= ID_EX.c_reg_write;
 	EX_MEM.c_mem_to_reg	= ID_EX.c_mem_to_reg;
-
 
 	EX_MEM.inst		= ID_EX.inst;
 
@@ -355,24 +366,27 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 	MEM_WB.inst		= EX_MEM.inst;
 
+	MEM_WB.exception	= EX_MEM.exception;
 
-	exception_t e;
 
 	/* If read */
 	if(EX_MEM.c_mem_read) {
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_LW:
-			e = mem_read(core, mem, EX_MEM.alu_res, &MEM_WB.read_data,
-				     MEM_OP_WORD);
+			MEM_WB.exception = mem_read(core, mem, EX_MEM.alu_res,
+						    &MEM_WB.read_data,
+						    MEM_OP_WORD);
 
 			break;
 		case OPCODE_LBU:
-			e = mem_read(core, mem, EX_MEM.alu_res, &MEM_WB.read_data,
-				     MEM_OP_BYTE);
+			MEM_WB.exception = mem_read(core, mem, EX_MEM.alu_res,
+						    &MEM_WB.read_data,
+						    MEM_OP_BYTE);
 			break;
 		case OPCODE_LHU:
-			e = mem_read(core, mem, EX_MEM.alu_res, &MEM_WB.read_data,
-				     MEM_OP_HALF);
+			MEM_WB.exception = mem_read(core, mem, EX_MEM.alu_res,
+						    &MEM_WB.read_data,
+						    MEM_OP_HALF);
 			break;
 		}
 
@@ -380,31 +394,31 @@ void interpret_mem(core_t *core, memory_t *mem)
 	} else if(EX_MEM.c_mem_write) {
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_SW:
-			e = mem_write(core, mem, EX_MEM.alu_res, EX_MEM.rt_value,
-				  MEM_OP_WORD);
+			MEM_WB.exception  = mem_write(core, mem, EX_MEM.alu_res,
+						      EX_MEM.rt_value,
+						      MEM_OP_WORD);
 			break;
 		case OPCODE_SB:
-			e = mem_write(core, mem, EX_MEM.alu_res, EX_MEM.rt_value,
-				  MEM_OP_BYTE);
+			MEM_WB.exception  = mem_write(core, mem, EX_MEM.alu_res,
+						      EX_MEM.rt_value,
+						      MEM_OP_BYTE);
 			break;
 		case OPCODE_SH:
-			e = mem_write(core, mem, EX_MEM.alu_res, EX_MEM.rt_value,
-				  MEM_OP_HALF);
+			MEM_WB.exception  = mem_write(core, mem, EX_MEM.alu_res,
+						      EX_MEM.rt_value,
+						      MEM_OP_HALF);
 			break;
 		}
-
-		/* Suppress error */
-		e = e;
 	}
 }
 
 void interpret_wb(core_t *core)
 {
-	if(GET_OPCODE(MEM_WB.inst) == 0 &&
-	   GET_FUNCT(MEM_WB.inst) == FUNCT_SYSCALL) {
-		g_finished = true;
-	}
+	if(MEM_WB.exception != EXC_None) {
+		/* */
 
+		return;
+	}
 
 	/* mem_to_reg MUX */
 	uint32_t data = MEM_WB.c_mem_to_reg ? MEM_WB.read_data : MEM_WB.alu_res;
@@ -457,6 +471,8 @@ void forwarding_unit(core_t *core)
 			MEM_WB.read_data : MEM_WB.alu_res;
 	}
 }
+
+
 
 /* Simulates a clock-tick */
 void tick(hardware_t *hw)
@@ -521,8 +537,8 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 	/* Load the program into memory */
 	int retval;
 	if((retval = elf_dump(program,
-		    &(hardware.cpu->core[0].regs[REG_PC]),
-		    hardware.mem)) != 0) {
+			      &(hardware.cpu->core[0].regs[REG_PC]),
+			      hardware.mem)) != 0) {
 		ERROR("Elf file could not be read: %d.", retval);
 		exit(0);
 	}

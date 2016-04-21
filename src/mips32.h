@@ -127,4 +127,22 @@ extern char* funct_codes[];
 #define SIGN_EXTEND(value)  ((int32_t)(int16_t)value)
 #define ZERO_EXTEND(value)  ((uint32_t)value)
 
+/* Exception codes
+ * COD Green Card */
+typedef enum exceptions {
+	EXC_None = 0,
+	EXC_Interrupt,
+	EXC_AddressErrorLoad,
+	EXC_AddressErrorStore,
+	EXC_BusErrorInstructionFetch,
+	EXC_BusErrorLoadStore,
+	EXC_Syscall,
+	EXC_Breakpoint,
+	EXC_Reserved,
+	EXC_CpUnavailable,
+	EXC_ArithmeticOverflow,
+	EXC_Trap,
+	EXC_FloatingPoint
+} exception_t;
+
 #endif // MIPS32_H
