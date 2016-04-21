@@ -15,4 +15,8 @@
 #define BIT(x) (uint32_t)(1 << (x))
 
 
+/* Function that will detect overflow
+ * Returns 1 if overflow occurs, 0 otherwise */
+uint32_t check_overflow(uint32_t a, uint32_t b);
+
 #endif /* _TOOLS_H */
