@@ -42,7 +42,6 @@ char *cp0_reg_names[] = {
 	"WatchHi",
 	"PerfCtl",
 	"PerfCnt",
-
 	/* XXX */
 	"LLVal"
 };
@@ -53,7 +52,7 @@ void cp0_dump_registers(cp0_t *cp0)
 {
 	int i;
        for(i = 0; i < CP0_NUM_REGS; i++) {
-		printf("%s\t\t%d\n",cp0_reg_names[i], cp0->regs[i]);
+		printf("%10s\t\t%d\n",cp0_reg_names[i], cp0->regs[i]);
        }
 	return;
 }

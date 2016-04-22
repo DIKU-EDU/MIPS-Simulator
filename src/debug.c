@@ -30,6 +30,7 @@ void debug(uint32_t inst, core_t* core, memory_t *mem)
 			printf("DEBUG COMMANDS:\n\
 h		- Prints this message\n\
 r		- Prints all GP registers\n\
+0		- Prints all special registers (CP0)\n\
 p		- Prints pipeline registers\n\
 i		- Prints current instruction\n\
 [v|s|t]<N>	- Prints register v/s/t number <N>\n\
@@ -65,6 +66,10 @@ q		- Quit\n\
 			print_pipeline_registers(core);
 			break;
 			/* Print specified register only */
+
+		case '0':
+			cp0_dump_registers(&core->cp0);
+
 		case 'v':
 		case 's':
 		case 't':
