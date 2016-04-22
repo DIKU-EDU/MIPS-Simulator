@@ -160,6 +160,24 @@ void interpret_id_control(core_t *core)
 		/* Write to register, of course */
 		ID_EX.c_reg_write = 1;
 		break;
+
+	/* NOTE: These instructions are written back directly.*/
+	case OPCODE_CP0:
+		/* Function in encoded in RS */
+		switch(GET_RS(inst)) {
+			/* Move From CP0 */
+			case CP0_MFC0:
+				core->regs[GET_RT(inst)] =
+					core->cp0.regs[GET_RD(inst)];
+				break;
+
+			/* Move To CP0 */
+			case CP0_MTC0:
+				core->cp0.regs[GET_RD(inst)] =
+					core->regs[GET_RT(inst)];
+				break;
+		}
+
 	}
 }
 
@@ -280,6 +298,7 @@ void interpret_ex_alu(core_t *core)
 		case OPCODE_ADDIU:
 			/* Check for overflow */
 			if(check_overflow(a,b) == 1) {
+				DEBUG("OVERFLOW %u + %u", a,b );
 				EX_MEM.exception = EXC_ArithmeticOverflow;
 			}
 
@@ -392,7 +411,7 @@ void interpret_mem(core_t *core, memory_t *mem)
 			break;
 		}
 
-	/* If write */
+		/* If write */
 	} else if(EX_MEM.c_mem_write) {
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_SW:
@@ -417,6 +436,8 @@ void interpret_mem(core_t *core, memory_t *mem)
 void interpret_wb(core_t *core)
 {
 	if(MEM_WB.exception != EXC_None) {
+		DEBUG("Exception %s caught.", exc_names[MEM_WB.exception]);
+
 		/* XXX: Temporary */
 		if(MEM_WB.exception == EXC_Syscall) {
 			g_finished = true;
