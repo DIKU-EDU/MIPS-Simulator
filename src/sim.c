@@ -262,6 +262,7 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case FUNCT_SYSCALL:
+			DEBUG("SYSCALL DETECTED");
 			EX_MEM.exception = EXC_Syscall;
 			break;
 		default:
@@ -321,6 +322,7 @@ void interpret_ex(core_t *core)
 	EX_MEM.c_mem_to_reg	= ID_EX.c_mem_to_reg;
 
 	EX_MEM.inst		= ID_EX.inst;
+	EX_MEM.next_pc		= ID_EX.next_pc;
 
 	/* On J and JR */
 	if(ID_EX.c_jump == 1) {
@@ -365,7 +367,7 @@ void interpret_mem(core_t *core, memory_t *mem)
 	MEM_WB.alu_res		= EX_MEM.alu_res;
 
 	MEM_WB.inst		= EX_MEM.inst;
-
+	MEM_WB.next_pc		= EX_MEM.next_pc;
 	MEM_WB.exception	= EX_MEM.exception;
 
 
@@ -415,7 +417,10 @@ void interpret_mem(core_t *core, memory_t *mem)
 void interpret_wb(core_t *core)
 {
 	if(MEM_WB.exception != EXC_None) {
-		/* */
+		/* XXX: Temporary */
+		if(MEM_WB.exception == EXC_Syscall) {
+			g_finished = true;
+		}
 
 		return;
 	}
@@ -471,8 +476,6 @@ void forwarding_unit(core_t *core)
 			MEM_WB.read_data : MEM_WB.alu_res;
 	}
 }
-
-
 
 /* Simulates a clock-tick */
 void tick(hardware_t *hw)

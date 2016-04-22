@@ -163,6 +163,9 @@ typedef struct reg_ex_mem {
 
 	uint8_t reg_dst;
 
+	uint32_t next_pc;
+
+
 	uint32_t inst;
 
 	exception_t exception;
@@ -178,6 +181,8 @@ typedef struct reg_mem_wb {
 	uint32_t read_data;
 
 	uint8_t reg_dst;
+
+	uint32_t next_pc;
 
 	uint32_t inst;
 
