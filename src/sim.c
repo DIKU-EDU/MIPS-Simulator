@@ -564,7 +564,30 @@ void forwarding_unit(core_t *core)
 		ID_EX.rs_value = EX_MEM.alu_res;
 		DEBUG("Forwarding from MEM MUX A");
 
+	/* WB */
+	} else if(MEM_WB.c_reg_write == 1
+	   && MEM_WB.reg_dst != 0
+	   && MEM_WB.reg_dst == ID_EX.rs) {
+		if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
+		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+			return;
+		}
+		if((GET_OPCODE(MEM_WB.inst) != OPCODE_CP0) &&
+		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+			return;
+		}
+
+		/* WB MUX */
+		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
+			MEM_WB.read_data : MEM_WB.alu_res;
+		DEBUG("Forwarding from WB to MUX A");
 	}
+
 
 	/* Forward to B MUX */
 	/* MEM */
@@ -588,41 +611,10 @@ void forwarding_unit(core_t *core)
 
 		ID_EX.rt_value = EX_MEM.alu_res;
 		DEBUG("Forwarding from MEM to MUX B");
-	}
 
 	/* WB */
-	if(MEM_WB.c_reg_write == 1
+	} else if(MEM_WB.c_reg_write == 1
 	   && MEM_WB.reg_dst != 0
-	   && !(EX_MEM.c_reg_write == 1
-		&& (EX_MEM.reg_dst != 0)
-		&& (EX_MEM.reg_dst == ID_EX.rs))
-	   && MEM_WB.reg_dst == ID_EX.rs) {
-		if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
-		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
-		{
-			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
-
-			return;
-		}
-		if((GET_OPCODE(MEM_WB.inst) != OPCODE_CP0) &&
-		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
-		{
-			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
-			return;
-		}
-
-		/* WB MUX */
-		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
-			MEM_WB.read_data : MEM_WB.alu_res;
-		DEBUG("Forwarding from WB to MUX A");
-	}
-
-	/* WB */
-	if(MEM_WB.c_reg_write == 1
-	   && MEM_WB.reg_dst != 0
-	   && !(EX_MEM.c_reg_write == 1
-		&& (EX_MEM.reg_dst != 0)
-		&& (EX_MEM.reg_dst == ID_EX.rt))
 	   && MEM_WB.reg_dst == ID_EX.rt) {
 		if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
 		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
