@@ -76,7 +76,8 @@ extern char *cp0_reg_names[CP0_NUM_REGS];
 
 
 typedef struct cp0 {
-	uint32_t regs[CP0_NUM_REGS];
+	uint32_t regs[CP0_NUM_REGS + 1]; /* Offset from 0, due to forwarding
+					    collisions */
 
 } cp0_t;
 

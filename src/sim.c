@@ -177,8 +177,8 @@ void interpret_id_control(core_t *core)
 			ID_EX.c_reg_write	= 1;
 
 
-			ID_EX.rs = GET_RD(inst);
-			ID_EX.rs_value = core->cp0.regs[GET_RD(inst)];
+			ID_EX.rs = GET_RD(inst) + 1;
+			ID_EX.rs_value = core->cp0.regs[GET_RD(inst)+1];
 
 			ID_EX.rt = 0;
 			ID_EX.rt_value = 0;
@@ -202,7 +202,9 @@ void interpret_id_control(core_t *core)
 			ID_EX.rt = 0;
 			ID_EX.rt_value = 0;
 
-			/* RD is already destionation */
+			/* CP0 registers are offset by 1 due to forwarding
+			 * trouble. */
+			ID_EX.rd		= GET_RD(inst) + 1;
 
 			/* Set ADD function */
 			ID_EX.funct = FUNCT_ADD;
