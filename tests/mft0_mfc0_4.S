@@ -1,10 +1,10 @@
 .globl _start
+
 .text
 _start:
 	.set noreorder
-	addi $t0, $0, 1		# t0 = 1
-
+	addi $t0, $0, 10
 	mtc0 $t0, $0
-	mfc0 $t1, $0
-	add $v0, $v0, $t1
+#	NOP
+	mfc0 $v0, $0
 	syscall

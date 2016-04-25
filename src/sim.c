@@ -161,21 +161,52 @@ void interpret_id_control(core_t *core)
 		ID_EX.c_reg_write = 1;
 		break;
 
-	/* NOTE: These instructions are written back directly.*/
+	/* NOTE: These instructions cannot be executed in the same clock, due
+	 * data-hazards.
+	 *
+	 * These functions work by adding the source register with $0, saving
+	 * to the specified register (basically converting instruction to ADD).
+	 */
 	case OPCODE_CP0:
 		/* Function in encoded in RS */
 		switch(GET_RS(inst)) {
 			/* Move From CP0 */
-			case CP0_MFC0:
-				core->regs[GET_RT(inst)] =
-					core->cp0.regs[GET_RD(inst)];
-				break;
+		case CP0_MFC0:
+			ID_EX.c_reg_dst		= 1; /* Write to RD */
+			ID_EX.c_alu_op		= 0x02; /* R TYPE */
+			ID_EX.c_reg_write	= 1;
+
+
+			ID_EX.rs = GET_RD(inst);
+			ID_EX.rs_value = core->cp0.regs[GET_RD(inst)];
+
+			ID_EX.rt = 0;
+			ID_EX.rt_value = 0;
+
+			ID_EX.rd = GET_RT(inst);
+
+			/* Set ADD function */
+			ID_EX.funct = FUNCT_ADD;
+			break;
 
 			/* Move To CP0 */
-			case CP0_MTC0:
-				core->cp0.regs[GET_RD(inst)] =
-					core->regs[GET_RT(inst)];
-				break;
+		case CP0_MTC0:
+			ID_EX.c_reg_dst		= 1; /* Write to RD */
+			ID_EX.c_alu_op		= 0x02; /* R TYPE */
+			ID_EX.c_reg_write	= 1;
+
+
+			ID_EX.rs = GET_RT(inst);
+			ID_EX.rs_value = core->regs[GET_RT(inst)];
+
+			ID_EX.rt = 0;
+			ID_EX.rt_value = 0;
+
+			/* RD is already destionation */
+
+			/* Set ADD function */
+			ID_EX.funct = FUNCT_ADD;
+			break;
 		}
 
 	}
@@ -377,7 +408,6 @@ void interpret_ex(core_t *core)
 	interpret_ex_alu(core);
 }
 
-
 void interpret_mem(core_t *core, memory_t *mem)
 {
 	MEM_WB.c_reg_write	= EX_MEM.c_reg_write;
@@ -450,19 +480,90 @@ void interpret_wb(core_t *core)
 	uint32_t data = MEM_WB.c_mem_to_reg ? MEM_WB.read_data : MEM_WB.alu_res;
 
 	/* Write back */
-	if(MEM_WB.c_reg_write && MEM_WB.reg_dst != 0) {
-		core->regs[MEM_WB.reg_dst] = data;
+	if(MEM_WB.c_reg_write) {
+		if(GET_OPCODE(MEM_WB.inst) == OPCODE_CP0
+		   && GET_RS(MEM_WB.inst) == CP0_MTC0) {
+			core->cp0.regs[MEM_WB.reg_dst] = data;
+		} else {
+			/* Dont write to $0 */
+			core->regs[MEM_WB.reg_dst] = MEM_WB.reg_dst == 0 ?
+				0 : data;
+		}
 	}
 }
 
 void forwarding_unit(core_t *core)
 {
+	/* Forwarding is not allowed when:
+	 * - MTC0   -> normal instruction
+	 * - Normal -> MFC0
+	 * In those cases, the register numbers clash with cp0 register numbers.
+	 * forwarding to the wrong register! */
+
+#if 0
+	/* MTC0 -> normal */
+	/* MEM */
+	if((GET_OPCODE(EX_MEM.inst) == OPCODE_CP0 && GET_RS(EX_MEM.inst) == CP0_MTC0)
+	   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+	{
+		DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+		return;
+	}
+	/* WB */
+	if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
+	   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+	{
+		DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+		return;
+	}
+
+	/* normal -> MFC0 */
+	/* MEM */
+	if((GET_OPCODE(EX_MEM.inst) != OPCODE_CP0) &&
+	   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+	{
+		DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+		return;
+	}
+
+	/* normal -> MFC0 */
+	/* WB */
+	if((GET_OPCODE(MEM_WB.inst) != OPCODE_CP0) &&
+	   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+	{
+		DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+		return;
+	}
+#endif
+
+
+
 	/* Forward to A MUX */
 	/* MEM */
 	if(EX_MEM.c_reg_write == 1
 	   && EX_MEM.reg_dst != 0
 	   && EX_MEM.reg_dst == ID_EX.rs) {
+		if((GET_OPCODE(EX_MEM.inst) == OPCODE_CP0 && GET_RS(EX_MEM.inst) == CP0_MTC0)
+		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+			return;
+		}
+		if((GET_OPCODE(EX_MEM.inst) != OPCODE_CP0) &&
+		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+			return;
+		}
+
 		ID_EX.rs_value = EX_MEM.alu_res;
+		DEBUG("Forwarding from MEM MUX A");
+
 	}
 
 	/* Forward to B MUX */
@@ -470,7 +571,23 @@ void forwarding_unit(core_t *core)
 	if(EX_MEM.c_reg_write == 1
 	   && EX_MEM.reg_dst != 0
 	   && EX_MEM.reg_dst == ID_EX.rt) {
+		if((GET_OPCODE(EX_MEM.inst) == OPCODE_CP0 && GET_RS(EX_MEM.inst) == CP0_MTC0)
+		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+			return;
+		}
+		if((GET_OPCODE(EX_MEM.inst) != OPCODE_CP0) &&
+		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+			return;
+		}
+
 		ID_EX.rt_value = EX_MEM.alu_res;
+		DEBUG("Forwarding from MEM to MUX B");
 	}
 
 	/* WB */
@@ -480,9 +597,24 @@ void forwarding_unit(core_t *core)
 		&& (EX_MEM.reg_dst != 0)
 		&& (EX_MEM.reg_dst == ID_EX.rs))
 	   && MEM_WB.reg_dst == ID_EX.rs) {
+		if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
+		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+			return;
+		}
+		if((GET_OPCODE(MEM_WB.inst) != OPCODE_CP0) &&
+		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+			return;
+		}
+
 		/* WB MUX */
 		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
 			MEM_WB.read_data : MEM_WB.alu_res;
+		DEBUG("Forwarding from WB to MUX A");
 	}
 
 	/* WB */
@@ -492,17 +624,30 @@ void forwarding_unit(core_t *core)
 		&& (EX_MEM.reg_dst != 0)
 		&& (EX_MEM.reg_dst == ID_EX.rt))
 	   && MEM_WB.reg_dst == ID_EX.rt) {
+		if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
+		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+			return;
+		}
+		if((GET_OPCODE(MEM_WB.inst) != OPCODE_CP0) &&
+		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+			return;
+		}
+
 		/* WB MUX */
 		ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
 			MEM_WB.read_data : MEM_WB.alu_res;
+		DEBUG("Forwarding from WB to MUX A");
 	}
 }
 
 /* Simulates a clock-tick */
 void tick(hardware_t *hw)
 {
-	LOG("tick ... ");
-
 	cpu_t* cpu = hw->cpu;
 	memory_t* mem = hw->mem;
 
