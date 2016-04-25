@@ -471,7 +471,8 @@ void interpret_wb(core_t *core)
 		DEBUG("Exception %s caught.", exc_names[MEM_WB.exception]);
 
 		/* XXX: Temporary */
-		if(MEM_WB.exception == EXC_Syscall) {
+		if(MEM_WB.exception == EXC_Syscall
+		   && core->regs[REG_V0] == 10) {
 			g_finished = true;
 		}
 
@@ -677,7 +678,7 @@ int run(hardware_t *hw)
 	DEBUG("RETURNED: %d", hw->cpu->core[0].regs[REG_V0]);
 
 	/* XXX */
-	return hw->cpu->core[0].regs[REG_V0];
+	return hw->cpu->core[0].regs[REG_V1];
 }
 
 int simulate(char *program, size_t cores, size_t mem, bool debug)

@@ -6,5 +6,8 @@ _start:
 
 	mtc0 $t0, $0
 	mfc0 $t1, $0
-	add $v0, $v0, $t1
+	add $v1, $v1, $t1
+
+
+	addi $v0, $0, 10
 	syscall

@@ -12,7 +12,7 @@ _start:
 	nop
 	nop
 	mfc0 $t0, $0 		# t0 should be 3
-	add $v0, $v0, $t0	# v0 = 3
+	add $v1, $v1, $t0	# v1 = 3
 
-
+	addi $v0, $0, 10
 	syscall

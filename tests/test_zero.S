@@ -12,5 +12,7 @@ _start:
 	nop
 	nop
 
-	add $v0, $t0, $0
+	add $v1, $t0, $0
+
+	add $v0, $0, 10
 	syscall

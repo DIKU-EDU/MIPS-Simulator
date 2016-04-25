@@ -11,7 +11,7 @@ _start:
 	j error			# This point should not be reached
 	nop
 equal:
-	addi $v0, $0, 1		# v0 = 1
+	addi $v1, $0, 1		# v1 = 1
 	bne $t0, $t2, not_equal
 	nop
 	j error			# This point should not be reached
@@ -19,13 +19,17 @@ equal:
 	nop
 
 not_equal:
-	addi $v0, $v0, 1	# v0 = 2
+	addi $v1, $v1, 1	# v1 = 2
+
+	addi $v0, $0, 10
 	syscall
 	nop
 	nop
 
 error:
-	addi $v0, $0, 0
+	addi $v1, $0, 0
+
+	addi $v0, $0, 10
 	syscall
 	nop
 	nop

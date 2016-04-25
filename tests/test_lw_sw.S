@@ -9,7 +9,8 @@ var3:	.word 		48
 _start:
 	.set noreorder
 
-	add $v0, $0, $0
+	add $v0, $0, 10
+	add $v1, $0, $0
 	lbu $t0, var1
 	lhu $t1, var2
 	lw $t2, var3
@@ -20,5 +21,5 @@ _start:
 	syscall
 
 equal:
-	addi $v0, $0, 1		# v0 = 1
+	addi $v1, $0, 1		# v1 = 1
 	syscall

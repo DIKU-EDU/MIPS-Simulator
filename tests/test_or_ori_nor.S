@@ -12,5 +12,9 @@ _start:
         sll $t4, $t4, 4			# t4 = 0xFFFFFFF0
         nor $t3, $t3, $t4		# t3 = 0x0000000F
 
-	add $v0, $t2, $t3		# v0 = 40
+	add $v1, $t2, $t3		# v1 = 40
+
+
+
+	add $v0, $0, 10
         syscall
