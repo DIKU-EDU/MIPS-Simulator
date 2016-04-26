@@ -31,7 +31,6 @@ bool g_debugging = false;
 void interpret_if(core_t *core, memory_t *mem)
 {
 	/* Fetch the next instruction */
-	/* TODO: Check the exception */
 	uint32_t inst = 0;
 	IF_ID.exception = mem_read(core, mem, REGS(REG_PC), &inst,
 				 MEM_OP_WORD);
@@ -51,6 +50,9 @@ void interpret_if(core_t *core, memory_t *mem)
 	/* Point PC to next instruction and store in pipeline reg */
 	PC += 4;
 	IF_ID.next_pc = PC;
+	IF_ID.BadVAddr = 0;
+
+	IF_ID.is_branch_delay = false;
 }
 
 /* Control unit in the ID stage */
@@ -216,6 +218,15 @@ void interpret_id_control(core_t *core)
 
 void interpret_id(core_t *core)
 {
+	ID_EX.exception = EXC_None;
+
+	/* Forward exception and return, if any */
+	if(IF_ID.exception != EXC_None) {
+		ID_EX.exception = IF_ID.exception;
+		ID_EX.BadVAddr = IF_ID.BadVAddr;
+		return;
+	}
+
 	uint32_t inst = IF_ID.inst;
 
 	ID_EX.rt		= GET_RT(inst);
@@ -229,6 +240,9 @@ void interpret_id(core_t *core)
 	ID_EX.inst		= IF_ID.inst;
 	ID_EX.next_pc		= IF_ID.next_pc;
 	ID_EX.exception		= IF_ID.exception;
+	ID_EX.BadVAddr		= IF_ID.BadVAddr;
+	ID_EX.is_branch_delay	= IF_ID.is_branch_delay;
+
 
 	/* Control unit */
 	interpret_id_control(core);
@@ -364,6 +378,15 @@ void interpret_ex_alu(core_t *core)
 
 void interpret_ex(core_t *core)
 {
+	EX_MEM.exception = EXC_None;
+
+	/* Forward exception and return, if any */
+	if(ID_EX.exception != EXC_None) {
+		EX_MEM.exception = ID_EX.exception;
+		EX_MEM.BadVAddr = ID_EX.BadVAddr;
+		return;
+	}
+
 	/* Pipe to next pipeline registers */
 	/* MEM */
 	EX_MEM.c_mem_read	= ID_EX.c_mem_read;
@@ -376,12 +399,18 @@ void interpret_ex(core_t *core)
 	EX_MEM.inst		= ID_EX.inst;
 	EX_MEM.next_pc		= ID_EX.next_pc;
 
+	EX_MEM.is_branch_delay	= ID_EX.is_branch_delay;
+
+
 	/* On J and JR */
 	if(ID_EX.c_jump == 1) {
 		if(GET_OPCODE(ID_EX.inst) == OPCODE_R
 		   && GET_FUNCT(ID_EX.inst) == FUNCT_JR) {
 			ID_EX.jump_addr = ID_EX.rs_value;
 		}
+
+		/* Previous instruction is branch delay */
+		IF_ID.is_branch_delay = true;
 
 		DEBUG("JUMPING TO: %08x", ID_EX.jump_addr);
 		PC = ID_EX.jump_addr;
@@ -392,6 +421,10 @@ void interpret_ex(core_t *core)
 			/* Calculate branch address */
 			PC = ID_EX.next_pc + (ID_EX.sign_ext_imm << 2);
 			DEBUG("BRANCHING TO: %08x", PC);
+
+
+			/* Previous instruction is branch delay */
+			IF_ID.is_branch_delay = true;
 		}
 	}
 	/* On BNE */
@@ -400,6 +433,9 @@ void interpret_ex(core_t *core)
 			/* Calculate branch address */
 			PC = ID_EX.next_pc + (ID_EX.sign_ext_imm << 2);
 			DEBUG("BRANCHING TO: %08x", PC);
+
+			/* Previous instruction is branch delay */
+			IF_ID.is_branch_delay = true;
 		}
 	}
 
@@ -412,6 +448,16 @@ void interpret_ex(core_t *core)
 
 void interpret_mem(core_t *core, memory_t *mem)
 {
+	MEM_WB.exception = EXC_None;
+
+	/* Forward exception and return, if any */
+	if(EX_MEM.exception != EXC_None) {
+		MEM_WB.exception = EX_MEM.exception;
+		MEM_WB.BadVAddr = EX_MEM.BadVAddr;
+		return;
+	}
+
+
 	MEM_WB.c_reg_write	= EX_MEM.c_reg_write;
 	MEM_WB.reg_dst		= EX_MEM.reg_dst;
 	MEM_WB.c_mem_to_reg	= EX_MEM.c_mem_to_reg;
@@ -420,7 +466,7 @@ void interpret_mem(core_t *core, memory_t *mem)
 	MEM_WB.inst		= EX_MEM.inst;
 	MEM_WB.next_pc		= EX_MEM.next_pc;
 	MEM_WB.exception	= EX_MEM.exception;
-
+	MEM_WB.is_branch_delay	= EX_MEM.is_branch_delay;
 
 	/* If read */
 	if(EX_MEM.c_mem_read) {
@@ -465,17 +511,54 @@ void interpret_mem(core_t *core, memory_t *mem)
 	}
 }
 
-void interpret_wb(core_t *core)
+/* NOTE: This does not use pipelined approach, and so, theoretically skips a
+ * few clock cycles. */
+void handle_exception(core_t *core, memory_t *mem)
 {
+	/* 0. Clear the pipeline, reverting all instructions in the pipeline */
+	bzero(&IF_ID, sizeof(struct reg_if_id));
+	bzero(&ID_EX, sizeof(struct reg_id_ex));
+	bzero(&EX_MEM, sizeof(struct reg_ex_mem));
+	/* Data in MEM_WB is still needed */
+
+	/* 1. Save EPC */
+	/* PC is inaccessible using regular instruction encoding. We will just
+	 * assign it directly, which will skip a few clocks. Hack? */
+	core->cp0.regs[REG_EPC] = MEM_WB.next_pc - 4; /* next_pc points to next
+							 instruction, so subtract 4.*/
+
+
+	/* 2. Save CAUSE. If Address exception, save failing addr in BadVAddr */
+	uint32_t cause = get_cause(MEM_WB.exception, MEM_WB.is_branch_delay);
+	core->cp0.regs[REG_CAUSE] = cause;
+
+	if(MEM_WB.exception == EXC_AddressErrorLoad
+	   || MEM_WB.exception == EXC_AddressErrorLoad) {
+		core->cp0.regs[REG_BADVADDR] = MEM_WB.BadVAddr;
+	}
+
+
+	/* 3. Set SR(EXL) to set CPU into kernel mode and disable interrupts */
+	core->cp0.regs[REG_SR] |= SR_EXL;
+
+	/* 4. Jump to exception handler at 0x80000080 */
+	core->regs[REG_PC] = (uint32_t)0x80000080;
+}
+
+void interpret_wb(core_t *core, memory_t *mem)
+{
+	/* Check for any exceptions */
 	if(MEM_WB.exception != EXC_None) {
 		DEBUG("Exception %s caught.", exc_names[MEM_WB.exception]);
 
-		/* XXX: Temporary */
+		/* XXX: Exit on Syscall, v0 = 10. Temporary */
 		if(MEM_WB.exception == EXC_Syscall
 		   && core->regs[REG_V0] == 10) {
 			g_finished = true;
+			return;
 		}
 
+		handle_exception(core, mem);
 		return;
 	}
 
@@ -567,10 +650,10 @@ void forwarding_unit(core_t *core)
 		ID_EX.rs_value = EX_MEM.alu_res;
 		DEBUG("Forwarding from MEM MUX A");
 
-	/* WB */
+		/* WB */
 	} else if(MEM_WB.c_reg_write == 1
-	   && MEM_WB.reg_dst != 0
-	   && MEM_WB.reg_dst == ID_EX.rs) {
+		  && MEM_WB.reg_dst != 0
+		  && MEM_WB.reg_dst == ID_EX.rs) {
 		if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
 		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
 		{
@@ -615,10 +698,10 @@ void forwarding_unit(core_t *core)
 		ID_EX.rt_value = EX_MEM.alu_res;
 		DEBUG("Forwarding from MEM to MUX B");
 
-	/* WB */
+		/* WB */
 	} else if(MEM_WB.c_reg_write == 1
-	   && MEM_WB.reg_dst != 0
-	   && MEM_WB.reg_dst == ID_EX.rt) {
+		  && MEM_WB.reg_dst != 0
+		  && MEM_WB.reg_dst == ID_EX.rt) {
 		if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
 		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
 		{
@@ -639,7 +722,6 @@ void forwarding_unit(core_t *core)
 		DEBUG("Forwarding from WB to MUX A");
 	}
 }
-
 /* Simulates a clock-tick */
 void tick(hardware_t *hw)
 {
@@ -649,7 +731,7 @@ void tick(hardware_t *hw)
 	/* Iterate over each core */
 	int i;
 	for(i = 0; i < cpu->num_cores; i++) {
-		interpret_wb(cpu->core+i);
+		interpret_wb(cpu->core+i, mem);
 		interpret_mem(cpu->core+i, mem);
 		interpret_ex(cpu->core+i);
 		interpret_id(cpu->core+i);

@@ -113,6 +113,9 @@ typedef struct reg_if_id {
 	uint32_t next_pc;
 
 	exception_t exception;
+	uint32_t BadVAddr;
+
+	bool is_branch_delay;
 } if_id_t;
 
 typedef struct reg_id_ex {
@@ -144,8 +147,11 @@ typedef struct reg_id_ex {
 
 	uint32_t inst;
 
-	exception_t exception;
+	bool is_branch_delay;
 
+
+	exception_t exception;
+	uint32_t BadVAddr;
 } id_ex_t;
 
 typedef struct reg_ex_mem {
@@ -166,10 +172,12 @@ typedef struct reg_ex_mem {
 	uint32_t next_pc;
 
 
+	bool is_branch_delay;
+
 	uint32_t inst;
 
 	exception_t exception;
-
+	uint32_t BadVAddr;
 } ex_mem_t;
 
 typedef struct reg_mem_wb {
@@ -186,7 +194,10 @@ typedef struct reg_mem_wb {
 
 	uint32_t inst;
 
+	bool is_branch_delay;
+
 	exception_t exception;
+	uint32_t BadVAddr;
 } mem_wb_t;
 
 /*

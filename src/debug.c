@@ -178,15 +178,21 @@ void print_pipeline_registers(core_t *core)
 	       ID_EX.rt);
 	printf("                   rd:          %8x\n",
 	       ID_EX.rd);
-	printf("EXC:    %6s  EXC:   %6s      EXC: %6s      EXC:  %6s\n",
+	printf("EXC:\t%6s\t\tEXC:\t%6s\t\tEXC:\t%6s\t\tEXC:\t%6s\n",
 	      exc_names[IF_ID.exception],
 	       exc_names[ID_EX.exception],
 	       exc_names[EX_MEM.exception],
 	       exc_names[MEM_WB.exception]);
-
-
-
-
+	printf("is_branch_delay: %u\t\t\t%u\t\t\t%u\t\t\t%u\n",
+	     IF_ID.is_branch_delay,
+	     ID_EX.is_branch_delay,
+	     EX_MEM.is_branch_delay,
+	     MEM_WB.is_branch_delay);
+	printf("BadVAddr: %08x\t\t%08x\t\t%08x\t\t%08x\n",
+	     IF_ID.BadVAddr,
+	     ID_EX.BadVAddr,
+	     EX_MEM.BadVAddr,
+	     MEM_WB.BadVAddr);
 
 	printf("\n\n");
 }

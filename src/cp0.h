@@ -70,6 +70,44 @@ extern char *cp0_reg_names[CP0_NUM_REGS];
 #define SR_FR	(uint32_t)(1 << 26)
 #define SR_RP	(uint32_t)(1 << 27)
 
+/* CAUSE register bits
+ * See Mips Run page 64 */
+#define CAUSE_BD (uint32_t)(1 << 31)
+#define CAUSE_ExcCode (uint32_t)(31 << 1) /* 5 bits, bit 2 - 6 */
+
+
+/* Cause Exception Codes */
+#define CAUSE_ExcCode_Interrupt 0
+#define CAUSE_ExcCode_Mod	1
+#define CAUSE_ExcCode_TLBL	2
+#define CAUSE_ExcCode_TLBS	3
+#define CAUSE_ExcCode_AdEL	4
+#define CAUSE_ExcCode_AdES	5
+#define CAUSE_ExcCode_IBE	6
+#define CAUSE_ExcCode_DBE	7
+#define CAUSE_ExcCode_Syscall	8
+#define CAUSE_ExcCode_Bp	9
+#define CAUSE_ExcCode_RI	10
+#define CAUSE_ExcCode_CpU	11
+#define CAUSE_ExcCode_Ov	12
+#define CAUSE_ExcCode_TRAP	13
+#define CAUSE_ExcCode_UNUSED	14
+#define CAUSE_ExcCode_FPE	15
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -78,7 +116,6 @@ extern char *cp0_reg_names[CP0_NUM_REGS];
 typedef struct cp0 {
 	uint32_t regs[CP0_NUM_REGS + 1]; /* Offset from 0, due to forwarding
 					    collisions */
-
 } cp0_t;
 
 
