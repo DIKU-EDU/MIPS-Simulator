@@ -1,3 +1,69 @@
+As mentioned in section \ref{sec:cpu_architecture_interrupts}, exceptions and
+interrupts are a way to signal the CPU of an event, that needs immediate
+attention.\\
+In MIPS, everything that defers the usual execution of a program to attend to
+another event, such as interrupts, traps, syscall, are called exceptions\cite{see_mips_run}.
+Exceptions are all handled the same way in MIPS.
 
+\subsection{Precise Exceptions}
+Due to the pipelined nature of MIPS (and other RISC architectures), exceptions
+can occur anywhere in the pipeline. That is, when an exception is raised, there
+are probably uncommitted instructions\footnote{Instructions, which result is not
+yet written back to the processor} in the pipeline. For simplicity of both hardware and
+software, it is desireable to handle an exception exactly when it occurs. In
+MIPS, Precise Exceptions means that all instructions preceding the exception
+victim\footnote{The instruction that caused the exception}, are committed, while
+all instructions after are not.\\
+Precise Exceptions give the programmer the usual, sequential view of the
+program. However, Precise Exceptions in MIPS can be very expensive, potentially
+clearing the whole pipeline of otherwise faultless instructions.
 
-\ref{sec:cpu_architecture_interrupts}
+\subsection{Handling Exceptions}
+Depending on the type of the exception, a different exception handler must be
+used.\\
+Many other architectures, such as the x84 and later x86\_64 use \texttt{vectored
+interrupts}. In vectored interrupts, a table of addresses are kept in the
+\texttt{Interrupt Vector Table (IVT)}, specifying start-addresses of different
+interrupt handlers. When an exception is raised, the type of exception is
+determined by some microcode or other hardware, and an appropriate handler is
+chosen from the IVT\footnote{A x86 assembly
+programmer might note that \texttt{int 0x80} in Linux calls the interrupt handler,
+located at index 128 in the IVT.}\cite{osdev:interrupt_vector_table}\cite{see_mips_run}. \\
+Although this approach is arguably faster, it is not used efficiently in
+practice. In many modern operating systems, all interrupt handlers have a lot
+of code in common. To avoid redundant code and large interrupt handlers, the
+handlers often jump to a shared location in which the redundant code is located,
+for example, to save the current registers on the stack.
+First, by jumping to a common location, the purpose of the IVT is (almost) defeated,
+as the time saved is being spent by jumping to another location anyhow. Secondly, the
+information about the interrupt retreived from pure hardware or microcode is
+very limited without building very complex hardware. A large OS would have to
+analyse the exception further.\\\\
+Although MIPS32 has a type of an interrupt vector table, it is very rarely used due to its
+flaws mentioned above, and the fact that each interrupt handler is only 32
+instructions long - something no real exception handler can fit into\cite{see_mips_run}.\\
+Due to the speeds of modern processors, MIPS always jumps to the same exception
+handler, when an exception arises. This exception handler is by default located in the
+unmapped and uncached memory segment KSEG1, address \texttt{0x80000080}, although
+this can be changed by modifying the \texttt{EBase} register.
+
+\subsubsection{Exception procedure}
+Before exception handler code is executed, the processor must perform certain
+actions, required to correctly recover from the exception. These steps are\cite{see_mips_run}:
+\begin{enumerate}
+\item Setup the \texttt{EPC} register, which hold the address of the victim
+instruction. This is used when returning from the exception, so that the
+execution can continue from the correct position. \texttt{EPC} is very similar to the
+general-purpose \texttt{\$RA}, which also holds the return-address for user
+programs.
+\item Flip on the \texttt{EXL} bit in the status register. This bit indicates
+that the CPU into kernel-mode, giving it higher privileges.
+\item Set the \texttt{Cause} register, which holds all the information about
+the exception.
+\item Jump to \texttt{0x80000080}, where the exception handler code starts.
+\end{enumerate}
+When the exception handler code is finished, the \texttt{eret} instruction is
+used. Similar to the \texttt{ret} instruction, \texttt{eret} fetches the return
+address from \texttt{EPC} register, clears the \texttt{EXL} bit in the status
+register, and jumps.
+
