@@ -273,7 +273,7 @@ copy_segment(FILE *stream, struct p_header *phdr,
 	uint32_t paddr = translate_vaddr(phdr->p_vaddr);
 	uint8_t *segmem = translate_paddr(paddr, mem);
 
-	DEBUG("ELF LOADING TO: %p", segmem);
+	DEBUG("ELF LOADING TO: 0x%08x to %p", phdr->p_vaddr, segmem);
 
 	/*
 	 * TODO: Verify size
@@ -362,6 +362,8 @@ copy_all_segments(struct elf_file *file, memory_t *mem) {
 	struct ehdr *ehdr = &file->ehdr;
 	size_t i = 0;
 	int retval = 0;
+
+	DEBUG("NUMBER OF ELF SEGMENTS TO COPY: %d", ehdr->e_phnum);
 
 	if (fseek(file->stream, ehdr->e_phoff, SEEK_SET) != 0) {
 		error(0, errno, "couldn't seek to program header table");

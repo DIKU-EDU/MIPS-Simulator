@@ -519,6 +519,7 @@ void handle_exception(core_t *core, memory_t *mem)
 	bzero(&IF_ID, sizeof(struct reg_if_id));
 	bzero(&ID_EX, sizeof(struct reg_id_ex));
 	bzero(&EX_MEM, sizeof(struct reg_ex_mem));
+
 	/* Data in MEM_WB is still needed */
 
 	/* 1. Save EPC */
@@ -543,6 +544,9 @@ void handle_exception(core_t *core, memory_t *mem)
 
 	/* 4. Jump to exception handler at 0x80000080 */
 	core->regs[REG_PC] = (uint32_t)0x80000080;
+
+	/* Clear last stage */
+	bzero(&MEM_WB, sizeof(struct reg_mem_wb));
 }
 
 void interpret_wb(core_t *core, memory_t *mem)

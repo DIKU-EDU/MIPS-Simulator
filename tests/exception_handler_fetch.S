@@ -6,11 +6,9 @@
 	addi $t0, $0, SYSCALL_EXIT
 	beq $v1, $t0, _exit
 
-	# huh ?
-	# Get stuck
-halt:
-	j halt
-
+	# TODO: This probably needs to be changed in the future
+	addi $v0, $0, 10
+	syscall
 
 .text
 _start:
