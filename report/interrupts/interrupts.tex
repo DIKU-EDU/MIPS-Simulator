@@ -48,6 +48,7 @@ unmapped and uncached memory segment KSEG1, address \texttt{0x80000080}, althoug
 this can be changed by modifying the \texttt{EBase} register.
 
 \subsubsection{Exception procedure}
+\label{sec:exception_procedure}
 Before exception handler code is executed, the processor must perform certain
 actions, required to correctly recover from the exception. These steps are\cite{see_mips_run}:
 \begin{enumerate}
@@ -56,8 +57,8 @@ instruction. This is used when returning from the exception, so that the
 execution can continue from the correct position. \texttt{EPC} is very similar to the
 general-purpose \texttt{\$RA}, which also holds the return-address for user
 programs.
-\item Flip on the \texttt{EXL} bit in the status register. This bit indicates
-that the CPU into kernel-mode, giving it higher privileges.
+\item Flip on the \texttt{EXL} bit in the status register. This bit forces the
+CPU into kernel-mode, giving it higher privileges.
 \item Set the \texttt{Cause} register, which holds all the information about
 the exception.
 \item Jump to \texttt{0x80000080}, where the exception handler code starts.
@@ -66,4 +67,70 @@ When the exception handler code is finished, the \texttt{eret} instruction is
 used. Similar to the \texttt{ret} instruction, \texttt{eret} fetches the return
 address from \texttt{EPC} register, clears the \texttt{EXL} bit in the status
 register, and jumps.
+
+
+\subsection{Implementation}
+In the simulator, an enum structure \texttt{exception\_t} has been implemented, which
+holds all the necessary excetion types (none-exception included).
+All functions in the simulator, that can cause an exception, such as reading
+from the memory, now return an exception to signal the simulator of the event.
+In the simulator, this exception is stored in the corresponding pipeline-register,
+forwarded to the next stages. When an instruction with an exception code other
+than "exception none" reaches the Write-Back stage, the exception handling
+mechanism is called.\\
+Note that the exceptions are not necessarilly handled in the order they are
+raised, but rather, the order of the instructions. For example, in the following
+assembly code, a memory exception might occur in MEM at the same time as the arithmetic
+overflow exception in EX:
+\begin{lstlisting}
+	...
+	lw $t0, 10($t1)
+	add $t3, $t2, 100
+	...
+\end{lstlisting}
+However, due to the way exceptions are forwarded in the pipeline, the memory
+exception reaches WB stage first, and gets handled first.
+
+\subsubsection{Preparing for exception handling}
+When an instruction raises an exception, \texttt{handle\_exception(...)} is
+called. This function follows the exception entrance procedure very closely,
+described in section \ref{sec:exception_procedure}.
+First, it clears all previous pipeline stages, as they now are discarded. The
+WB stage is kept, as we need to extract some information about the state.
+Then, the cause is determined by analyzing the exception, and stored in the
+\texttt{CAUSE} register.
+Privileged mode (kernel mode) is entered and PC is set to the exception-
+handler address to force the jump.
+In the end, stage WB is also cleared to ensure no faulty results are written
+back to.
+\iffalse
+\begin{lstlisting}[language=C]
+bzero(&IF_ID, sizeof(struct reg_if_id));
+bzero(&ID_EX, sizeof(struct reg_id_ex));
+bzero(&EX_MEM, sizeof(struct reg_ex_mem));
+/* Data in MEM_WB is still needed */
+
+/* 1. Save EPC */
+core->cp0.regs[REG_EPC] = MEM_WB.next_pc - 4;
+
+uint32_t cause = get_cause(MEM_WB.exception, MEM_WB.is_branch_delay);
+core->cp0.regs[REG_CAUSE] = cause;
+
+if(MEM_WB.exception == EXC_AddressErrorLoad
+   || MEM_WB.exception == EXC_AddressErrorLoad) {
+	core->cp0.regs[REG_BADVADDR] = MEM_WB.BadVAddr;
+}
+
+core->cp0.regs[REG_SR] |= SR_EXL;
+
+core->regs[REG_PC] = (uint32_t)0x80000080;
+
+bzero(&MEM_WB, sizeof(struct reg_mem_wb));
+\end{lstlisting}
+\fi
+It is to be noted that this function is \texttt{not} pipelined in the simulator,
+giving the impression that all this happens in only one clock cycle.\\
+Given that this procedure is executed regardless the type of the exception, one
+might argue that this might be implemented in microcode or hardware, really only
+using 1 clock-cycle.
 
