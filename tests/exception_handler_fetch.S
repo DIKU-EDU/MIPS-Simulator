@@ -2,7 +2,7 @@
 
 .set SYSCALL_EXIT, 0x0A
 
-.section .exceptionhandler
+.section .exception_handler
 	addi $t0, $0, SYSCALL_EXIT
 	beq $v1, $t0, _exit
 

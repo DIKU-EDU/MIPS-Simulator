@@ -99,6 +99,10 @@ void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n);
 #define CP0_MFC0 0x00
 #define CP0_MTC0 0x04
 
+/* Other instructions */
+#define INSTRUCTION_ERET (0x42000018)
+
+
 extern char* cp0_codes[];
 extern char* op_codes[];
 extern char* funct_codes[];

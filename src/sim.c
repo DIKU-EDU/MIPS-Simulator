@@ -214,6 +214,17 @@ void interpret_id_control(core_t *core)
 		}
 
 	}
+
+
+	/* Special instructions */
+	if(inst == INSTRUCTION_ERET) {
+		ID_EX.rs_value	= core->cp0.regs[REG_EPC];
+		ID_EX.rs	= REG_EPC;
+		ID_EX.c_jump	= 1;
+
+		/* Reset EXL bit */
+		core->cp0.regs[REG_SR] &= ~SR_EXL;
+	}
 }
 
 void interpret_id(core_t *core)
@@ -405,7 +416,8 @@ void interpret_ex(core_t *core)
 	/* On J and JR */
 	if(ID_EX.c_jump == 1) {
 		if(GET_OPCODE(ID_EX.inst) == OPCODE_R
-		   && GET_FUNCT(ID_EX.inst) == FUNCT_JR) {
+		   && GET_FUNCT(ID_EX.inst) == FUNCT_JR
+		   || ID_EX.inst == INSTRUCTION_ERET) {
 			ID_EX.jump_addr = ID_EX.rs_value;
 		}
 
@@ -588,47 +600,14 @@ void forwarding_unit(core_t *core)
 	 * - MTC0   -> normal instruction
 	 * - Normal -> MFC0
 	 * In those cases, the register numbers clash with cp0 register numbers.
-	 * forwarding to the wrong register! */
+	 * forwarding to the wrong register!
+	 */
 
-#if 0
-	/* MTC0 -> normal */
-	/* MEM */
-	if((GET_OPCODE(EX_MEM.inst) == OPCODE_CP0 && GET_RS(EX_MEM.inst) == CP0_MTC0)
-	   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
-	{
-		DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
-
+	/* SPECIAL CASES */
+	/* ERET instruction does not need to be forwarded */
+	if(ID_EX.inst == INSTRUCTION_ERET) {
 		return;
 	}
-	/* WB */
-	if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
-	   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
-	{
-		DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
-
-		return;
-	}
-
-	/* normal -> MFC0 */
-	/* MEM */
-	if((GET_OPCODE(EX_MEM.inst) != OPCODE_CP0) &&
-	   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
-	{
-		DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
-
-		return;
-	}
-
-	/* normal -> MFC0 */
-	/* WB */
-	if((GET_OPCODE(MEM_WB.inst) != OPCODE_CP0) &&
-	   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
-	{
-		DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
-		return;
-	}
-#endif
-
 
 
 	/* Forward to A MUX */
@@ -640,16 +619,15 @@ void forwarding_unit(core_t *core)
 		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
 		{
 			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
-
 			return;
 		}
 		if((GET_OPCODE(EX_MEM.inst) != OPCODE_CP0) &&
 		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
 		{
 			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
-
 			return;
 		}
+
 
 		ID_EX.rs_value = EX_MEM.alu_res;
 		DEBUG("Forwarding from MEM MUX A");
