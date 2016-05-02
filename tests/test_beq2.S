@@ -9,5 +9,8 @@ _start:
 	syscall		# This point should not be reached
 
 end:
-	addi $v0, $0, 1
+	addi $v1, $0, 1
+
+
+	addi $v0, $0, 10
 	syscall

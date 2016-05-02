@@ -51,6 +51,12 @@ cpu_init(int n_cores)
 	cpu->core = cores;
 	cpu->num_cores = n_cores;
 
+
+	/* Initialize core */
+	/* Enable Global Interrupt Bit SR(IE) */
+	cpu->core[0].cp0.regs[REG_SR] |= SR_IE;
+
+
 	return cpu;
 }
 

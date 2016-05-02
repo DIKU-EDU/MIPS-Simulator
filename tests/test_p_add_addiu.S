@@ -26,10 +26,11 @@ _start:
 	nop
 	nop
 
-	addiu $v0, $t1, 20	# $v0 = 50 + 20
+	addiu $v1, $t1, 20	# $v1 = 50 + 20
 	nop
 	nop
 	nop
 	nop
 
+	add $v0, $0, 10
 	syscall

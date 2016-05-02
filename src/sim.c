@@ -12,8 +12,6 @@
 #include "debug.h"
 #include "error.h"
 
-#define MEMSZ 0xA0000
-
 /* MACROS for less typing */
 #define IF_ID (core->if_id)
 #define ID_EX (core->id_ex)
@@ -33,7 +31,9 @@ bool g_debugging = false;
 void interpret_if(core_t *core, memory_t *mem)
 {
 	/* Fetch the next instruction */
-	uint32_t inst = GET_BIGWORD(mem->raw, core->regs[REG_PC]);
+	uint32_t inst = 0;
+	IF_ID.exception = mem_read(core, mem, REGS(REG_PC), &inst,
+				 MEM_OP_WORD);
 
 	/* Hazard control
 	 * COD5 p. 314 */
@@ -50,6 +50,9 @@ void interpret_if(core_t *core, memory_t *mem)
 	/* Point PC to next instruction and store in pipeline reg */
 	PC += 4;
 	IF_ID.next_pc = PC;
+	IF_ID.BadVAddr = 0;
+
+	IF_ID.is_branch_delay = false;
 }
 
 /* Control unit in the ID stage */
@@ -159,11 +162,82 @@ void interpret_id_control(core_t *core)
 		/* Write to register, of course */
 		ID_EX.c_reg_write = 1;
 		break;
+
+	/* NOTE: These instructions cannot be executed in the same clock, due
+	 * data-hazards.
+	 *
+	 * These functions work by adding the source register with $0, saving
+	 * to the specified register (basically converting instruction to ADD).
+	 */
+	case OPCODE_CP0:
+		/* Function in encoded in RS */
+		switch(GET_RS(inst)) {
+			/* Move From CP0 */
+		case CP0_MFC0:
+			ID_EX.c_reg_dst		= 1; /* Write to RD */
+			ID_EX.c_alu_op		= 0x02; /* R TYPE */
+			ID_EX.c_reg_write	= 1;
+
+
+			ID_EX.rs = GET_RD(inst) + 1;
+			ID_EX.rs_value = core->cp0.regs[GET_RD(inst)+1];
+
+			ID_EX.rt = 0;
+			ID_EX.rt_value = 0;
+
+			ID_EX.rd = GET_RT(inst);
+
+			/* Set ADD function */
+			ID_EX.funct = FUNCT_ADD;
+			break;
+
+			/* Move To CP0 */
+		case CP0_MTC0:
+			ID_EX.c_reg_dst		= 1; /* Write to RD */
+			ID_EX.c_alu_op		= 0x02; /* R TYPE */
+			ID_EX.c_reg_write	= 1;
+
+
+			ID_EX.rs = GET_RT(inst);
+			ID_EX.rs_value = core->regs[GET_RT(inst)];
+
+			ID_EX.rt = 0;
+			ID_EX.rt_value = 0;
+
+			/* CP0 registers are offset by 1 due to forwarding
+			 * trouble. */
+			ID_EX.rd		= GET_RD(inst) + 1;
+
+			/* Set ADD function */
+			ID_EX.funct = FUNCT_ADD;
+			break;
+		}
+
+	}
+
+
+	/* Special instructions */
+	if(inst == INSTRUCTION_ERET) {
+		ID_EX.rs_value	= core->cp0.regs[REG_EPC];
+		ID_EX.rs	= REG_EPC;
+		ID_EX.c_jump	= 1;
+
+		/* Reset EXL bit */
+		core->cp0.regs[REG_SR] &= ~SR_EXL;
 	}
 }
 
 void interpret_id(core_t *core)
 {
+	ID_EX.exception = EXC_None;
+
+	/* Forward exception and return, if any */
+	if(IF_ID.exception != EXC_None) {
+		ID_EX.exception = IF_ID.exception;
+		ID_EX.BadVAddr = IF_ID.BadVAddr;
+		return;
+	}
+
 	uint32_t inst = IF_ID.inst;
 
 	ID_EX.rt		= GET_RT(inst);
@@ -176,6 +250,10 @@ void interpret_id(core_t *core)
 	ID_EX.shamt		= GET_SHAMT(inst);
 	ID_EX.inst		= IF_ID.inst;
 	ID_EX.next_pc		= IF_ID.next_pc;
+	ID_EX.exception		= IF_ID.exception;
+	ID_EX.BadVAddr		= IF_ID.BadVAddr;
+	ID_EX.is_branch_delay	= IF_ID.is_branch_delay;
+
 
 	/* Control unit */
 	interpret_id_control(core);
@@ -192,7 +270,11 @@ void interpret_ex_alu(core_t *core)
 
 	/* LW and SW */
 	if(ID_EX.c_alu_op == 0x00) {
-		DEBUG("LW a: %d\t b: %d", a, b);
+		/* Check for overflow */
+		if(check_overflow(a,b) == 1) {
+			EX_MEM.exception = EXC_ArithmeticOverflow;
+		}
+
 		EX_MEM.alu_res = a + b;
 		return;
 	}
@@ -211,6 +293,11 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case FUNCT_ADDU:
+			/* Check for overflow */
+			if(check_overflow(a,b) == 1) {
+				EX_MEM.exception = EXC_ArithmeticOverflow;
+			}
+
 			EX_MEM.alu_res = a + b;
 			break;
 
@@ -232,7 +319,6 @@ void interpret_ex_alu(core_t *core)
 
 		case FUNCT_NOR:
 			EX_MEM.alu_res = ~(uint32_t)((uint32_t)a | (uint32_t)b);
-			DEBUG("NOR: %08x", EX_MEM.alu_res);
 			break;
 
 		case FUNCT_SLT:
@@ -245,8 +331,6 @@ void interpret_ex_alu(core_t *core)
 
 		case FUNCT_SLL:
 			EX_MEM.alu_res = b << ID_EX.shamt;
-			DEBUG("SHIFTING %d << %d = %d", b, ID_EX.shamt,
-			      EX_MEM.alu_res);
 			break;
 
 		case FUNCT_SRL:
@@ -254,8 +338,8 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case FUNCT_SYSCALL:
-			LOG("SYSCALL Caught");
-			//	g_finished = true;
+			DEBUG("SYSCALL DETECTED");
+			EX_MEM.exception = EXC_Syscall;
 			break;
 		default:
 			ERROR("Unknown funct: 0x%x", ID_EX.funct);
@@ -270,6 +354,12 @@ void interpret_ex_alu(core_t *core)
 			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
 			break;
 		case OPCODE_ADDIU:
+			/* Check for overflow */
+			if(check_overflow(a,b) == 1) {
+				DEBUG("OVERFLOW %u + %u", a,b );
+				EX_MEM.exception = EXC_ArithmeticOverflow;
+			}
+
 			EX_MEM.alu_res = a + b;
 			break;
 
@@ -299,6 +389,15 @@ void interpret_ex_alu(core_t *core)
 
 void interpret_ex(core_t *core)
 {
+	EX_MEM.exception = EXC_None;
+
+	/* Forward exception and return, if any */
+	if(ID_EX.exception != EXC_None) {
+		EX_MEM.exception = ID_EX.exception;
+		EX_MEM.BadVAddr = ID_EX.BadVAddr;
+		return;
+	}
+
 	/* Pipe to next pipeline registers */
 	/* MEM */
 	EX_MEM.c_mem_read	= ID_EX.c_mem_read;
@@ -308,15 +407,22 @@ void interpret_ex(core_t *core)
 	EX_MEM.c_reg_write	= ID_EX.c_reg_write;
 	EX_MEM.c_mem_to_reg	= ID_EX.c_mem_to_reg;
 
-
 	EX_MEM.inst		= ID_EX.inst;
+	EX_MEM.next_pc		= ID_EX.next_pc;
+
+	EX_MEM.is_branch_delay	= ID_EX.is_branch_delay;
+
 
 	/* On J and JR */
 	if(ID_EX.c_jump == 1) {
 		if(GET_OPCODE(ID_EX.inst) == OPCODE_R
-		   && GET_FUNCT(ID_EX.inst) == FUNCT_JR) {
+		   && GET_FUNCT(ID_EX.inst) == FUNCT_JR
+		   || ID_EX.inst == INSTRUCTION_ERET) {
 			ID_EX.jump_addr = ID_EX.rs_value;
 		}
+
+		/* Previous instruction is branch delay */
+		IF_ID.is_branch_delay = true;
 
 		DEBUG("JUMPING TO: %08x", ID_EX.jump_addr);
 		PC = ID_EX.jump_addr;
@@ -327,6 +433,10 @@ void interpret_ex(core_t *core)
 			/* Calculate branch address */
 			PC = ID_EX.next_pc + (ID_EX.sign_ext_imm << 2);
 			DEBUG("BRANCHING TO: %08x", PC);
+
+
+			/* Previous instruction is branch delay */
+			IF_ID.is_branch_delay = true;
 		}
 	}
 	/* On BNE */
@@ -335,6 +445,9 @@ void interpret_ex(core_t *core)
 			/* Calculate branch address */
 			PC = ID_EX.next_pc + (ID_EX.sign_ext_imm << 2);
 			DEBUG("BRANCHING TO: %08x", PC);
+
+			/* Previous instruction is branch delay */
+			IF_ID.is_branch_delay = true;
 		}
 	}
 
@@ -345,135 +458,262 @@ void interpret_ex(core_t *core)
 	interpret_ex_alu(core);
 }
 
-
 void interpret_mem(core_t *core, memory_t *mem)
 {
+	MEM_WB.exception = EXC_None;
+
+	/* Forward exception and return, if any */
+	if(EX_MEM.exception != EXC_None) {
+		MEM_WB.exception = EX_MEM.exception;
+		MEM_WB.BadVAddr = EX_MEM.BadVAddr;
+		return;
+	}
+
+
 	MEM_WB.c_reg_write	= EX_MEM.c_reg_write;
 	MEM_WB.reg_dst		= EX_MEM.reg_dst;
 	MEM_WB.c_mem_to_reg	= EX_MEM.c_mem_to_reg;
 	MEM_WB.alu_res		= EX_MEM.alu_res;
 
 	MEM_WB.inst		= EX_MEM.inst;
+	MEM_WB.next_pc		= EX_MEM.next_pc;
+	MEM_WB.exception	= EX_MEM.exception;
+	MEM_WB.is_branch_delay	= EX_MEM.is_branch_delay;
 
 	/* If read */
 	if(EX_MEM.c_mem_read) {
-		DEBUG("READING DATA AT: 0x%08x", EX_MEM.alu_res);
-
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_LW:
-			MEM_WB.read_data = GET_BIGWORD(mem->raw, EX_MEM.alu_res);
+			MEM_WB.exception = mem_read(core, mem, EX_MEM.alu_res,
+						    &MEM_WB.read_data,
+						    MEM_OP_WORD);
+
 			break;
 		case OPCODE_LBU:
-			MEM_WB.read_data = GET_BIGBYTE(mem->raw, EX_MEM.alu_res);
-
+			MEM_WB.exception = mem_read(core, mem, EX_MEM.alu_res,
+						    &MEM_WB.read_data,
+						    MEM_OP_BYTE);
 			break;
 		case OPCODE_LHU:
-			MEM_WB.read_data = GET_BIGHALF(mem->raw, EX_MEM.alu_res);
+			MEM_WB.exception = mem_read(core, mem, EX_MEM.alu_res,
+						    &MEM_WB.read_data,
+						    MEM_OP_HALF);
 			break;
 		}
 
-		LOG("alu_res = %d\nread_data = %d", EX_MEM.alu_res, MEM_WB.read_data);
-
-	/* If write */
+		/* If write */
 	} else if(EX_MEM.c_mem_write) {
-		DEBUG("writing %d to addr: 0x%08x", EX_MEM.rt_value,
-		      EX_MEM.alu_res);
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_SW:
-			SET_BIGWORD(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+			MEM_WB.exception  = mem_write(core, mem, EX_MEM.alu_res,
+						      EX_MEM.rt_value,
+						      MEM_OP_WORD);
 			break;
 		case OPCODE_SB:
-			SET_BIGBYTE(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+			MEM_WB.exception  = mem_write(core, mem, EX_MEM.alu_res,
+						      EX_MEM.rt_value,
+						      MEM_OP_BYTE);
 			break;
 		case OPCODE_SH:
-			SET_BIGHALF(mem->raw, EX_MEM.alu_res, EX_MEM.rt_value);
+			MEM_WB.exception  = mem_write(core, mem, EX_MEM.alu_res,
+						      EX_MEM.rt_value,
+						      MEM_OP_HALF);
 			break;
 		}
-
-		LOG("alu_res = %d\nrt_value = %d", EX_MEM.alu_res,
-		    EX_MEM.rt_value);
 	}
 }
 
-void interpret_wb(core_t *core)
+/* NOTE: This does not use pipelined approach, and so, theoretically skips a
+ * few clock cycles. */
+void handle_exception(core_t *core, memory_t *mem)
 {
-	if(GET_OPCODE(MEM_WB.inst) == 0 &&
-	   GET_FUNCT(MEM_WB.inst) == FUNCT_SYSCALL) {
-		g_finished = true;
+	/* 0. Clear the pipeline, reverting all instructions in the pipeline */
+	bzero(&IF_ID, sizeof(struct reg_if_id));
+	bzero(&ID_EX, sizeof(struct reg_id_ex));
+	bzero(&EX_MEM, sizeof(struct reg_ex_mem));
+
+	/* Data in MEM_WB is still needed */
+
+	/* 1. Save EPC */
+	/* PC is inaccessible using regular instruction encoding. We will just
+	 * assign it directly, which will skip a few clocks. Hack? */
+	core->cp0.regs[REG_EPC] = MEM_WB.next_pc - 4; /* next_pc points to next
+							 instruction, so subtract 4.*/
+
+
+	/* 2. Save CAUSE. If Address exception, save failing addr in BadVAddr */
+	uint32_t cause = get_cause(MEM_WB.exception, MEM_WB.is_branch_delay);
+	core->cp0.regs[REG_CAUSE] = cause;
+
+	if(MEM_WB.exception == EXC_AddressErrorLoad
+	   || MEM_WB.exception == EXC_AddressErrorLoad) {
+		core->cp0.regs[REG_BADVADDR] = MEM_WB.BadVAddr;
 	}
 
 
-	/* mem_to_reg MUS */
+	/* 3. Set SR(EXL) to set CPU into kernel mode and disable interrupts */
+	core->cp0.regs[REG_SR] |= SR_EXL;
+
+	/* 4. Jump to exception handler at 0x80000080 */
+	core->regs[REG_PC] = (uint32_t)0x80000080;
+
+	/* Clear last stage */
+	bzero(&MEM_WB, sizeof(struct reg_mem_wb));
+}
+
+void interpret_wb(core_t *core, memory_t *mem)
+{
+	/* Check for any exceptions */
+	if(MEM_WB.exception != EXC_None) {
+		DEBUG("Exception %s caught.", exc_names[MEM_WB.exception]);
+
+		/* XXX: Exit on Syscall, v0 = 10. Temporary */
+		if(MEM_WB.exception == EXC_Syscall
+		   && core->regs[REG_V0] == 10) {
+			g_finished = true;
+			return;
+		}
+
+		handle_exception(core, mem);
+		return;
+	}
+
+	/* mem_to_reg MUX */
 	uint32_t data = MEM_WB.c_mem_to_reg ? MEM_WB.read_data : MEM_WB.alu_res;
 
 	/* Write back */
 	if(MEM_WB.c_reg_write) {
-		DEBUG("Writing %d to destionation register: %d", data, MEM_WB.reg_dst);
-		core->regs[MEM_WB.reg_dst] = data;
+		if(GET_OPCODE(MEM_WB.inst) == OPCODE_CP0
+		   && GET_RS(MEM_WB.inst) == CP0_MTC0) {
+			core->cp0.regs[MEM_WB.reg_dst] = data;
+		} else {
+			/* Dont write to $0 */
+			core->regs[MEM_WB.reg_dst] = MEM_WB.reg_dst == 0 ?
+				0 : data;
+		}
 	}
 }
 
 void forwarding_unit(core_t *core)
 {
+	/* Forwarding is not allowed when:
+	 * - MTC0   -> normal instruction
+	 * - Normal -> MFC0
+	 * In those cases, the register numbers clash with cp0 register numbers.
+	 * forwarding to the wrong register!
+	 */
+
+	/* SPECIAL CASES */
+	/* ERET instruction does not need to be forwarded */
+	if(ID_EX.inst == INSTRUCTION_ERET) {
+		return;
+	}
+
+
 	/* Forward to A MUX */
 	/* MEM */
 	if(EX_MEM.c_reg_write == 1
 	   && EX_MEM.reg_dst != 0
 	   && EX_MEM.reg_dst == ID_EX.rs) {
+		if((GET_OPCODE(EX_MEM.inst) == OPCODE_CP0 && GET_RS(EX_MEM.inst) == CP0_MTC0)
+		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+			return;
+		}
+		if((GET_OPCODE(EX_MEM.inst) != OPCODE_CP0) &&
+		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+			return;
+		}
+
+
 		ID_EX.rs_value = EX_MEM.alu_res;
 		DEBUG("Forwarding from MEM MUX A");
 
-	}
+		/* WB */
+	} else if(MEM_WB.c_reg_write == 1
+		  && MEM_WB.reg_dst != 0
+		  && MEM_WB.reg_dst == ID_EX.rs) {
+		if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
+		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
 
-	/* Forward to B MUX */
-	/* MEM */
-	if(EX_MEM.c_reg_write == 1
-	   && EX_MEM.reg_dst != 0
-	   && EX_MEM.reg_dst == ID_EX.rt) {
-		ID_EX.rt_value = EX_MEM.alu_res;
-		DEBUG("Forwarding from MEM to MUX B");
+			return;
+		}
+		if((GET_OPCODE(MEM_WB.inst) != OPCODE_CP0) &&
+		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+			return;
+		}
 
-	}
-
-	/* WB */
-	if(MEM_WB.c_reg_write == 1
-	   && MEM_WB.reg_dst != 0
-	   && !(EX_MEM.c_reg_write == 1
-		&& (EX_MEM.reg_dst != 0)
-		&& (EX_MEM.reg_dst == ID_EX.rs))
-	   && MEM_WB.reg_dst == ID_EX.rs) {
 		/* WB MUX */
 		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
 			MEM_WB.read_data : MEM_WB.alu_res;
 		DEBUG("Forwarding from WB to MUX A");
 	}
 
-	/* WB */
-	if(MEM_WB.c_reg_write == 1
-	   && MEM_WB.reg_dst != 0
-	   && !(EX_MEM.c_reg_write == 1
-		&& (EX_MEM.reg_dst != 0)
-		&& (EX_MEM.reg_dst == ID_EX.rt))
-	   && MEM_WB.reg_dst == ID_EX.rt) {
+
+	/* Forward to B MUX */
+	/* MEM */
+	if(EX_MEM.c_reg_write == 1
+	   && EX_MEM.reg_dst != 0
+	   && EX_MEM.reg_dst == ID_EX.rt) {
+		if((GET_OPCODE(EX_MEM.inst) == OPCODE_CP0 && GET_RS(EX_MEM.inst) == CP0_MTC0)
+		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+			return;
+		}
+		if((GET_OPCODE(EX_MEM.inst) != OPCODE_CP0) &&
+		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+			return;
+		}
+
+		ID_EX.rt_value = EX_MEM.alu_res;
+		DEBUG("Forwarding from MEM to MUX B");
+
+		/* WB */
+	} else if(MEM_WB.c_reg_write == 1
+		  && MEM_WB.reg_dst != 0
+		  && MEM_WB.reg_dst == ID_EX.rt) {
+		if((GET_OPCODE(MEM_WB.inst) == OPCODE_CP0 && GET_RS(MEM_WB.inst) == CP0_MTC0)
+		   && (GET_OPCODE(ID_EX.inst) != OPCODE_CP0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+
+			return;
+		}
+		if((GET_OPCODE(MEM_WB.inst) != OPCODE_CP0) &&
+		   (GET_OPCODE(ID_EX.inst) == OPCODE_CP0 && GET_RS(ID_EX.inst) == CP0_MFC0))
+		{
+			DEBUG("ILLEGAL FORWARD CONDITION DETECTED");
+			return;
+		}
+
 		/* WB MUX */
 		ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
 			MEM_WB.read_data : MEM_WB.alu_res;
 		DEBUG("Forwarding from WB to MUX A");
 	}
 }
-
 /* Simulates a clock-tick */
 void tick(hardware_t *hw)
 {
-	LOG("tick ... ");
-
 	cpu_t* cpu = hw->cpu;
 	memory_t* mem = hw->mem;
 
 	/* Iterate over each core */
 	int i;
 	for(i = 0; i < cpu->num_cores; i++) {
-		interpret_wb(cpu->core+i);
+		interpret_wb(cpu->core+i, mem);
 		interpret_mem(cpu->core+i, mem);
 		interpret_ex(cpu->core+i);
 		interpret_id(cpu->core+i);
@@ -486,11 +726,15 @@ void tick(hardware_t *hw)
 int run(hardware_t *hw)
 {
 	while(g_finished == false) {
-
 		/* XXX: Assumes one core */
 		if(g_debugging) {
-			debug(GET_BIGWORD(hw->mem->raw, hw->cpu->core[0].regs[REG_PC]),
-			      &hw->cpu->core[0]);
+			uint32_t inst = 0;
+			exception_t e = mem_read(&hw->cpu->core[0],
+						 hw->mem,
+						 hw->cpu->core[0].regs[REG_PC],
+						 &inst, MEM_OP_WORD);
+			e = e;
+			debug(inst, &hw->cpu->core[0], hw->mem);
 		}
 		tick(hw);
 	}
@@ -498,10 +742,10 @@ int run(hardware_t *hw)
 	DEBUG("RETURNED: %d", hw->cpu->core[0].regs[REG_V0]);
 
 	/* XXX */
-	return hw->cpu->core[0].regs[REG_V0];
+	return hw->cpu->core[0].regs[REG_V1];
 }
 
-int simulate(char *program, bool debug)
+int simulate(char *program, size_t cores, size_t mem, bool debug)
 {
 	/* Set debugging */
 	g_debugging = debug;
@@ -510,20 +754,28 @@ int simulate(char *program, bool debug)
 	hardware_t hardware;
 
 	/* Initialize the memory */
-	hardware.mem = mem_init(MEMSZ);
+	hardware.mem = mem_init(mem);
 
 	/* Create a new CPU */
-	hardware.cpu = cpu_init(1);
+	hardware.cpu = cpu_init(cores);
 
 	/* Set stack pointer to top of memory */
-	hardware.cpu->core[0].regs[REG_SP] = MIPS_RESERVE + MEMSZ - 4;
+	hardware.cpu->core[0].regs[REG_SP] = (uint32_t)KUSEG_SIZE - 4;
 
 	/* Load the program into memory */
-	if(elf_dump(program, &(hardware.cpu->core[0].regs[REG_PC]),
-		    hardware.mem->raw, MEMSZ) != 0) {
-		ERROR("Elf file could not be read.");
+	int retval;
+	if((retval = elf_dump(program,
+			      &(hardware.cpu->core[0].regs[REG_PC]),
+			      hardware.mem)) != 0) {
+		ERROR("Elf file could not be read: %d.", retval);
 		exit(0);
 	}
 
-	return run(&hardware);
+	int ret = run(&hardware);
+
+	/* Free allocated resources */
+	cpu_free(hardware.cpu);
+	mem_free(hardware.mem);
+
+	return ret;
 }

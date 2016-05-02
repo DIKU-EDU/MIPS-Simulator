@@ -11,6 +11,8 @@ _start:
         .set noreorder
 
         addi $t0, $0, 18
+        addi $v0, $0, 10
+
 
         la $t1, var1   	# Load address of var1 into t1
 	ll $t2, 0($t1)	# Load var1 into t2
@@ -19,7 +21,7 @@ _start:
 	beq $t0, 1, equal
 
 	# This point should not be reached. Exit
-	addi $v0, $0, 1
+	addi $v1, $0, 1
 	syscall
 
 equal:
@@ -32,9 +34,9 @@ equal:
 	beq $t1, 0, success
 
 	# This point should not be reached.
-	addi $v0, $0, 0
+	addi $v1, $0, 0
         syscall
 
 success:
-	addi $v0, $0, 1
+	addi $v1, $0, 1
 	syscall

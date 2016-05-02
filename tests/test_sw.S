@@ -7,14 +7,8 @@ var1: .word 1234 # Garbage
 _start:
 	.set noreorder
 	sw $0, var1($zero)
-	lw $v0, var1($zero)
+	lw $v1, var1($zero)
+
+
+	add $v0, $0, 10
 	syscall
-
-	# just in case
-	nop
-	nop
-	nop
-	nop
-	nop
-
-

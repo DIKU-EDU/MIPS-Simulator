@@ -17,33 +17,34 @@
 
 #define MIPS_RESERVE  (0x400000)
 
+#if 0
 #define GET_BIGWORD(mem, addr) ((uint32_t) \
-  ((mem)[(addr) - MIPS_RESERVE + 0] << 24)  | \
-  ((mem)[(addr) - MIPS_RESERVE + 1] << 16)  | \
-  ((mem)[(addr) - MIPS_RESERVE + 2] << 8)   | \
-  ((mem)[(addr) - MIPS_RESERVE + 3]))
+  ((mem)[(addr) + 0] << 24)  | \
+  ((mem)[(addr) + 1] << 16)  | \
+  ((mem)[(addr) + 2] << 8)   | \
+  ((mem)[(addr) + 3]))
 
 #define GET_BIGBYTE(mem, addr) ((uint32_t)(uint8_t) \
-  ((mem)[(addr) - MIPS_RESERVE]))
+  ((mem)[(addr)]))
 
 #define GET_BIGHALF(mem, addr) ((uint32_t)(uint16_t) \
-  ((mem)[(addr) - MIPS_RESERVE + 0] << 8) | \
-  ((mem)[(addr) - MIPS_RESERVE + 1]))
+  ((mem)[(addr) + 0] << 8) | \
+  ((mem)[(addr) + 1]))
 
 
 #define SET_BIGWORD(mem, addr, value) \
-  (mem)[(addr) - MIPS_RESERVE + 0] = value >> 24; \
-  (mem)[(addr) - MIPS_RESERVE + 1] = value << 8 >> 24; \
-  (mem)[(addr) - MIPS_RESERVE + 2] = value << 16 >> 24; \
-  (mem)[(addr) - MIPS_RESERVE + 3] = value << 24 >> 24;
+  (mem)[(addr) + 0] = value >> 24; \
+  (mem)[(addr) + 1] = value << 8 >> 24; \
+  (mem)[(addr) + 2] = value << 16 >> 24; \
+  (mem)[(addr) + 3] = value << 24 >> 24;
 
 #define SET_BIGBYTE(mem, addr, value) \
-  (mem)[(addr) - MIPS_RESERVE + 0] = ((uint8_t)(value));
+  (mem)[(addr) + 0] = ((uint8_t)(value));
 
 #define SET_BIGHALF(mem, addr, value) \
-  (mem)[(addr) - MIPS_RESERVE + 0] = value >> 8; \
-  (mem)[(addr) - MIPS_RESERVE + 1] = value << 24 >> 24;
-
+  (mem)[(addr) + 0] = value >> 8; \
+  (mem)[(addr) + 1] = value << 24 >> 24;
+#endif
 
 /* Dumps the next n bytes to stdout */
 void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n);
@@ -98,6 +99,10 @@ void dump_mem(uint8_t* mem, uint32_t addr, uint32_t n);
 #define CP0_MFC0 0x00
 #define CP0_MTC0 0x04
 
+/* Other instructions */
+#define INSTRUCTION_ERET (0x42000018)
+
+
 extern char* cp0_codes[];
 extern char* op_codes[];
 extern char* funct_codes[];
@@ -125,5 +130,23 @@ extern char* funct_codes[];
 
 #define SIGN_EXTEND(value)  ((int32_t)(int16_t)value)
 #define ZERO_EXTEND(value)  ((uint32_t)value)
+
+/* Exception codes
+ * COD Green Card */
+typedef enum exceptions {
+	EXC_None = 0,
+	EXC_Interrupt,
+	EXC_AddressErrorLoad,
+	EXC_AddressErrorStore,
+	EXC_BusErrorInstructionFetch,
+	EXC_BusErrorLoadStore,
+	EXC_Syscall,
+	EXC_Breakpoint,
+	EXC_Reserved,
+	EXC_CpUnavailable,
+	EXC_ArithmeticOverflow,
+	EXC_Trap,
+	EXC_FloatingPoint
+} exception_t;
 
 #endif // MIPS32_H

@@ -8,6 +8,8 @@ _start:
 	syscall
 	nop
 _skip:
-	addi $v0, $0, 1	# Set result
+	addi $v1, $0, 1	# Set result
+
+	addi $v0, $0, 10
 	syscall
 

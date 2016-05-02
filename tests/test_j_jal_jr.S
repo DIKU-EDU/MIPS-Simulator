@@ -2,7 +2,10 @@
 .globl _start
 _start:
 	.set noreorder
-	add $v0, $0, $0		# Reset v0
+
+	addi $v0, $0, 10
+
+	add $v1, $0, $0		# Reset v1
 	jal label1		# Jump to label1
 	nop
 	nop
@@ -22,7 +25,7 @@ cont:
 	nop
 
 label1:
-	addi $v0, $v0, 1	# Increment v0
+	addi $v1, $v1, 1	# Increment v1
 	jr $ra
 	nop
 	nop

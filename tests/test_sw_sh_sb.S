@@ -22,7 +22,8 @@ _start:
 	lhu $t1, var2
 	lw  $t2, var3
 
-	add $v0, $t1, $t0
-	add $v0, $v0, $t2
+	add $v1, $t1, $t0
+	add $v1, $v1, $t2
 
+	add $v0, $0, 10
 	syscall

@@ -4,6 +4,8 @@
 #include "cpu.h"
 #include "disasm.h"
 #include "error.h"
+#include "mem.h"
+#include "exception.h"
 
 /* extern'd in sim.c */
 extern bool g_debugging;
@@ -11,8 +13,9 @@ extern bool g_debugging;
 /* extern'd in sim.c */
 extern bool g_finished;
 
-void debug(uint32_t inst, core_t* core)
+void debug(uint32_t inst, core_t* core, memory_t *mem)
 {
+	printf("PC: 0x%08X\n", core->regs[REG_PC]);
 	print_instruction(inst, core);
 
 	unsigned char c[3] = {0};
@@ -27,9 +30,11 @@ void debug(uint32_t inst, core_t* core)
 			printf("DEBUG COMMANDS:\n\
 h		- Prints this message\n\
 r		- Prints all GP registers\n\
+0		- Prints all special registers (CP0)\n\
 p		- Prints pipeline registers\n\
 i		- Prints current instruction\n\
 [v|s|t]<N>	- Prints register v/s/t number <N>\n\
+m		- Print from memory (will ask for addr)\n\
 c		- Continue executing\n\
 q		- Quit\n\
 '\\n'		- Step\n\n");
@@ -45,10 +50,26 @@ q		- Quit\n\
 			print_instruction(inst, core);
 			break;
 
+		/* inspect memory */
+		case 'm':
+			printf("@ 0x");
+			uint32_t addr = 0;
+			uint32_t word = 0;
+			if(scanf("%X", &addr) > 0) {
+				mem_read(core, mem, addr, &word, MEM_OP_WORD);
+			}
+			fseek(stdin,0,SEEK_END);
+
+			printf("[0x%08X] = 0x%08X\n", addr, word);
+			break;
 		case 'p':
 			print_pipeline_registers(core);
 			break;
 			/* Print specified register only */
+
+		case '0':
+			cp0_dump_registers(&core->cp0);
+
 		case 'v':
 		case 's':
 		case 't':
@@ -114,6 +135,9 @@ void print_pipeline_registers(core_t *core)
 	       INST_STR(MEM_WB.inst));
 
 	printf("---------------------------------------------------------------------------------------------\n");
+	printf("next_pc:    %08x  next_pc:   %08x      next_pc: %08x      next_pc:  %08x\n",
+	      IF_ID.next_pc, ID_EX.next_pc, EX_MEM.next_pc, MEM_WB.next_pc);
+
 	printf("inst:    %08x  c_reg_dst:   %08x      c_reg_write: %08x      c_reg_write:  %08x\n",
 	      IF_ID.inst, ID_EX.c_reg_dst, EX_MEM.c_reg_write, MEM_WB.c_reg_write);
 	printf("next_pc: %08x  c_alu_op:    %08x      c_branch:    %08x      c_mem_to_reg: %08x\n",
@@ -154,6 +178,21 @@ void print_pipeline_registers(core_t *core)
 	       ID_EX.rt);
 	printf("                   rd:          %8x\n",
 	       ID_EX.rd);
+	printf("EXC:\t%6s\t\tEXC:\t%6s\t\tEXC:\t%6s\t\tEXC:\t%6s\n",
+	      exc_names[IF_ID.exception],
+	       exc_names[ID_EX.exception],
+	       exc_names[EX_MEM.exception],
+	       exc_names[MEM_WB.exception]);
+	printf("is_branch_delay: %u\t\t\t%u\t\t\t%u\t\t\t%u\n",
+	     IF_ID.is_branch_delay,
+	     ID_EX.is_branch_delay,
+	     EX_MEM.is_branch_delay,
+	     MEM_WB.is_branch_delay);
+	printf("BadVAddr: %08x\t\t%08x\t\t%08x\t\t%08x\n",
+	     IF_ID.BadVAddr,
+	     ID_EX.BadVAddr,
+	     EX_MEM.BadVAddr,
+	     MEM_WB.BadVAddr);
 
 	printf("\n\n");
 }
