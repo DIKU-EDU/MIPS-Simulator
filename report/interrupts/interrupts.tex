@@ -8,22 +8,22 @@ Exceptions are all handled the same way in MIPS.
 \subsection{Precise Exceptions}
 Due to the pipelined nature of MIPS (and other RISC architectures), exceptions
 can occur anywhere in the pipeline. That is, when an exception is raised, there
-are probably uncommitted instructions\footnote{Instructions, which result is not
-yet written back to the processor} in the pipeline. For simplicity of both hardware and
+are probably uncommitted instructions\footnote{Instructions, whose result is not
+yet written back to the registers.} in the pipeline. For simplicity of both hardware and
 software, it is desireable to handle an exception exactly when it occurs. In
-MIPS, Precise Exceptions means that all instructions preceding the exception
-victim\footnote{The instruction that caused the exception}, are committed, while
+MIPS, precise exceptions means that all instructions preceding the exception
+victim\footnote{The instruction that caused the exception.}, are committed, while
 all instructions after are not.\\
-Precise Exceptions give the programmer the usual, sequential view of the
-program. However, Precise Exceptions in MIPS can be very expensive, potentially
+Precise exceptions give the programmer the usual, sequential view of the
+program. However, precise exceptions in MIPS can be very expensive, potentially
 clearing the whole pipeline of otherwise faultless instructions.
 
 \subsection{Handling Exceptions}
 Depending on the type of the exception, a different exception handler must be
 used.\\
-Many other architectures, such as the x84 and later x86\_64 use \texttt{vectored
-interrupts}. In vectored interrupts, a table of addresses are kept in the
-\texttt{Interrupt Vector Table (IVT)}, specifying start-addresses of different
+Many other architectures, such as the x84 and later x86\_64 use vectored
+interrupts. In vectored interrupts, a table of addresses are kept in the
+Interrupt Vector Table (IVT), specifying start-addresses of different
 interrupt handlers. When an exception is raised, the type of exception is
 determined by some microcode or other hardware, and an appropriate handler is
 chosen from the IVT\footnote{A x86 assembly
@@ -39,13 +39,15 @@ as the time saved is being spent by jumping to another location anyhow. Secondly
 information about the interrupt retreived from pure hardware or microcode is
 very limited without building very complex hardware. A large OS would have to
 analyse the exception further.\\\\
-Although MIPS32 has a type of an interrupt vector table, it is very rarely used due to its
+Although MIPS32 has a type of an interrupt vector table\cite{see_mips_run}, it is very rarely used due to its
 flaws mentioned above, and the fact that each interrupt handler is only 32
 instructions long - something no real exception handler can fit into\cite{see_mips_run}.\\
-Due to the speeds of modern processors, MIPS always jumps to the same exception
+Due to the speeds of modern processors, MIPS32 exception handling routines always
+start at the same address.
 handler, when an exception arises. This exception handler is by default located in the
 unmapped and uncached memory segment KSEG1, address \texttt{0x80000080}, although
-this can be changed by modifying the \texttt{EBase} register.
+this can be changed by modifying the CP0 \texttt{EBase} register the status register bit
+\texttt{BEV} is set\cite{see_mips_run}.
 
 \subsubsection{Exception procedure}
 \label{sec:exception_procedure}
@@ -63,10 +65,10 @@ CPU into kernel-mode, giving it higher privileges.
 the exception.
 \item Jump to \texttt{0x80000080}, where the exception handler code starts.
 \end{enumerate}
-When the exception handler code is finished, the \texttt{eret} instruction is
-used. Similar to the \texttt{ret} instruction, \texttt{eret} fetches the return
+When the exception handler code is finished, the \texttt{eret} instruction should
+be used. Similar to the \texttt{ret} instruction, \texttt{eret} fetches the return
 address from \texttt{EPC} register, clears the \texttt{EXL} bit in the status
-register, and jumps.
+register, and jumps to the return address.
 
 
 \subsection{Implementation}
@@ -128,7 +130,7 @@ core->regs[REG_PC] = (uint32_t)0x80000080;
 bzero(&MEM_WB, sizeof(struct reg_mem_wb));
 \end{lstlisting}
 \fi
-It is to be noted that this function is \texttt{not} pipelined in the simulator,
+It is to be noted that this function is \emph{not} pipelined in the simulator,
 giving the impression that all this happens in only one clock cycle.\\
 Given that this procedure is executed regardless the type of the exception, one
 might argue that this might be implemented in microcode or hardware, really only
