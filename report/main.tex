@@ -5,6 +5,7 @@
 \usepackage{eso-pic} % \AddToShipoutPicture
 \usepackage{graphicx} % \includegraphics
 \usepackage[english]{babel}
+\usepackage{multicol}
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{fancyhdr}
@@ -31,13 +32,15 @@
 \usepackage{subcaption}
 \makesavenoteenv{tabular}
 % More subsubsub sections
+
+\iffalse
 \usepackage{titlesec}
 \setcounter{secnumdepth}{4}
 \titleformat{\paragraph}
 {\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
 \titlespacing*{\paragraph}
 {0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
-
+\fi
 
 \errorcontextlines 10000
 
@@ -234,13 +237,13 @@
 \section{Pipeline}
 \input{pipeline/pipeline.tex}
 
-
 \section{Exceptions and Interrupts}
 \input{interrupts/interrupts.tex}
 
 \section{TLB}
 
 \section{MMU}
+\input{mmu/mmu.tex}
 
 \section{User and Kernel mode}
 
