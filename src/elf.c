@@ -312,6 +312,9 @@ copy_cur_segment_aux(FILE *stream, memory_t *mem) {
 		return ELF_ERROR_IO_ERROR;
 	}
 
+
+	DEBUG("SECTION P_TYPE: %d", phdr.p_type);
+
 	switch(phdr.p_type) {
 	case PT_NULL:
 	case PT_NOTE:
@@ -322,7 +325,7 @@ copy_cur_segment_aux(FILE *stream, memory_t *mem) {
 		retval = copy_segment(stream, &phdr, mem);
 		break;
 	default:
-		error(0, 0, "unknown program header entry type 0x%x", phdr.p_type);
+		DEBUG("unknown program header entry type 0x%x", phdr.p_type);
 		retval = ELF_ERROR_NOT_SUPPORTED;
 		break;
 	}
