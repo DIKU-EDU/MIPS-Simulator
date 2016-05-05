@@ -52,6 +52,8 @@ void interpret_if(core_t *core, memory_t *mem)
 	IF_ID.next_pc = PC;
 	IF_ID.BadVAddr = 0;
 
+	DEBUG("next_pc = 0x%08x", PC);
+
 	IF_ID.is_branch_delay = false;
 }
 
@@ -215,28 +217,10 @@ void interpret_id_control(core_t *core)
 
 	}
 
-
-	/* Special instructions */
-	if(inst == INSTRUCTION_ERET) {
-		ID_EX.rs_value	= core->cp0.regs[REG_EPC];
-		ID_EX.rs	= REG_EPC;
-		ID_EX.c_jump	= 1;
-
-		/* Reset EXL bit */
-		core->cp0.regs[REG_SR] &= ~SR_EXL;
-	}
 }
 
 void interpret_id(core_t *core)
 {
-	ID_EX.exception = EXC_None;
-
-	/* Forward exception and return, if any */
-	if(IF_ID.exception != EXC_None) {
-		ID_EX.exception = IF_ID.exception;
-		ID_EX.BadVAddr = IF_ID.BadVAddr;
-		return;
-	}
 
 	uint32_t inst = IF_ID.inst;
 
@@ -254,6 +238,15 @@ void interpret_id(core_t *core)
 	ID_EX.BadVAddr		= IF_ID.BadVAddr;
 	ID_EX.is_branch_delay	= IF_ID.is_branch_delay;
 
+
+	ID_EX.exception = EXC_None;
+
+	/* Forward exception and return, if any */
+	if(IF_ID.exception != EXC_None) {
+		ID_EX.exception = IF_ID.exception;
+		ID_EX.BadVAddr = IF_ID.BadVAddr;
+		return;
+	}
 
 	/* Control unit */
 	interpret_id_control(core);
@@ -389,15 +382,6 @@ void interpret_ex_alu(core_t *core)
 
 void interpret_ex(core_t *core)
 {
-	EX_MEM.exception = EXC_None;
-
-	/* Forward exception and return, if any */
-	if(ID_EX.exception != EXC_None) {
-		EX_MEM.exception = ID_EX.exception;
-		EX_MEM.BadVAddr = ID_EX.BadVAddr;
-		return;
-	}
-
 	/* Pipe to next pipeline registers */
 	/* MEM */
 	EX_MEM.c_mem_read	= ID_EX.c_mem_read;
@@ -411,6 +395,17 @@ void interpret_ex(core_t *core)
 	EX_MEM.next_pc		= ID_EX.next_pc;
 
 	EX_MEM.is_branch_delay	= ID_EX.is_branch_delay;
+
+
+
+	EX_MEM.exception = EXC_None;
+
+	/* Forward exception and return, if any */
+	if(ID_EX.exception != EXC_None) {
+		EX_MEM.exception = ID_EX.exception;
+		EX_MEM.BadVAddr = ID_EX.BadVAddr;
+		return;
+	}
 
 
 	/* On J and JR */
@@ -460,16 +455,6 @@ void interpret_ex(core_t *core)
 
 void interpret_mem(core_t *core, memory_t *mem)
 {
-	MEM_WB.exception = EXC_None;
-
-	/* Forward exception and return, if any */
-	if(EX_MEM.exception != EXC_None) {
-		MEM_WB.exception = EX_MEM.exception;
-		MEM_WB.BadVAddr = EX_MEM.BadVAddr;
-		return;
-	}
-
-
 	MEM_WB.c_reg_write	= EX_MEM.c_reg_write;
 	MEM_WB.reg_dst		= EX_MEM.reg_dst;
 	MEM_WB.c_mem_to_reg	= EX_MEM.c_mem_to_reg;
@@ -479,6 +464,15 @@ void interpret_mem(core_t *core, memory_t *mem)
 	MEM_WB.next_pc		= EX_MEM.next_pc;
 	MEM_WB.exception	= EX_MEM.exception;
 	MEM_WB.is_branch_delay	= EX_MEM.is_branch_delay;
+
+
+	MEM_WB.exception = EXC_None;
+	/* Forward exception and return, if any */
+	if(EX_MEM.exception != EXC_None) {
+		MEM_WB.exception = EX_MEM.exception;
+		MEM_WB.BadVAddr = EX_MEM.BadVAddr;
+		return;
+	}
 
 	/* If read */
 	if(EX_MEM.c_mem_read) {
@@ -537,9 +531,11 @@ void handle_exception(core_t *core, memory_t *mem)
 	/* 1. Save EPC */
 	/* PC is inaccessible using regular instruction encoding. We will just
 	 * assign it directly, which will skip a few clocks. Hack? */
-	core->cp0.regs[REG_EPC] = MEM_WB.next_pc - 4; /* next_pc points to next
+	core->cp0.regs[REG_EPC] = MEM_WB.next_pc; /* next_pc points to next
 							 instruction, so subtract 4.*/
 
+
+	DEBUG("EPC = 0x%08x", core->cp0.regs[REG_EPC]);
 
 	/* 2. Save CAUSE. If Address exception, save failing addr in BadVAddr */
 	uint32_t cause = get_cause(MEM_WB.exception, MEM_WB.is_branch_delay);
@@ -563,6 +559,32 @@ void handle_exception(core_t *core, memory_t *mem)
 
 void interpret_wb(core_t *core, memory_t *mem)
 {
+	/* Special instructions */
+	/* ERET could be handled earlier in the stage, but adds too much
+	 * additional complexity to the code. */
+	if(MEM_WB.inst == INSTRUCTION_ERET) {
+		/* Flush rest of the pipeline */
+		bzero(&IF_ID, sizeof(struct reg_if_id));
+		bzero(&ID_EX, sizeof(struct reg_id_ex));
+		bzero(&EX_MEM, sizeof(struct reg_ex_mem));
+
+
+		core->regs[REG_PC] = core->cp0.regs[REG_EPC];
+
+		/* Reset EXL bit */
+		core->cp0.regs[REG_SR] &= ~SR_EXL;
+
+		DEBUG("ERET CAUGHT. Jump destination: 0x%08x",
+		      core->regs[REG_PC]);
+
+		/* Clear-out the rest */
+		bzero(&MEM_WB, sizeof(struct reg_mem_wb));
+
+		/* Do the return */
+		return;
+	}
+
+
 	/* Check for any exceptions */
 	if(MEM_WB.exception != EXC_None) {
 		DEBUG("Exception %s caught.", exc_names[MEM_WB.exception]);
