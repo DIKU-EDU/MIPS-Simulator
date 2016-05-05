@@ -21,6 +21,13 @@
 #define OPTS "dc:p:m:"
 #define MEMORY_SIZE 0x20000000 /* 512 MiB */
 
+static void
+showUsage(const char *progname)
+{
+	printf("USAGE: %s -p <program_name> [-c <cores>]\n",
+		progname);
+}
+
 int main(int argc, char **argv)
 {
 	/* Program to simulate */
@@ -82,11 +89,14 @@ int main(int argc, char **argv)
 			break;
 
 		case 'h':
+			showUsage(argv[0]);
+			exit(EXIT_SUCCESS);
+			break;
+
 		case '?':
 		default:
-			printf("USAGE: %s -p <program_name> [-c <cores>]\n",
-			       argv[0]);
-			return 0;
+			showUsage(argv[0]);
+			exit(EXIT_FAILURE);
 		}
 	}
 
