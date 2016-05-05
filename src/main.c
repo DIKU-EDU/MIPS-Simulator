@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <getopt.h>
 
 #include "cpu.h"
 #include "sim.h"
@@ -11,16 +12,39 @@
 #include "tools.h"
 #include "error.h"
 
-/* Command-line options:
- *	-p <prog>	: Program to execute (MIPS32 ELF)
- *	-d		: debug
- *	-c <num>	: Number of cores
- *      -m <bytes>        : Size of memory in bytes
- */
-#define OPTS "dc:p:m:"
 #define MEMORY_SIZE 0x20000000 /* 512 MiB */
 
+static void
+showUsage(const char *progname)
+{
+	printf("Usage: %s [options] <program>\n", progname);
+}
 
+static void
+showHelp(const char *progname)
+{
+	showUsage(progname);
+	printf("\n");
+	printf("  -p, --program=PATH     "
+		"path to the program to execute (MIPS32 ELF)\n");
+	printf("  -c, --cores=NUMBER     "
+		"the number of CPU cores to simulate\n");
+	printf("  -m, --memory=NUMBER    "
+		"the number of memory bytes to simulate\n");
+	printf("  -d, --debug            "
+		"print debug information during simulation\n");
+}
+
+static void
+parse_size_t(size_t *target, const char *message)
+{
+	char *begin = optarg;
+	*target = strtoul(begin, &optarg, 10);
+	if (optarg == begin || (*target == ULONG_MAX && errno == ERANGE)) {
+		fprintf(stderr, "%s\n", message);
+		exit(EXIT_FAILURE);
+	}
+}
 
 int main(int argc, char **argv)
 {
@@ -28,55 +52,71 @@ int main(int argc, char **argv)
 	char *program = NULL;
 
 	/* Debug flag */
-	bool debug = false;
+	static int debug = 0;
 
 	/* Number of cores. 1 by default*/
 	size_t cores = 1;
 
 	/* Memory size */
-	size_t mem = MEMORY_SIZE;
+	size_t memsz = MEMORY_SIZE;
 
 	/* Parse command line arguments. */
-	int c;
-	char *begin;
-	while((c = getopt(argc, argv, "dc:p:")) != -1) {
+
+	static struct option
+	long_options[] =
+	{
+		{"cores",    required_argument, 0, 'c'},
+		{"debug",    no_argument,       &debug, 1},
+		{"help",     no_argument,       0, 'h'},
+		{"memory",   required_argument, 0, 'm'},
+		{"program",  required_argument, 0, 'p'},
+		{0, 0, 0, 0}
+	};
+
+	int c = 0;
+	int option_index = 0;
+	while((c = getopt_long(argc, argv, "+c:dhm:p:", long_options, &option_index)
+		) != -1) {
+
 		switch(c) {
-		case 'd':
-			debug = true;
+
+		case 0: // This is a flag, do nothing.
 			break;
+
 		case 'c':
-			begin = optarg;
-			cores = strtoul(begin, &optarg, 10);
-			if (begin == optarg || (cores == ULONG_MAX && errno == ERANGE)) {
-				fprintf(stderr, "Invalid number of cores.\n");
-				exit(EXIT_FAILURE);
-			}
+			parse_size_t(&cores, "Invalid number of cores.");
 			break;
+
 		case 'p':
 			program = optarg;
 			break;
 
 		case 'm':
-			begin = optarg;
-			mem = strtoul(begin, &optarg, 10);
-			if (begin == optarg || (cores == ULONG_MAX && errno == ERANGE)) {
-				fprintf(stderr, "Invalid memory size.\n");
-				exit(EXIT_FAILURE);
-			}
+			parse_size_t(&memsz, "Invalid memory size.");
+			break;
+
+		case 'h':
+			showHelp(argv[0]);
+			exit(EXIT_SUCCESS);
+			break;
 
 		case '?':
-			printf("USAGE: %s -p <program_name> [-c <cores>]\n",
-			       argv[0]);
-			return 0;
+		default:
+			showUsage(argv[0]);
+			exit(EXIT_FAILURE);
 		}
+	}
+
+	if (optind < argc) {
+		program = argv[optind];
 	}
 
 	/* Exit if no program has been supplied*/
 	if(program == NULL) {
-		printf("No program (-p <filename>) supplied. Exitting.\n");
+		printf("No program supplied. Exitting.\n");
 		return 0;
 	}
 
 	cores = cores; /* Ignore warning */
-	return simulate(program, cores, mem, debug);
+	return simulate(program, cores, memsz, debug);
 }
