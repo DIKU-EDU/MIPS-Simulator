@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 		{"debug",    no_argument,       &debug, 1},
 		{"help",     no_argument,       0, 'h'},
 		{"memory",   required_argument, 0, 'm'},
-		{"prorgram", required_argument, 0, 'p'},
+		{"program",  required_argument, 0, 'p'},
 		{0, 0, 0, 0}
 	};
 
