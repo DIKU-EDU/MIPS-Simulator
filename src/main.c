@@ -12,22 +12,27 @@
 #include "tools.h"
 #include "error.h"
 
-/* Command-line options:
- *	-p <prog>	: Program to execute (MIPS32 ELF)
- *	-d		: debug
- *	-c <num>	: Number of cores
- *      -m <bytes>        : Size of memory in bytes
- */
-#define OPTS "dc:p:m:"
 #define MEMORY_SIZE 0x20000000 /* 512 MiB */
 
 static void
 showUsage(const char *progname)
 {
-	printf("Usage: %s [-p <program>]"
-		" [-c <cores>] [-m <bytes>]"
-		" [<program>]\n",
-		progname);
+	printf("Usage: %s [options] <program>\n", progname);
+}
+
+static void
+showHelp(const char *progname)
+{
+	showUsage(progname);
+	printf("\n");
+	printf("  -p, --program=PATH     "
+		"path to the program to execute (MIPS32 ELF)\n");
+	printf("  -c, --cores=NUMBER     "
+		"the number of CPU cores to simulate\n");
+	printf("  -m, --memory=NUMBER    "
+		"the number of memory bytes to simulate\n");
+	printf("  -d, --debug            "
+		"print debug information during simulation\n");
 }
 
 static void
@@ -91,7 +96,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'h':
-			showUsage(argv[0]);
+			showHelp(argv[0]);
 			exit(EXIT_SUCCESS);
 			break;
 
