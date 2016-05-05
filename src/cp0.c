@@ -3,6 +3,7 @@
 #include "cp0.h"
 
 char *cp0_reg_names[] = {
+	"UNUSED",
 	"Context",	/* memory management (TLB) */
 	"Random",
 	"EntryLo0",
@@ -17,10 +18,10 @@ char *cp0_reg_names[] = {
 	"Compare",
 	"Status",		/* Status Register */
 	"IntCtl",	/* Interrupt vector setup */
-	"SRSCtl",	/* Shadow register control */
+	"EPC",		/* Exception Program Counter */
 	"SRSMap",	/* Shadow register map */
 	"Cause",	/* Cause Register */
-	"EPC",		/* Exception Program Counter */
+	"SRSCtl",	/* Shadow register map */
 	"PRId",		/* Product ID register */
 	"EBase",	/* Exception entry point base address */
 	"Config",	/* CPU setup */
@@ -42,8 +43,6 @@ char *cp0_reg_names[] = {
 	"WatchHi",
 	"PerfCtl",
 	"PerfCnt",
-	/* XXX */
-	"LLVal"
 };
 
 
@@ -52,7 +51,8 @@ void cp0_dump_registers(cp0_t *cp0)
 {
 	int i;
        for(i = 0; i < CP0_NUM_REGS; i++) {
-		printf("%10s\t\t%d\n",cp0_reg_names[i], cp0->regs[i]);
+		printf("%d: %10s\t\t%d\t\t0x%08X\n",i,cp0_reg_names[i], cp0->regs[i],
+		       cp0->regs[i]);
        }
 	return;
 }

@@ -5,49 +5,50 @@
 #define CP0_NUM_REGS	40
 extern char *cp0_reg_names[CP0_NUM_REGS];
 
+#define REG_UNUSED      0	/* Offset due to forwarding hazard to reg 0 */
+#define	REG_CONTEXT	1
+#define	REG_RANDOM	2
+#define	REG_ENTRYLO0	3
+#define	REG_ENTRYLO1	4
+#define	REG_CONTEXT2	5
+#define	REG_PAGEMASK	6
+#define	REG_WIRED	7
+#define	REG_ENTRYHI	8
+#define	REG_HWRENA	9
+#define	REG_BADVADDR	10
+#define	REG_COUNT	11
+#define	REG_COMPARE	12
+#define	REG_SR		13
+#define	REG_INTCTL	14
+#define	REG_EPC		15
+#define	REG_SRSMAP	16
+#define	REG_CAUSE	17
+#define	REG_SRSCTL	18
+#define	REG_PRID	19
+#define	REG_EBASE	20
+#define	REG_CONFIG	21
+#define	REG_CONFIG1	22
+#define	REG_CONFIG2	23
+#define	REG_CONFIG3	24
+#define	REG_LLADDR	25
+#define	REG_DEBUG	26
+#define	REG_DEPC	27
+#define	REG_DESAVE	28
+#define	REG_CACHEERR	29
+#define	REG_ECC		30
+#define	REG_ERROREPC	31
+#define	REG_TAGLO	32
+#define	REG_DATALO	33
+#define	REG_TAGHI	34
+#define	REG_DATAHI	35
+#define	REG_WATCHLO	36
+#define	REG_WATCHHI	37
+#define	REG_PERFCTL	38
+#define REG_PERFCNT	39
 
-#define	REG_CONTEXT	0
-#define	REG_RANDOM	1
-#define	REG_ENTRYLO0	2
-#define	REG_ENTRYLO1	3
-#define	REG_CONTEXT2	4
-#define	REG_PAGEMASK	5
-#define	REG_WIRED	6
-#define	REG_ENTRYHI	7
-#define	REG_HWRENA	8
-#define	REG_BADVADDR	9
-#define	REG_COUNT	10
-#define	REG_COMPARE	11
-#define	REG_SR		12
-#define	REG_INTCTL	13
-#define	REG_SRSCTL	14
-#define	REG_SRSMAP	15
-#define	REG_CAUSE	16
-#define	REG_EPC		17
-#define	REG_PRID	18
-#define	REG_EBASE	19
-#define	REG_CONFIG	20
-#define	REG_CONFIG1	21
-#define	REG_CONFIG2	22
-#define	REG_CONFIG3	23
-#define	REG_LLADDR	24
-#define	REG_DEBUG	25
-#define	REG_DEPC	26
-#define	REG_DESAVE	27
-#define	REG_CACHEERR	28
-#define	REG_ECC		29
-#define	REG_ERROREPC	30
-#define	REG_TAGLO	31
-#define	REG_DATALO	32
-#define	REG_TAGHI	33
-#define	REG_DATAHI	34
-#define	REG_WATCHLO	35
-#define	REG_WATCHHI	36
-#define	REG_PERFCTL	37
-#define	REG_PERFCNT	38
 
 /* XXX: Where is the LLVAL really stored? */
-#define REG_LLVAL	39
+#define REG_LLVAL	40
 
 
 /* Status register bits
@@ -93,23 +94,6 @@ extern char *cp0_reg_names[CP0_NUM_REGS];
 #define CAUSE_ExcCode_TRAP	13
 #define CAUSE_ExcCode_UNUSED	14
 #define CAUSE_ExcCode_FPE	15
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
