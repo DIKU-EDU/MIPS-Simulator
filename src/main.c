@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <getopt.h>
 
 #include "cpu.h"
 #include "sim.h"
@@ -20,15 +21,13 @@
 #define OPTS "dc:p:m:"
 #define MEMORY_SIZE 0x20000000 /* 512 MiB */
 
-
-
 int main(int argc, char **argv)
 {
 	/* Program to simulate */
 	char *program = NULL;
 
 	/* Debug flag */
-	bool debug = false;
+	static int debug = 0;
 
 	/* Number of cores. 1 by default*/
 	size_t cores = 1;
@@ -37,13 +36,29 @@ int main(int argc, char **argv)
 	size_t mem = MEMORY_SIZE;
 
 	/* Parse command line arguments. */
-	int c;
-	char *begin;
-	while((c = getopt(argc, argv, "dc:p:")) != -1) {
+
+	static struct option
+	long_options[] =
+	{
+		{"cores",    required_argument, 0, 'c'},
+		{"debug",    no_argument,       &debug, 1},
+		{"help",     no_argument,       0, 'h'},
+		{"memory",   required_argument, 0, 'm'},
+		{"prorgram", required_argument, 0, 'p'},
+		{0, 0, 0, 0}
+	};
+
+	int c = 0;
+	int option_index = 0;
+	char *begin = 0;
+	while((c = getopt_long(argc, argv, "+c:dhm:p:", long_options, &option_index)
+		) != -1) {
+
 		switch(c) {
-		case 'd':
-			debug = true;
+
+		case 0: // This is a flag, do nothing.
 			break;
+
 		case 'c':
 			begin = optarg;
 			cores = strtoul(begin, &optarg, 10);
@@ -52,6 +67,7 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			}
 			break;
+
 		case 'p':
 			program = optarg;
 			break;
@@ -64,7 +80,9 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			}
 
+		case 'h':
 		case '?':
+		default:
 			printf("USAGE: %s -p <program_name> [-c <cores>]\n",
 			       argv[0]);
 			return 0;
