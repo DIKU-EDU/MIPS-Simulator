@@ -30,6 +30,17 @@ showUsage(const char *progname)
 		progname);
 }
 
+static void
+parse_size_t(size_t *target, const char *message)
+{
+	char *begin = optarg;
+	*target = strtoul(begin, &optarg, 10);
+	if (optarg == begin || (*target == ULONG_MAX && errno == ERANGE)) {
+		fprintf(stderr, "%s\n", message);
+		exit(EXIT_FAILURE);
+	}
+}
+
 int main(int argc, char **argv)
 {
 	/* Program to simulate */
@@ -42,7 +53,7 @@ int main(int argc, char **argv)
 	size_t cores = 1;
 
 	/* Memory size */
-	size_t mem = MEMORY_SIZE;
+	size_t memsz = MEMORY_SIZE;
 
 	/* Parse command line arguments. */
 
@@ -59,7 +70,6 @@ int main(int argc, char **argv)
 
 	int c = 0;
 	int option_index = 0;
-	char *begin = 0;
 	while((c = getopt_long(argc, argv, "+c:dhm:p:", long_options, &option_index)
 		) != -1) {
 
@@ -69,12 +79,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'c':
-			begin = optarg;
-			cores = strtoul(begin, &optarg, 10);
-			if (begin == optarg || (cores == ULONG_MAX && errno == ERANGE)) {
-				fprintf(stderr, "Invalid number of cores.\n");
-				exit(EXIT_FAILURE);
-			}
+			parse_size_t(&cores, "Invalid number of cores.");
 			break;
 
 		case 'p':
@@ -82,12 +87,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'm':
-			begin = optarg;
-			mem = strtoul(begin, &optarg, 10);
-			if (begin == optarg || (cores == ULONG_MAX && errno == ERANGE)) {
-				fprintf(stderr, "Invalid memory size.\n");
-				exit(EXIT_FAILURE);
-			}
+			parse_size_t(&memsz, "Invalid memory size.");
 			break;
 
 		case 'h':
@@ -113,5 +113,5 @@ int main(int argc, char **argv)
 	}
 
 	cores = cores; /* Ignore warning */
-	return simulate(program, cores, mem, debug);
+	return simulate(program, cores, memsz, debug);
 }
