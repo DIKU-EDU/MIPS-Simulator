@@ -24,7 +24,9 @@
 static void
 showUsage(const char *progname)
 {
-	printf("USAGE: %s -p <program_name> [-c <cores>]\n",
+	printf("Usage: %s [-p <program>]"
+		" [-c <cores>] [-m <bytes>]"
+		" [<program>]\n",
 		progname);
 }
 
@@ -100,9 +102,13 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (optind < argc) {
+		program = argv[optind];
+	}
+
 	/* Exit if no program has been supplied*/
 	if(program == NULL) {
-		printf("No program (-p <filename>) supplied. Exitting.\n");
+		printf("No program supplied. Exitting.\n");
 		return 0;
 	}
 
