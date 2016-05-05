@@ -79,6 +79,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Invalid memory size.\n");
 				exit(EXIT_FAILURE);
 			}
+			break;
 
 		case 'h':
 		case '?':
