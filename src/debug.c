@@ -52,7 +52,7 @@ q		- Quit\n\
 
 		/* inspect memory */
 		case 'm':
-			printf("@ 0x");
+			printf("@: ");
 			uint32_t addr = 0;
 			uint32_t word = 0;
 			if(scanf("%X", &addr) > 0) {

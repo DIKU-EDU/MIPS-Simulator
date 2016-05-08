@@ -340,16 +340,16 @@ void interpret_ex_alu(core_t *core)
 	if(ID_EX.c_alu_op == 0x03) {
 		switch(GET_OPCODE(ID_EX.inst)) {
 		case OPCODE_ADDI:
-			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
-			break;
-		case OPCODE_ADDIU:
 			/* Check for overflow */
-			if(check_uoverflow(a,b) == 1) {
-				DEBUG("OVERFLOW %u + %u", a,b );
+			if(check_soverflow(a,b) == 1) {
+				DEBUG("OVERFLOW 0x%08x + 0x%08x", a,b);
 				EX_MEM.exception = EXC_ArithmeticOverflow;
 			}
+			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
+			break;
 
-			EX_MEM.alu_res = a + b;
+		case OPCODE_ADDIU:
+				EX_MEM.alu_res = a + b;
 			break;
 
 		case OPCODE_SLTI:
