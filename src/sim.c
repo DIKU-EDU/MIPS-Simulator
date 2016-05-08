@@ -52,8 +52,6 @@ void interpret_if(core_t *core, memory_t *mem)
 	IF_ID.next_pc = PC;
 	IF_ID.BadVAddr = 0;
 
-	DEBUG("next_pc = 0x%08x", PC);
-
 	IF_ID.is_branch_delay = false;
 }
 
@@ -221,7 +219,6 @@ void interpret_id_control(core_t *core)
 
 void interpret_id(core_t *core)
 {
-
 	uint32_t inst = IF_ID.inst;
 
 	ID_EX.rt		= GET_RT(inst);
@@ -237,7 +234,6 @@ void interpret_id(core_t *core)
 	ID_EX.exception		= IF_ID.exception;
 	ID_EX.BadVAddr		= IF_ID.BadVAddr;
 	ID_EX.is_branch_delay	= IF_ID.is_branch_delay;
-
 
 	ID_EX.exception = EXC_None;
 
@@ -264,11 +260,12 @@ void interpret_ex_alu(core_t *core)
 	/* LW and SW */
 	if(ID_EX.c_alu_op == 0x00) {
 		/* Check for overflow */
-		if(check_overflow(a,b) == 1) {
+		if(check_soverflow((int32_t)a,(int32_t)b) == 1) {
+			DEBUG("OVERFLOW 0x%08x + 0x%08x", a, b);
 			EX_MEM.exception = EXC_ArithmeticOverflow;
 		}
 
-		EX_MEM.alu_res = a + b;
+		EX_MEM.alu_res = (int32_t)a + (int32_t)b;
 		return;
 	}
 
@@ -287,7 +284,7 @@ void interpret_ex_alu(core_t *core)
 
 		case FUNCT_ADDU:
 			/* Check for overflow */
-			if(check_overflow(a,b) == 1) {
+			if(check_uoverflow(a,b) == 1) {
 				EX_MEM.exception = EXC_ArithmeticOverflow;
 			}
 
@@ -331,7 +328,6 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case FUNCT_SYSCALL:
-			DEBUG("SYSCALL DETECTED");
 			EX_MEM.exception = EXC_Syscall;
 			break;
 		default:
@@ -348,7 +344,7 @@ void interpret_ex_alu(core_t *core)
 			break;
 		case OPCODE_ADDIU:
 			/* Check for overflow */
-			if(check_overflow(a,b) == 1) {
+			if(check_uoverflow(a,b) == 1) {
 				DEBUG("OVERFLOW %u + %u", a,b );
 				EX_MEM.exception = EXC_ArithmeticOverflow;
 			}
@@ -633,7 +629,6 @@ void forwarding_unit(core_t *core)
 
 
 	/* Forward to A MUX */
-	/* MEM */
 	if(EX_MEM.c_reg_write == 1
 	   && EX_MEM.reg_dst != 0
 	   && EX_MEM.reg_dst == ID_EX.rs) {
@@ -650,9 +645,9 @@ void forwarding_unit(core_t *core)
 			return;
 		}
 
+		DEBUG("FORWARDING 0x%08x from MEM to RS", EX_MEM.alu_res);
 
 		ID_EX.rs_value = EX_MEM.alu_res;
-		DEBUG("Forwarding from MEM MUX A");
 
 		/* WB */
 	} else if(MEM_WB.c_reg_write == 1
@@ -675,12 +670,13 @@ void forwarding_unit(core_t *core)
 		/* WB MUX */
 		ID_EX.rs_value = MEM_WB.c_mem_to_reg ?
 			MEM_WB.read_data : MEM_WB.alu_res;
-		DEBUG("Forwarding from WB to MUX A");
+
+
+		DEBUG("FORWARDING 0x%08x from WB to RS", ID_EX.rs_value);
 	}
 
 
 	/* Forward to B MUX */
-	/* MEM */
 	if(EX_MEM.c_reg_write == 1
 	   && EX_MEM.reg_dst != 0
 	   && EX_MEM.reg_dst == ID_EX.rt) {
@@ -699,8 +695,9 @@ void forwarding_unit(core_t *core)
 			return;
 		}
 
+		DEBUG("FORWARDING 0x%08x from MEM to RT", EX_MEM.alu_res);
+
 		ID_EX.rt_value = EX_MEM.alu_res;
-		DEBUG("Forwarding from MEM to MUX B");
 
 		/* WB */
 	} else if(MEM_WB.c_reg_write == 1
@@ -723,7 +720,10 @@ void forwarding_unit(core_t *core)
 		/* WB MUX */
 		ID_EX.rt_value = MEM_WB.c_mem_to_reg ?
 			MEM_WB.read_data : MEM_WB.alu_res;
-		DEBUG("Forwarding from WB to MUX A");
+
+		DEBUG("FORWARDING 0x%08x from WB to RT", ID_EX.rt_value);
+
+
 	}
 }
 /* Simulates a clock-tick */
@@ -782,7 +782,10 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 	hardware.cpu = cpu_init(cores);
 
 	/* Set stack pointer to top of memory */
-	hardware.cpu->core[0].regs[REG_SP] = (uint32_t)KUSEG_SIZE - 4;
+	hardware.cpu->core[0].regs[REG_SP] = (uint32_t)(KSEG0_VSTART +
+		hardware.mem->size_kseg0) - 4;
+
+	DEBUG("Stack-Pointer set to: 0x%08x", hardware.cpu->core[0].regs[REG_SP]);
 
 	/* Load the program into memory */
 	int retval;

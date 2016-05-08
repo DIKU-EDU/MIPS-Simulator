@@ -49,8 +49,10 @@ exception_t mem_read(core_t *core, memory_t *mem, int32_t vaddr, uint32_t *dst,
 		*dst = GET_BIGWORD(aaddr);
 	}
 
+	/*
 	DEBUG("READ: 0x%08X FROM VADDR: 0x%08X, AADDR: %p", *((uint32_t*)dst), vaddr,
 	      aaddr);
+	*/
 
 	return EXC_None;
 }
@@ -71,13 +73,13 @@ exception_t mem_write(core_t *core, memory_t *mem, int32_t vaddr, uint32_t src,
 	} else if(op_size == MEM_OP_HALF) {
 		SET_BIGHALF(aaddr, src);
 	} else if(op_size == MEM_OP_WORD) {
-		DEBUG("WRITING WORD");
 		SET_BIGWORD(aaddr, src);
 	}
 
+	/*
 	DEBUG("WRITTEN: 0x%08X to VADDR: 0x%08X, AADDR: %p", *((uint32_t*)aaddr), vaddr,
 	      aaddr);
-
+	*/
 	return EXC_None;
 }
 
@@ -126,7 +128,9 @@ uint8_t* translate_paddr(uint32_t paddr, memory_t *mem)
 		if(paddr >= KUSEG_PSTART + mem->size_kseg0 + mem->size_kseg1 +
 		   mem->size_kuseg) {
 			/* TODO: Exception */
-			ERROR("ADDRESS OVERFLOW");
+			ERROR("ADDRESS OVERFLOW, PADDR: 0x%08x. Out of bounds: 0x%08x",
+			     paddr, KUSEG_PSTART + mem->size_kseg0 +
+			      mem->size_kseg1 + mem->size_kuseg);
 			return aaddr;
 		}
 

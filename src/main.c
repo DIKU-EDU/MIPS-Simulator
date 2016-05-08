@@ -66,7 +66,8 @@ int main(int argc, char **argv)
 	long_options[] =
 	{
 		{"cores",    required_argument, 0, 'c'},
-		{"debug",    no_argument,       &debug, 1},
+//		{"debug",    no_argument,       &debug, 1},
+		{"debug",    no_argument,       0, 'c'},
 		{"help",     no_argument,       0, 'h'},
 		{"memory",   required_argument, 0, 'm'},
 		{"program",  required_argument, 0, 'p'},
@@ -75,12 +76,17 @@ int main(int argc, char **argv)
 
 	int c = 0;
 	int option_index = 0;
-	while((c = getopt_long(argc, argv, "+c:dhm:p:", long_options, &option_index)
+	while((c = getopt_long(argc, argv, "+c:dhm:p:", long_options,
+			       &option_index)
 		) != -1) {
 
 		switch(c) {
 
 		case 0: // This is a flag, do nothing.
+			break;
+
+		case 'd':
+			debug = 1;
 			break;
 
 		case 'c':
