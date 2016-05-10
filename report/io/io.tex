@@ -1,0 +1,29 @@
+MIPS sees Input/Output (IO) devices as a set of special-purpose registers. These
+special registers are the processors only way of communicating with a given
+device.\\
+For every device, there 3 types of registers\cite{cs_uwm:memory_mapped_io}:
+\begin{itemize}
+	\item \texttt{Status registers}\\
+	Provide information about the underlying device. These registers are
+	read-only for the CPU.
+
+	\item \texttt{Control registers}\\
+	Used to communicate and control the device. These registers are
+	writeable for the CPU, but may not always be readable.
+
+	\item \texttt{Data registers}\\
+	Used for the actual data-transport. For example, the latest key pressed
+	on the keyboard might be stored in this register.
+\end{itemize}
+
+Depending on the type of the IO device, the device can be represented from a
+few registers to a dozen. For example, a mouse or a keyboard only transmits few
+bytes of information at a time, needing only a few registers, while graphic
+adaptors or disk drives might need more\cite{cs_uwm:memory_mapped_io}.\\
+These special-purpose registers are located in the RAM, mapped to a certain
+segment. A device controller maintains a list of these registers, and maps new
+devices to the memory.\cite{britton:mips}\\
+On MIPS32, the highest 64 kilobytes (\texttt{0xffff0000 - 0xffffffff}) in the
+available memory are used for mapping these special registers\cite{cs_uwm:memory_mapped_io}.
+The memory mapping the IO area must not be cached, as it can cause major problems
+for the caches, and heavy delays due to many cache-misses\cite{see_mips_run}.
