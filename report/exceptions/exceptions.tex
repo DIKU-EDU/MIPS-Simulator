@@ -49,6 +49,27 @@ unmapped and uncached memory segment KSEG1, address \texttt{0x80000080}, althoug
 this can be changed by modifying the CP0 \texttt{EBase} register the status register bit
 \texttt{BEV} is set\cite{see_mips_run}.
 
+\subsection{Interrupts}
+\label{sec:exceptions_interrupts}
+Hardware-caused exceptions are often called "interrupts" in the MIPS world.
+While these interrupts are handled just as any other type of exception, they
+are not triggered in the code by the means of a syscall instruction. Since
+interrupts happen from outside the CPU, a system has to be implemented to notify
+the processor of the external event.\\
+Like in many other processor architectures, two pins are added to the MIPS CPU,
+which are used to signal of a hardware interrupt occurance\cite{cs_pitt:exceptions}.\\
+The first pin is called the Interrupt Request (IRQ), which indicates a
+pending interrupt. The second pin is the Interrupt Acknowledge (IACK), and is
+controlled by the processor to indicate that an interrupt request is acknowledged
+and is being serviced. The IACK pin is needed, as the CPU might be busy servicing
+another exception, not being able to attend the hardware interrupt immediatelly.
+Thus, the IRQ pin can be enabled over multiple clock-cycles before it is
+acknowledged\cite{cs_pitt:exceptions}. While it may sound that having a hardware
+device wait several clock-cycles results in delayed output, it should be noted
+how fast MIPS CPUs (and many others) are, and how many instructions they are
+able to carry out before the external device even notices.
+
+
 \subsubsection{Exception procedure}
 \label{sec:exception_procedure}
 Before exception handler code is executed, the processor must perform certain
@@ -92,6 +113,17 @@ overflow exception in EX:
 \end{lstlisting}
 However, due to the way exceptions are forwarded in the pipeline, the memory
 exception reaches WB stage first, and gets handled first.
+
+\subsubsection{Interrupts}
+As mentioned in the interrupt section \ref{sec:exceptions_interrupts}, interrupts
+need another way to signal the processor of an exception that needs attention.
+In the simulator, for every clock-cycle, we iterate over every external device
+that can trigger an interrupt.
+In the loop, we check for its interrupt status, and if needed, handle the exception.\\
+In our simulator, the interrupt request is checked every clock-cycle. However,
+in some simulators, such as SPIM, a short artificial delay is added to enhance
+the realism of the simulator.
+
 
 \subsubsection{Preparing for exception handling}
 When an instruction raises an exception, \texttt{handle\_exception(...)} is
