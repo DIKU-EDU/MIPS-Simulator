@@ -812,6 +812,10 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 	/* Free allocated resources */
 	cpu_free(hardware.cpu);
 	mem_free(hardware.mem);
+	int i;
+	for(i = 0; i < NUM_IO_DEVICES; i++) {
+		io_device_free(hardware.io[i]);
+	}
 
 	return ret;
 }

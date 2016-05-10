@@ -25,7 +25,7 @@
 /* IO device structure */
 typedef struct io_device {
 	int fd;
-	uint32_t addr;
+	uint32_t addr;	/* virtual*/
 } io_device_t;
 
 /* Named Pipes names */
@@ -42,6 +42,9 @@ typedef struct pipe_io {
 
 /* Initialize new io_device */
 io_device_t io_device_init(const char *fifo, uint32_t addr);
+
+/* Unlink an IO device */
+void io_device_free(io_device_t dev);
 
 
 /* Reads from an IO device and writes to the appropriate IO mapped memory */

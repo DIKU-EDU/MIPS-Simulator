@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "io.h"
 #include "error.h"
@@ -9,12 +10,23 @@
 io_device_t io_device_init(const char *fifo, uint32_t addr)
 {
 	io_device_t dev = {0};
-
 	int fd;
 
+	/* Unlink (delete) the existing file */
+	if(unlink(fifo) == -1) {
+		ERROR("Could not unlink FIFO: %s", strerror(errno));
+		return dev;
+	}
+
 	/* Create FIFO and check for error */
-	if((fd = mkfifo(fifo, O_RDWR)) != 0) {
-		ERROR("%s", strerror(errno));
+	if((mkfifo(fifo, 660)) != 0) {
+		ERROR("Could not create a new FIFO: %s", strerror(errno));
+		return dev;
+	}
+
+	/* Open the FIFO */
+	if((fd = open(fifo, O_RDWR)) == -1) {
+		ERROR("Could not open a new FIFO: %s", strerror(errno));
 		return dev;
 	}
 
@@ -23,6 +35,16 @@ io_device_t io_device_init(const char *fifo, uint32_t addr)
 
 	return dev;
 }
+
+void io_device_free(io_device_t dev)
+{
+	if((close(dev.fd) == -1)) {
+		ERROR("Could not close fd: %s", strerror(errno));
+	}
+
+	return;
+}
+
 
 
 void io_read(io_device_t *dev)
