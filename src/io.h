@@ -29,8 +29,8 @@ typedef struct io_device {
 } io_device_t;
 
 /* Named Pipes names */
-#define IO_FIFO_KEYBOARD	"/tmp/.mips_sim_keyboard"
-#define IO_FIFO_DISPLAY		"/tmp/.mips_sim_display"
+#define IO_FIFO_KEYBOARD	".mips_sim_keyboard"
+#define IO_FIFO_DISPLAY		".mips_sim_display"
 
 /* Simulator pipe structure */
 typedef struct pipe_io {

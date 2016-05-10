@@ -14,12 +14,11 @@ io_device_t io_device_init(const char *fifo, uint32_t addr)
 
 	/* Unlink (delete) the existing file */
 	if(unlink(fifo) == -1) {
-		ERROR("Could not unlink FIFO: %s", strerror(errno));
-		return dev;
+		LOG("Could not unlink FIFO: %s", strerror(errno));
 	}
 
 	/* Create FIFO and check for error */
-	if((mkfifo(fifo, 660)) != 0) {
+	if((mkfifo(fifo, 0666)) != 0) {
 		ERROR("Could not create a new FIFO: %s", strerror(errno));
 		return dev;
 	}
@@ -32,6 +31,9 @@ io_device_t io_device_init(const char *fifo, uint32_t addr)
 
 	dev.fd = fd;
 	dev.addr = addr;
+
+	DEBUG("IO DEVICES CREATED WITH FIFO: %s\tFD: %d\tAddr: 0x%08x", fifo,
+	      fd, addr);
 
 	return dev;
 }
