@@ -785,9 +785,11 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 	/* Initialize memory for IO device structures
 	 * TODO: Dynamically set number of devices
 	 * TODO: Assign numbers to devices */
-	hardware.io = calloc(10, sizeof(struct io_device));
-	hardware.io[0].fifo = IO_FIFO_KEYBOARD;
-	hardware.io[1].fifo = IO_FIFO_DISPLAY;
+	hardware.io = calloc(NUM_IO_DEVICES, sizeof(struct io_device));
+	hardware.io[IO_DEVICE_KEYBOARD] = io_device_init(IO_FIFO_KEYBOARD,
+							 IO_ADDR_START );
+	hardware.io[IO_DEVICE_DISPLAY] = io_device_init(IO_FIFO_DISPLAY,
+							IO_ADDR_START + 0x10 );
 
 
 	/* Set stack pointer to top of memory */
