@@ -51,7 +51,7 @@ this can be changed by modifying the CP0 \texttt{EBase} register the status regi
 
 \subsection{Interrupts}
 \label{sec:exceptions_interrupts}
-Hardware-caused exceptions are often called "interrupts" in the MIPS world.
+Hardware caused exceptions are often called "interrupts" in the MIPS world.
 While these interrupts are handled just as any other type of exception, they
 are not triggered in the code by the means of a syscall instruction. Since
 interrupts happen from outside the CPU, a system has to be implemented to notify
@@ -61,7 +61,7 @@ which are used to signal of a hardware interrupt occurance\cite{cs_pitt:exceptio
 The first pin is called the Interrupt Request (IRQ), which indicates a
 pending interrupt. The second pin is the Interrupt Acknowledge (IACK), and is
 controlled by the processor to indicate that an interrupt request is acknowledged
-and is being serviced. The IACK pin is needed, as the CPU might be busy servicing
+and is being serviced. The IACK pin is needed, since the CPU might be busy servicing
 another exception, not being able to attend the hardware interrupt immediatelly.
 Thus, the IRQ pin can be enabled over multiple clock-cycles before it is
 acknowledged\cite{cs_pitt:exceptions}. While it may sound that having a hardware
