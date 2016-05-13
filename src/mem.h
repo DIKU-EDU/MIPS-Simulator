@@ -4,6 +4,7 @@
 #include "mem.h"
 #include "cpu.h"
 #include "exception.h"
+#include "io.h"
 
 /* Sizes of virtual memory segments */
 #define KSEG2_SIZE 0x40000000
@@ -28,6 +29,9 @@
  * I/O device registers */
 #define IO_ADDR_START	0xFFFF0000
 #define IO_ADDR_END	0xFFFFFFFF
+
+/* Number of IO devices per CPU */
+#define NUM_IO_DEVICES		0x10
 
 /* Macros for reading from memory */
 #define GET_BIGWORD(addr) ((uint32_t) \
@@ -67,9 +71,12 @@ typedef enum {
 
 
 
-typedef struct memory {
+typedef struct mmu {
 	uint8_t *pmem;	/* Raw memory */
 	uint32_t size_total;  /* Allocated memory */
+
+	/* Memory-mapped I/O devices */
+	io_device_t io_device[NUM_IO_DEVICES];
 
 	/* Sizes of the different segments.
 	 * Sum up to size_total */
@@ -77,28 +84,28 @@ typedef struct memory {
 	uint32_t size_kseg1;
 	uint32_t size_kseg2;
 	uint32_t size_kuseg;
-} memory_t;
+} mmu_t;
 
 /* Reads from memory and writes to dst. Returns a relevant exception */
-exception_t mem_read(core_t *core, memory_t *mem, int32_t vaddr, uint32_t *dst,
+exception_t mem_read(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t *dst,
 		     mem_op_size_t op_size);
 
 /* Writes src to addr. Returns a relevant exception. */
-exception_t mem_write(core_t *core, memory_t *mem, int32_t addr, uint32_t src,
+exception_t mem_write(core_t *core, mmu_t *mem, int32_t addr, uint32_t src,
 		      mem_op_size_t op_size);
 
 /* Translate virtual memory address to physical */
 uint32_t translate_vaddr(uint32_t vaddr);
 
 /* Translate physical memory address to actual */
-uint8_t* translate_paddr(uint32_t paddr, memory_t *mem);
+uint8_t* translate_paddr(uint32_t paddr, mmu_t *mem);
 
 
 /* Returns a new memory block */
-memory_t* mem_init(size_t size);
+mmu_t* mem_init(size_t size);
 
 /* Frees ressources used by mem */
-void mem_free(memory_t *mem);
+void mem_free(mmu_t *mem);
 
 
 #endif /* _MEM_H */

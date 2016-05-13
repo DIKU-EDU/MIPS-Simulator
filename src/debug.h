@@ -7,7 +7,7 @@
 
 
 /* Reads STDIN and prints relevant debugging info */
-void debug(uint32_t inst, core_t *core, memory_t *mem);
+void debug(uint32_t inst, core_t *core, mmu_t *mem);
 
 /* Prints all registers of a given core. */
 void print_registers(core_t *core);

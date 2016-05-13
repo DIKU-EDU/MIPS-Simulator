@@ -29,7 +29,7 @@ bool g_finished = false;
 bool g_debugging = false;
 
 
-void interpret_if(core_t *core, memory_t *mem)
+void interpret_if(core_t *core, mmu_t *mem)
 {
 	/* Fetch the next instruction */
 	uint32_t inst = 0;
@@ -450,7 +450,7 @@ void interpret_ex(core_t *core)
 	interpret_ex_alu(core);
 }
 
-void interpret_mem(core_t *core, memory_t *mem)
+void interpret_mem(core_t *core, mmu_t *mem)
 {
 	MEM_WB.c_reg_write	= EX_MEM.c_reg_write;
 	MEM_WB.reg_dst		= EX_MEM.reg_dst;
@@ -516,7 +516,7 @@ void interpret_mem(core_t *core, memory_t *mem)
 
 /* NOTE: This does not use pipelined approach, and so, theoretically skips a
  * few clock cycles. */
-void handle_exception(core_t *core, memory_t *mem)
+void handle_exception(core_t *core, mmu_t *mem)
 {
 	/* 0. Clear the pipeline, reverting all instructions in the pipeline */
 	bzero(&IF_ID, sizeof(struct reg_if_id));
@@ -554,7 +554,7 @@ void handle_exception(core_t *core, memory_t *mem)
 	bzero(&MEM_WB, sizeof(struct reg_mem_wb));
 }
 
-void interpret_wb(core_t *core, memory_t *mem)
+void interpret_wb(core_t *core, mmu_t *mem)
 {
 	/* Special instructions */
 	/* ERET could be handled earlier in the stage, but adds too much
@@ -731,7 +731,7 @@ void forwarding_unit(core_t *core)
 void tick(hardware_t *hw)
 {
 	cpu_t* cpu = hw->cpu;
-	memory_t* mem = hw->mem;
+	mmu_t* mem = hw->mem;
 
 	/* Iterate over each core */
 	int i;
@@ -785,12 +785,13 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 	/* Initialize memory for IO device structures
 	 * TODO: Dynamically set number of devices
 	 * TODO: Assign numbers to devices */
+	/*
 	hardware.io = calloc(NUM_IO_DEVICES, sizeof(struct io_device));
 	hardware.io[IO_DEVICE_KEYBOARD] = io_device_init(IO_FIFO_KEYBOARD,
 							 IO_ADDR_START );
 	hardware.io[IO_DEVICE_DISPLAY] = io_device_init(IO_FIFO_DISPLAY,
 							IO_ADDR_START + 0x10 );
-
+	*/
 
 	/* Set stack pointer to top of memory */
 	hardware.cpu->core[0].regs[REG_SP] = (uint32_t)(KSEG0_VSTART +
@@ -812,10 +813,12 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 	/* Free allocated resources */
 	cpu_free(hardware.cpu);
 	mem_free(hardware.mem);
+
+	/*
 	int i;
 	for(i = 0; i < NUM_IO_DEVICES; i++) {
 		io_device_free(hardware.io[i]);
 	}
-
+	*/
 	return ret;
 }

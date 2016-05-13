@@ -34,6 +34,11 @@ typedef struct io_device {
 #define IO_FIFO_KEYBOARD	".mips_sim_keyboard"
 #define IO_FIFO_DISPLAY		".mips_sim_display"
 
+/* Definitions for IO devices. This should probably be dynamic */
+#define IO_DEVICE_KEYBOARD	0x00
+#define IO_DEVICE_DISPLAY	0x01
+
+
 /* Simulator pipe structure */
 typedef struct pipe_io {
 	bool ready;
