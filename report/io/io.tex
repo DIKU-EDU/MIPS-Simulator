@@ -1,11 +1,12 @@
 There are multiple ways a computer can communicate with its peripheral devices.
 The most used techniques are Memory-Mapped I/O (MMIO) and Port-Mapped I/O
-(PMIO). Port-Mapped I/O s an older method of accessing peripherals, and is much
+(PMIO). Port-Mapped I/O is an older method of accessing peripherals, and is much
 more common in consumer computers with Intel or AMD CPUs\cite{intelmanual}.\\
 PMIO requires the processor to have additional pins and special instructions,
 just for communication with I/O devices. I/O devices have a specified port
 number, which the processor uses to identify and communicate with the device.
-For example, Intel x86 processors might communicate with a keyboard, using the
+For example, Intel x86 processors might be polling\footnote{Polling refers to
+the activity where a CPU periodically samples the status of an external device} a keyboard using the
 special \texttt{in} instruction, specifying keyboard ID
 \texttt{0x60}\cite{intel:pch}\cite{osdev:io_ports}:
 \begin{lstlisting}[language={[x86masm]Assembler}]
@@ -24,12 +25,18 @@ instructions, as well as very limited "ID" space for the devices.\\
 
 Memory-Mapped I/O is commonly used by RISC architectures. In MMIO,
 communication with the peripherals happens over the same address bus as the
-memory, so that memory and I/O communication share address space.
-\\
-TO BE FINISHED
-\\
-
-
+memory, so that memory and I/O communication share address space. This means
+that when a processor, that uses MMIO, wants to access a peripheral, it uses a
+memory address for communication.\\
+The advantage of memory-mapped I/O is that the method uses already existing
+memory bus lanes for communication, unlike the port implementation. However,
+since the memory is shared with peripherals, and these addresses are not
+maintained by the processor, additional logic has to be created in the
+memory-management unit. However, PMIO is very limited to the simple \texttt{in
+/ out} instructions, as well as a hardware-limited device allocation, whereas
+MMIO is much more free with device "address" allocation. Due to these reasons,
+memory-mapped I/O is becoming increasingly popular, even on modern x86
+hardware\cite{osdev:io_ports}.\\
 MIPS sees Input/Output (IO) devices as a set of special-purpose registers. These
 special registers are the processors only way of communicating with a given
 device.\\
@@ -57,9 +64,9 @@ sequentially in the memory. Figure \ref{fig:io_registers} shows the actual bit-a
 	\label{fig:io_registers}
 \end{figure}
 
-When a device is detected, both the CPU and the device will retrieve a set of
-these paired registers. From now on, it is up to the driver to interface with
-the devices.\\
+When a device is detected, the memory-management unit will allocate an address
+for the device, notifying both the CPU and the device of these newly allocated registers.
+From now on, it is up to the driver to interface with the devices.\\
 Depending on the type of the IO device, the device can be represented from a
 few registers to dozens. For example, a mouse or a keyboard only transmits few
 bytes of information at a time, needing only a few registers, while graphic
@@ -71,7 +78,6 @@ On MIPS32, the highest 64 kilobytes (\texttt{0xffff0000 - 0xffffffff}) in the
 available memory are used for mapping these special registers\cite{cs_uwm:memory_mapped_io}.
 The memory mapping the IO area must not be cached, as it can cause major problems
 for the caches, and heavy delays due to many cache-misses\cite{see_mips_run}.
-
 
 
 \subsection{Implementation}
