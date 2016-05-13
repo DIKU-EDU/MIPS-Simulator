@@ -41,6 +41,11 @@ exception_t mem_read(core_t *core, memory_t *mem, int32_t vaddr, uint32_t *dst,
 	/* Translate to actual address*/
 	uint8_t *aaddr = translate_paddr(paddr, mem);
 
+
+	/* If I/O device */
+
+
+
 	if(op_size == MEM_OP_BYTE) {
 		*dst = GET_BIGBYTE(aaddr);
 	} else if(op_size == MEM_OP_HALF) {
@@ -89,11 +94,14 @@ uint32_t translate_vaddr(uint32_t vaddr)
 	uint32_t paddr = 0x00;
 
 	/* See Mips Run p. 48 */
-	/* kseg2 */
-	if(vaddr > KSEG2_PSTART) {
+	/* I/O mapping */
+	if(vaddr > IO_ADDR_START) {
+		return vaddr;
+		/* kseg2 */
+	} else if(vaddr > KSEG2_PSTART) {
 		/* TODO: NOT MAPPED YET */
 		return 0x00;
-	/* kseg1 */
+		/* kseg1 */
 	} else if(vaddr > KSEG1_PSTART) {
 		/* Strip off first 3 bits by ANDing:
 		 *	1010  (0xA)
@@ -101,11 +109,11 @@ uint32_t translate_vaddr(uint32_t vaddr)
 		 * ----------------
 		 *      0000  (0x0) */
 		paddr = vaddr & 0x1FFFFFFF;
-	/* kseg0 */
+		/* kseg0 */
 	} else if(vaddr > KSEG0_PSTART) {
 		/* Strip off first bit by ANDing */
 		paddr = vaddr & 0x7FFFFFFF;
-	/* kuseg */
+		/* kuseg */
 	}
 	if(vaddr < KSEG0_PSTART) {
 		paddr = vaddr + KSEG0_SIZE + KSEG1_SIZE;
@@ -119,17 +127,20 @@ uint8_t* translate_paddr(uint32_t paddr, memory_t *mem)
 	/* Actual address */
 	uint8_t *aaddr = NULL;
 
+	/* IO mapped address */
+	if(paddr >= IO_ADDR_START) {
+		aaddr = (uint32_t*)paddr;
 	/* KSEG2 */
-	if(paddr >= KSEG0_SIZE + KSEG1_SIZE + KUSEG_SIZE) {
+	} else if(paddr >= KSEG0_SIZE + KSEG1_SIZE + KUSEG_SIZE) {
 		/* TODO */
-	/* KUSEG */
+		/* KUSEG */
 	} else if(paddr >= KSEG1_SIZE + KSEG0_SIZE) {
 		/* Check if out of bounds */
 		if(paddr >= KUSEG_PSTART + mem->size_kseg0 + mem->size_kseg1 +
 		   mem->size_kuseg) {
 			/* TODO: Exception */
 			ERROR("ADDRESS OVERFLOW, PADDR: 0x%08x. Out of bounds: 0x%08x",
-			     paddr, KUSEG_PSTART + mem->size_kseg0 +
+			      paddr, KUSEG_PSTART + mem->size_kseg0 +
 			      mem->size_kseg1 + mem->size_kuseg);
 			return aaddr;
 		}
@@ -138,7 +149,7 @@ uint8_t* translate_paddr(uint32_t paddr, memory_t *mem)
 		aaddr = mem->pmem + (paddr - KSEG1_PSTART - KSEG0_PSTART -
 				     KUSEG_PSTART);
 
-	/* KSEG0 */
+		/* KSEG0 */
 	} else if(paddr >= KSEG1_SIZE) {
 		/* Check if out of bounds */
 		if(paddr >= KSEG0_PSTART + mem->size_kseg0 + mem->size_kseg1) {
@@ -150,7 +161,7 @@ uint8_t* translate_paddr(uint32_t paddr, memory_t *mem)
 		/* Calculate the actual address in the simulator */
 		aaddr = mem->pmem + (paddr - KSEG1_PSTART - KSEG0_PSTART);
 
-	/* KSEG1 */
+		/* KSEG1 */
 	} else {
 		/* Check if out of bounds */
 		if(paddr >= KSEG1_PSTART + mem->size_kseg0) {
@@ -164,7 +175,6 @@ uint8_t* translate_paddr(uint32_t paddr, memory_t *mem)
 	}
 
 	return aaddr;
-
 }
 
 void mem_free(memory_t *mem)
@@ -172,5 +182,3 @@ void mem_free(memory_t *mem)
 	free(mem->pmem);
 	free(mem);
 }
-
-

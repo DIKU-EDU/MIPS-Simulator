@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "exception.h"
+
 /* Receiver Control */
 #define RCTRL_OFFSET		(0x00000000)
 #define RCTRL_READY		(uint32_t)(1 << 0)
@@ -48,9 +50,9 @@ void io_device_free(io_device_t dev);
 
 
 /* Reads from an IO device and writes to the appropriate IO mapped memory */
-void io_read(io_device_t *dev);
+exception_t io_read(io_device_t *dev);
 
 /* Writes to an IO device */
-void io_write(io_device_t *dev);
+exception_t io_write(io_device_t *dev);
 
 #endif /* _IO_H */

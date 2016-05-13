@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "exception.h"
 #include "io.h"
 #include "error.h"
 
@@ -49,12 +50,14 @@ void io_device_free(io_device_t dev)
 
 
 
-void io_read(io_device_t *dev)
+exception_t io_read(io_device_t *dev)
 {
+	return EXC_None;
 }
 
-void io_write(io_device_t *dev)
+exception_t io_write(io_device_t *dev)
 {
+	return EXC_None;
 }
 
 
