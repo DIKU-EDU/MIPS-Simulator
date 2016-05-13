@@ -40,7 +40,8 @@ hardware\cite{osdev:io_ports}.\\
 MIPS sees Input/Output (IO) devices as a set of special-purpose registers. These
 special registers are the processors only way of communicating with a given
 device.\\
-For every device, there 3 types of registers\cite{cs_uwm:memory_mapped_io}:
+For every device, there 3 types of
+registers\cite{cs_uwm:memory_mapped_io}\cite{imgtec:pra}:
 \begin{itemize}
 	\item \texttt{Status registers}\\
 	Provide information about the underlying device. These registers are
@@ -60,7 +61,7 @@ sequentially in the memory. Figure \ref{fig:io_registers} shows the actual bit-a
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=1]{io/io_registers.eps}
-	\caption{Set of memory mapped I/O registers}
+	\caption{Set of memory mapped I/O registers\cite{imgtec:pra}}
 	\label{fig:io_registers}
 \end{figure}
 
