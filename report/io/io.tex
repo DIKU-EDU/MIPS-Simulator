@@ -10,10 +10,10 @@ special \texttt{in} instruction, specifying keyboard ID
 \texttt{0x60}\cite{intel:pch}\cite{osdev:io_ports}:
 \begin{lstlisting}[language={[x86masm]Assembler}]
 _wait:
-  in  al, 64H   ; Read status of device 0x64
-  and al, 1     ;
-  jz  _wait	; Check if ready to read
-  in  al, 60H   ; Read data
+  in  al, 64H	; Read status
+  and al, 1		; Check if ready
+  jz  _wait
+  in  al, 60H	; Read data
 \end{lstlisting}
 Besides the added circuitry in the processor, port-mapped I/O are fairly
 simple to implement and easy to use. They have their own special instructions,
