@@ -783,15 +783,7 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 	hardware.cpu = cpu_init(cores);
 
 	/* Initialize memory for IO device structures
-	 * TODO: Dynamically set number of devices
-	 * TODO: Assign numbers to devices */
-	/*
-	hardware.io = calloc(NUM_IO_DEVICES, sizeof(struct io_device));
-	hardware.io[IO_DEVICE_KEYBOARD] = io_device_init(IO_FIFO_KEYBOARD,
-							 IO_ADDR_START );
-	hardware.io[IO_DEVICE_DISPLAY] = io_device_init(IO_FIFO_DISPLAY,
-							IO_ADDR_START + 0x10 );
-	*/
+	/* TODO */
 
 	/* Set stack pointer to top of memory */
 	hardware.cpu->core[0].regs[REG_SP] = (uint32_t)(KSEG0_VSTART +
@@ -814,11 +806,5 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 	cpu_free(hardware.cpu);
 	mem_free(hardware.mem);
 
-	/*
-	int i;
-	for(i = 0; i < NUM_IO_DEVICES; i++) {
-		io_device_free(hardware.io[i]);
-	}
-	*/
 	return ret;
 }
