@@ -8,6 +8,7 @@
 #include "io.h"
 #include "error.h"
 
+#if 0
 io_device_t io_device_init(const char *fifo, uint32_t addr)
 {
 	io_device_t dev = {0};
@@ -59,5 +60,4 @@ exception_t io_write(io_device_t *dev)
 {
 	return EXC_None;
 }
-
-
+#endif

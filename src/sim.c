@@ -768,43 +768,56 @@ int run(hardware_t *hw)
 	return hw->cpu->core[0].regs[REG_V1];
 }
 
+hardware_t* sim_init(size_t cores, size_t mem)
+{
+	hardware_t *hw = malloc(sizeof(struct hardware));
+
+	if(hw == NULL) {
+		ERROR("Could not allocate hw.");
+		exit(1);
+	}
+
+	/* Initialize the memory */
+	hw->mem = mem_init(mem);
+
+	/* Create a new CPU */
+	hw->cpu = cpu_init(cores);
+
+	/* Set stack pointer to top of memory */
+	hw->cpu->core[0].regs[REG_SP] = (uint32_t)(KSEG0_VSTART +
+		hw->mem->size_kseg0) - 4;
+
+	DEBUG("Stack-Pointer set to: 0x%08x", hw->cpu->core[0].regs[REG_SP]);
+
+	return hw;
+}
+
+void sim_free(hardware_t *hw)
+{
+	/* Free allocated resources */
+	cpu_free(hw->cpu);
+	mem_free(hw->mem);
+	free(hw);
+}
+
+
 int simulate(char *program, size_t cores, size_t mem, bool debug)
 {
 	/* Set debugging */
 	g_debugging = debug;
 
-	/* Hardware to simulate */
-	hardware_t hardware;
-
-	/* Initialize the memory */
-	hardware.mem = mem_init(mem);
-
-	/* Create a new CPU */
-	hardware.cpu = cpu_init(cores);
-
-	/* Initialize memory for IO device structures
-	/* TODO */
-
-	/* Set stack pointer to top of memory */
-	hardware.cpu->core[0].regs[REG_SP] = (uint32_t)(KSEG0_VSTART +
-		hardware.mem->size_kseg0) - 4;
-
-	DEBUG("Stack-Pointer set to: 0x%08x", hardware.cpu->core[0].regs[REG_SP]);
+	/* Initialize hardware */
+	hardware_t *hw = sim_init(cores, mem);
 
 	/* Load the program into memory */
 	int retval;
 	if((retval = elf_dump(program,
-			      &(hardware.cpu->core[0].regs[REG_PC]),
-			      hardware.mem)) != 0) {
+			      &(hw->cpu->core[0].regs[REG_PC]),
+			      hw->mem)) != 0) {
 		ERROR("Elf file could not be read: %d.", retval);
 		exit(0);
 	}
 
-	int ret = run(&hardware);
-
-	/* Free allocated resources */
-	cpu_free(hardware.cpu);
-	mem_free(hardware.mem);
-
+	int ret = run(hw);
 	return ret;
 }

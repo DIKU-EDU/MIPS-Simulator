@@ -22,9 +22,6 @@ mmu_t* mem_init(size_t size)
 	mmu->pmem = pmem;
 	mmu->size_total = size;
 
-	/* Clean IO_devices */
-	memset(mmu->io_device, 0, sizeof(io_device_t) * NUM_IO_DEVICES);
-
 	mmu->size_kseg0 = mmu->size_kseg1 = size / 8;
 	mmu->size_kseg2 = size / 4;
 	mmu->size_kuseg = size / 2;

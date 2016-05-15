@@ -34,6 +34,10 @@ typedef struct io_device_descriptor {
 	char vendor_string[8];
 
 	uint64_t reserved;
+
+	int (*io_read)(struct io_device_descriptor, uint32_t addr, uint32_t *data);
+	int (*io_write)(struct io_device_descriptor, uint32_t addr, uint32_t data);
+	int (*tick)();
 }__attribute__((packed)) io_device_descriptor_t;
 
 
@@ -52,19 +56,5 @@ typedef struct pipe_io {
 	bool interrupt_enable;
 	uint8_t byte;
 } pipe_io_t;
-
-
-/* Initialize new io_device */
-io_device_t io_device_init(const char *fifo, uint32_t addr);
-
-/* Unlink an IO device */
-void io_device_free(io_device_t dev);
-
-
-/* Reads from an IO device and writes to the appropriate IO mapped memory */
-exception_t io_read(io_device_t *dev);
-
-/* Writes to an IO device */
-exception_t io_write(io_device_t *dev);
 
 #endif /* _IO_H */
