@@ -47,7 +47,9 @@ exception_t mem_read(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t *dst,
 
 
 	/* If I/O device */
-
+	/* Reading any of the IO device registers in either usermode or
+	 * supervisor mode when such accesses are not allowed, results in all
+	 * zeros being returned */
 
 
 	if(op_size == MEM_OP_BYTE) {

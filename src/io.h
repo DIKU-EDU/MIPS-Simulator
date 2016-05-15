@@ -24,11 +24,18 @@
 #define TDATA_OFFSET		(0x0000000C)
 #define TDATA_BYTE		(uint32_t)(0xFF)
 
-/* IO device structure */
-typedef struct io_device {
-	int fd;
-	uint32_t addr;	/* virtual*/
-} io_device_t;
+/* IO device descriptor structure
+ * YAMS docs, section 6.4.1 Device descriptors */
+typedef struct io_device_descriptor {
+	uint32_t device_type;
+	uint32_t addr_base;
+	uint32_t io_length;
+	uint32_t irq;
+	char vendor_string[8];
+
+	uint64_t reserved;
+}__attribute__((packed)) io_device_descriptor_t;
+
 
 /* Named Pipes names */
 #define IO_FIFO_KEYBOARD	".mips_sim_keyboard"
