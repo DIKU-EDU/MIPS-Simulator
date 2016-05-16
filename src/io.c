@@ -26,6 +26,7 @@ io_device_descriptor_t *shutdown_device_init()
 	dev->irq = IRQ_INVALID;
 	dev->io_write = &shutdown_device_write;
 
+
 	return dev;
 }
 

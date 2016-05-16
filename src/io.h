@@ -48,6 +48,9 @@ typedef struct io_device_descriptor {
 
 	uint64_t reserved;
 
+	/* Pointer to a structure specific for the actual device */
+	void *device;
+
 	int (*io_read)(struct io_device_descriptor*, uint32_t, uint32_t *);
 	int (*io_write)(struct io_device_descriptor*, uint32_t, uint32_t);
 	int (*tick)();
