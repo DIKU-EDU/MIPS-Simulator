@@ -4,60 +4,37 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "sim.h"
 #include "exception.h"
 #include "io.h"
 #include "error.h"
 
-#if 0
-io_device_t io_device_init(const char *fifo, uint32_t addr)
+/* extern'd in sim.c */
+extern bool g_finished;
+
+
+io_device_descriptor_t *shutdown_device_init()
 {
-	io_device_t dev = {0};
-	int fd;
-
-	/* Unlink (delete) the existing file */
-	if(unlink(fifo) == -1) {
-		LOG("Could not unlink FIFO: %s", strerror(errno));
-	}
-
-	/* Create FIFO and check for error */
-	if((mkfifo(fifo, 0666)) != 0) {
-		ERROR("Could not create a new FIFO: %s", strerror(errno));
+	io_device_descriptor_t *dev = malloc(sizeof(struct io_device_descriptor));
+	if(dev == NULL) {
+		ERROR("Could not allocate shutdown io device.");
 		return dev;
 	}
 
-	/* Open the FIFO */
-	if((fd = open(fifo, O_RDWR)) == -1) {
-		ERROR("Could not open a new FIFO: %s", strerror(errno));
-		return dev;
-	}
-
-	dev.fd = fd;
-	dev.addr = addr;
-
-	DEBUG("IO DEVICES CREATED WITH FIFO: %s\tFD: %d\tAddr: 0x%08x", fifo,
-	      fd, addr);
+	dev->device_type = TYPECODE_SHUTDOWN;
+	memcpy(dev->vendor_string, "SHUTDOWN", 8);
+	dev->irq = IRQ_INVALID;
+	dev->io_write = &shutdown_device_write;
 
 	return dev;
 }
 
-void io_device_free(io_device_t dev)
+int shutdown_device_write(io_device_descriptor_t *dev, uint32_t addr,
+			  uint32_t data)
 {
-	if((close(dev.fd) == -1)) {
-		ERROR("Could not close fd: %s", strerror(errno));
+	if(data == POWEROFF_SHUTDOWN_MAGIC) {
+		g_finished = true;
 	}
-
-	return;
+	return 0;
 }
 
-
-
-exception_t io_read(io_device_t *dev)
-{
-	return EXC_None;
-}
-
-exception_t io_write(io_device_t *dev)
-{
-	return EXC_None;
-}
-#endif

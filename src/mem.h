@@ -76,7 +76,7 @@ typedef struct mmu {
 	uint32_t size_total;  /* Allocated memory */
 
 	/* Memory-mapped I/O devices */
-	io_device_descriptor_t io_device[NUM_IO_DEVICES];
+	io_device_descriptor_t* io_device[NUM_IO_DEVICES];
 
 	/* Sizes of the different segments.
 	 * Sum up to size_total */

@@ -789,6 +789,12 @@ hardware_t* sim_init(size_t cores, size_t mem)
 
 	DEBUG("Stack-Pointer set to: 0x%08x", hw->cpu->core[0].regs[REG_SP]);
 
+
+	/* Initialize basic devices */
+	hw->mem->io_device[0] = shutdown_device_init();
+
+
+
 	return hw;
 }
 

@@ -267,7 +267,7 @@ read_ehdr(struct elf_file *file) {
 // After this function, stream will point to one past the end of the segment.
 static inline int
 copy_segment(FILE *stream, struct p_header *phdr,
-	     memory_t *mem) {
+	     mmu_t *mem) {
 
 	/* Translate address */
 	uint32_t paddr = translate_vaddr(phdr->p_vaddr);
@@ -302,7 +302,7 @@ copy_segment(FILE *stream, struct p_header *phdr,
 // After this function, stream points to one past the end of the associated
 // segment. Also, the first 6 words of the p_header will be set.
 static inline int
-copy_cur_segment_aux(FILE *stream, memory_t *mem) {
+copy_cur_segment_aux(FILE *stream, mmu_t *mem) {
 	int retval = 0;
 
 	struct p_header phdr;
@@ -336,7 +336,7 @@ copy_cur_segment_aux(FILE *stream, memory_t *mem) {
 // After this function, stream points to one past the end of the current program
 // header entry. Also, the first 6 words of the p_header will be set.
 static inline int
-copy_cur_segment(struct elf_file *file, memory_t *mem) {
+copy_cur_segment(struct elf_file *file, mmu_t *mem) {
 	struct ehdr *ehdr = &file->ehdr;
 	long origin = 0;
 	int retval = 0;
@@ -361,7 +361,7 @@ copy_cur_segment(struct elf_file *file, memory_t *mem) {
 // After this function, stream point to one past the end of the last program
 // header entry.
 static inline int
-copy_all_segments(struct elf_file *file, memory_t *mem) {
+copy_all_segments(struct elf_file *file, mmu_t *mem) {
 	struct ehdr *ehdr = &file->ehdr;
 	size_t i = 0;
 	int retval = 0;
@@ -414,7 +414,7 @@ elf_close(struct elf_file *file) {
 
 int
 elf_dump(const char *path, uint32_t *entry,
-	 memory_t *mem) {
+	 mmu_t *mem) {
 	struct elf_file file;
 	int retval = 0;
 

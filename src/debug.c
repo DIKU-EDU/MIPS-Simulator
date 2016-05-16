@@ -13,7 +13,7 @@ extern bool g_debugging;
 /* extern'd in sim.c */
 extern bool g_finished;
 
-void debug(uint32_t inst, core_t* core, memory_t *mem)
+void debug(uint32_t inst, core_t* core, mmu_t *mem)
 {
 	printf("PC: 0x%08X\n", core->regs[REG_PC]);
 	print_instruction(inst, core);

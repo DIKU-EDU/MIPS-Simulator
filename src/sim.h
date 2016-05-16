@@ -9,6 +9,7 @@
 typedef struct hardware {
 	cpu_t* cpu;
 	mmu_t *mem;
+
 } hardware_t;
 
 int simulate(char *program, size_t cores, size_t mem, bool debug);
