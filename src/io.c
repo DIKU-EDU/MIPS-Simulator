@@ -6,36 +6,34 @@
 
 #include "sim.h"
 #include "exception.h"
+#include "mem.h"
 #include "io.h"
 #include "error.h"
 
 /* extern'd in sim.c */
 extern bool g_finished;
 
-io_device_descriptor_t *shutdown_device_init()
+
+
+
+
+
+
+/* Find next free device descriptor */
+device_descriptor_t *get_free_descriptor(mmu_t *
 {
-	io_device_descriptor_t *dev = malloc(sizeof(struct io_device_descriptor));
-	if(dev == NULL) {
-		ERROR("Could not allocate shutdown io device.");
-		return dev;
+	size_t i = 0;
+	for(i = 0; i < NUM_IO_DEVICES; i++) {
+		device_descriptor_t dev = REVERSE(
+					mmu->device_descriptor_start[i]);
+
+		if(dev.typecode == TYPECODE_EMPTY) {
+			return mmu->device_descriptor_start+i;
+		}
 	}
 
-	dev->device_type = TYPECODE_SHUTDOWN;
-	memcpy(dev->vendor_string, "SHUTDOWN", 8);
-	dev->irq = IRQ_INVALID;
-	dev->io_write = &shutdown_device_write;
-
-
-	return dev;
-}
-
-int shutdown_device_write(io_device_descriptor_t *dev, uint32_t addr,
-			  uint32_t data)
-{
-	if(data == POWEROFF_SHUTDOWN_MAGIC) {
-		g_finished = true;
-	}
-	return 0;
+	/* None found */
+	return NULL;
 }
 
 
@@ -50,6 +48,36 @@ void reverse_device_descriptor(device_descriptor_t *dev)
 	/* Reverse the reserved fields as well, just to be sure */
 	dev->_reserved1		= REVERSE(dev->_reserved1);
 	dev->_reserved2		= REVERSE(dev->_reserved2);
+}
+
+
+
+device__t *shutdown_device_init()
+{
+	device_t *dev = malloc(sizeof(struct device));
+	if(dev == NULL) {
+		ERROR("Could not allocate shutdown io device.");
+		return dev;
+	}
+
+	dev->device_type = TYPECODE_SHUTDOWN;
+	memcpy(dev->vendor_string, "SHUTDOWN", 8);
+	dev->irq = IRQ_INVALID;
+	dev->io_write = &shutdown_device_write;
+
+	dev->
+
+
+	return dev;
+}
+
+int shutdown_device_write(io_device_descriptor_t *dev, uint32_t addr,
+			  uint32_t data)
+{
+	if(data == POWEROFF_SHUTDOWN_MAGIC) {
+		g_finished = true;
+	}
+	return 0;
 }
 
 
