@@ -5,6 +5,8 @@
 #include <stdbool.h>
 
 #include "exception.h"
+#include "tools.h"
+
 
 /* Receiver Control */
 #define RCTRL_OFFSET		(0x00000000)
@@ -37,9 +39,26 @@
 #define IRQ_INVALID		(-1)
 
 
-/* descriptor structure
- * YAMS docs, section 6.4.1 Device descriptors */
-typedef struct io_device_descriptor {
+/* descriptor structure */
+typedef struct device_descriptor {
+	uint32_t typecode;
+	uint32_t io_addr_base;
+	uint32_t io_addr_len;
+	uint32_t irq;
+	char vendor_string[8];
+
+	/* Reserved */
+	uint32_t _reserved1;
+	uint32_t _reserved2;
+} __attribute__((packed)) device_descriptor_t;
+
+/* Reverses the endianess of the device descriptor */
+void reverse_device_descriptor(device_descriptor_t *dev);
+
+/* Simulator IO device structure */
+typedef struct io_device {
+	struct io_device_descriptor *next;	/* Linked list */
+
 	uint32_t device_type;
 	uint32_t addr_base;
 	uint32_t io_length;
@@ -54,18 +73,12 @@ typedef struct io_device_descriptor {
 	int (*io_read)(struct io_device_descriptor*, uint32_t, uint32_t *);
 	int (*io_write)(struct io_device_descriptor*, uint32_t, uint32_t);
 	int (*tick)();
-}__attribute__((packed)) io_device_descriptor_t;
+}__attribute__((packed)) device_t;
 
-
-/* Simulator pipe structure */
-typedef struct pipe_io {
-	bool ready;
-	bool interrupt_enable;
-	uint8_t byte;
-} pipe_io_t;
 
 
 /* Shutdown device */
+#define IO_LENGTH_SHUTDOWN	0x04
 #define POWEROFF_SHUTDOWN_MAGIC 0x0badf00d /* Defined in KUDOS */
 
 io_device_descriptor_t *shutdown_device_init();
