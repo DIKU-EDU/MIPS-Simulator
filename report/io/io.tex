@@ -4,7 +4,8 @@ The most used techniques are Memory-Mapped I/O (MMIO) and Port-Mapped I/O
 more common in consumer computers with Intel or AMD CPUs\cite{intelmanual}.\\
 PMIO requires the processor to have additional pins and special instructions,
 just for communication with I/O devices. I/O devices have a specified port
-number, which the processor uses to identify and communicate with the device.
+number, which the processor uses to identify and communicate with the device,
+much like an address.
 For example, Intel x86 processors might be polling\footnote{Polling refers to
 the activity where a CPU periodically samples the status of an external device} a keyboard using the
 special \texttt{in} instruction, specifying keyboard ID
@@ -78,8 +79,25 @@ devices to the memory.\cite{britton:mips}\\
 On MIPS32, the highest 64 kilobytes (\texttt{0xffff0000 - 0xffffffff}) in the
 available memory are used for mapping these special registers\cite{cs_uwm:memory_mapped_io}.
 The memory mapping the IO area must not be cached, as it can cause major problems
-for the caches, and heavy delays due to many cache-misses\cite{see_mips_run}.
+for the caches, and heavy delays due to many cache-misses\cite{see_mips_run}.\\
+However, it is obvious that IO registers can be very inconvenient for larger and
+fast data-transfer, due to the very limited register size. To dodge this
+bottlenect, memory controllers are implemented to give IO devices direct access
+to larger parts the main memory, without the need of going through the CPU first.
 
+\subsection{Direct Memory Access}
+Direct Memory Access controllers, also called DMA controllers, are features
+that allows certain hardware to access the main memory independently of the CPU.
+In MIPS, this feature is built-in in the MMU.\\
+Larger transfers between hardware and the memory is usually initiated through
+the device registers, where the CPU sets up the MMU and communicates the target
+address. Then, the IO device is free to read and write in the target address.
+When the peripheral is finished with its actions on the memory, it will usually
+notify the CPU using an interrupt, having the processor taking care of the rest.\\
+Direct Memory Access is often utilized by peripherals with heavy IO use, such
+as the storage drives, as well as network-, sound-, and graphics-cards.\\
+Because our simulator will not be enjoying heavy data-transfers between its
+IO devices, DMA will not be implemented.
 
 \subsection{Implementation}
 Implementation of external devices requires a lot of new modules and features
