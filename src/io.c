@@ -6,31 +6,14 @@
 
 #include "sim.h"
 #include "exception.h"
-#include "mem.h"
 #include "io.h"
 #include "error.h"
 
 /* extern'd in sim.c */
 extern bool g_finished;
 
-/* Find next free device descriptor */
-device_descriptor_t *get_free_descriptor(mmu_t *mmu)
-{
-	size_t i = 0;
-	for(i = 0; i < NUM_IO_DEVICES; i++) {
-		device_descriptor_t dev = REVERSE(
-					mmu->device_descriptor_start[i]);
 
-		if(dev.typecode == TYPECODE_EMPTY) {
-			return mmu->device_descriptor_start+i;
-		}
-	}
-
-	/* None found */
-	return NULL;
-}
-
-void reverse_device_descriptor(device_descriptor_t *dev)
+void device_descriptor_reverse(device_descriptor_t *dev)
 {
 	/* Reverse the fields */
 	dev->typecode		= REVERSE(dev->typecode);
@@ -45,6 +28,14 @@ void reverse_device_descriptor(device_descriptor_t *dev)
 	dev->_reserved2		= REVERSE(dev->_reserved2);
 }
 
-
-
+void device_descriptor_set_fields(device_t *dev, device_descriptor_t *dev_desc)
+{
+	dev_desc->typecode		= dev->typecode;
+	dev_desc->io_addr_base		= dev->io_addr_base;
+	dev_desc->io_addr_len		= dev->io_addr_len;
+	dev_desc->irq			= dev->irq;
+	memcpy(dev_desc->vendor_string, dev->vendor_string, 8);
+	dev_desc->_reserved1		= 0;
+	dev_desc->_reserved2		= 0;
+}
 

@@ -1,9 +1,15 @@
+#include <string.h>
+
 #include "io.h"
 #include "shutdown_dev.h"
 
-int shutdown_device_init(device_descriptor_t *dev)
+
+/* extern'd in sim.c */
+extern bool g_finished;
+
+device_t* shutdown_device_init(device_t *dev)
 {
-	dev->device_type = TYPECODE_SHUTDOWN;
+	dev->typecode = TYPECODE_SHUTDOWN;
 	memcpy(dev->vendor_string, "SHUTDOWN", 8);
 	dev->irq = IRQ_INVALID;
 	dev->io_write = &shutdown_device_write;
@@ -13,8 +19,7 @@ int shutdown_device_init(device_descriptor_t *dev)
 	return dev;
 }
 
-int shutdown_device_write(io_device_descriptor_t *dev, uint32_t addr,
-			  uint32_t data)
+int shutdown_device_write(device_t *dev, uint32_t addr, uint32_t data)
 {
 	if(data == POWEROFF_SHUTDOWN_MAGIC) {
 		g_finished = true;

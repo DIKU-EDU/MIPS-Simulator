@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-
+#if 0
 // MIPS32 memory
 #define GET_BIGWORD(mem, addr) ((uint32_t) \
   ((mem)[(addr) + 0] << 24)  | \
@@ -26,7 +26,7 @@
 #define GET_BIGHALF(mem, addr) ((uint32_t)(uint16_t) \
   ((mem)[(addr) + 0] << 8) | \
   ((mem)[(addr) + 1]))
-
+#endif
 
 
 /* Dumps the next n bytes to stdout */

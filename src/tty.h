@@ -22,13 +22,13 @@
 typedef struct tty_device {
 	key_t shm_key;
 	int shm_id;
-	char *mem;
+	char *shm;	/* Pointer to the shared memory */
 } tty_device_t;
 
 
-io_device_descriptor_t *tty_device_create();
-int tty_device_read(io_device_descriptor_t *, uint32_t, uint32_t*);
-int tty_device_write(io_device_descriptor_t *, uint32_t, uint32_t);
+device_t *tty_device_create();
+int tty_device_read(device_t *, uint32_t, uint32_t*);
+int tty_device_write(device_t *, uint32_t, uint32_t);
 
 
 #endif /* _TTY_H */

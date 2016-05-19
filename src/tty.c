@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <string.h>
+#include <errno.h>
 
+#include "error.h"
 #include "tty.h"
 #include "io.h"
 
@@ -11,7 +13,7 @@ static void tty_device_init(tty_device_t *dev)
 	dev->shm_key = SHM_KEY_TTY;
 
 	/* Create memory segment */
-	if ((dev->shmid = shmget(dev->shm_key, dev->io_length,
+	if ((dev->shm_id = shmget(dev->shm_key, IO_LENGTH_TTY,
 						IPC_CREAT | 0666)) < 0) {
 		ERROR("shmget failed: %s", strerror(errno));
 		return;
@@ -31,22 +33,22 @@ device_t *tty_device_create()
 {
 	device_t *dev = calloc(1, sizeof(device_t));
 
-	if(dev == NULL || tty_device_t) {
+	if(dev == NULL) {
 		ERROR("Could not allocate tty device IO.");
 		return NULL;
 	}
 
-	dev->device_type = TYPECODE_TTY;
+	dev->typecode = TYPECODE_TTY;
 	memcpy(dev->vendor_string, TTY_VENDOR_STRING, 8);
 	dev->irq = IRQ_TTY;
-	dev->io_length = IO_LENGTH_TTY
-		dev->io_write = &tty_device_write;
+	dev->io_addr_len = IO_LENGTH_TTY;
+	dev->io_write = &tty_device_write;
 	dev->io_read = &tty_device_read;
-	dev->addr_base = 0; /* NOTE: Set in the simulator */
+	dev->io_addr_base = 0; /* NOTE: Set in the simulator */
 
 
 	tty_device_t *tty_dev = malloc(sizeof(tty_device_t));
-	if(dev->device == NULL) {
+	if(tty_dev == NULL) {
 		ERROR("Could not allocate tty_device_t");
 		return NULL;
 	}
@@ -54,7 +56,7 @@ device_t *tty_device_create()
 
 	/* Init the tty_device */
 	tty_device_init(tty_dev);
-	dev->device = (void*)tty_dev;
+	dev->realdevice = (void*)tty_dev;
 
 
 	return dev;
@@ -62,12 +64,12 @@ device_t *tty_device_create()
 
 int tty_device_read(device_t *dev, uint32_t addr, uint32_t* data)
 {
-
+	return -1;
 
 }
 
-int tty_device_write(device_t *, uint32_t addr, uint32_t data)
+int tty_device_write(device_t *dev, uint32_t addr, uint32_t data)
 {
-
+	return -1;
 
 }

@@ -14,9 +14,6 @@ typedef struct hardware {
 
 int simulate(char *program, size_t cores, size_t mem, bool debug);
 
-/* Initializes hardware component */
-hardware_t* sim_init(size_t cores, size_t mem);
-
 /* Deallocates hardware component as well as the subsequent structures */
 void sim_free(hardware_t *hw);
 

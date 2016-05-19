@@ -33,9 +33,8 @@
 
 
 /* Number of IO devices */
-#define NUM_IO_DEVICES		(IO_DESCRIPTOR_AREA_LENGTH / sizeof(struct device_descriptor))
+#define MAX_IO_DEVICES		(IO_DESCRIPTOR_AREA_LENGTH / sizeof(struct device_descriptor))
 
-#if 0
 /* Macros for reading from memory */
 #define GET_BIGWORD(addr) ((uint32_t) \
 			   ((addr)[0] << 24)  | \
@@ -63,7 +62,6 @@
 #define SET_BIGHALF(addr, value) \
 	(addr)[0] = (value) >> 8; \
 (addr)[1] = (value) << 24 >> 24;
-#endif
 
 /* Memory operations size */
 typedef enum {
@@ -81,8 +79,12 @@ typedef struct mmu {
 	/* Pointer to IO descriptor area */
 	device_descriptor_t *device_descriptor_start;
 
-	/* Pointer to next free IO register area */
-	uint32_t next_device_register;
+	/* Points to the top of the device register area
+	 * (next free byte) */
+	uint32_t next_io_register;
+
+	/* List of devices */
+	device_t *devices;
 
 	/* Sizes of the different segments.
 	 * Sum up to size_total */
@@ -110,8 +112,20 @@ uint8_t* translate_paddr(uint32_t paddr, mmu_t *mem);
 /* Returns a new memory block */
 mmu_t* mem_init(size_t size);
 
+
 /* Frees ressources used by mem */
 void mem_free(mmu_t *mem);
+
+
+/* Adds a device descriptor to device descriptor memory area.
+ * Will create a duplicate if device already exists! */
+void device_descriptor_add(mmu_t *mmu, device_t *dev);
+
+/* Adds a device to the MMU list */
+void mmu_add_device(mmu_t *mmu, device_t *dev);
+
+/* Find next free device descriptor */
+device_descriptor_t* get_free_descriptor(mmu_t *mmu);
 
 
 #endif /* _MEM_H */

@@ -768,7 +768,13 @@ int run(hardware_t *hw)
 	return hw->cpu->core[0].regs[REG_V1];
 }
 
-hardware_t* sim_init(size_t cores, size_t mem)
+static void init_io(hardware_t *hw)
+{
+
+}
+
+
+static hardware_t* sim_init(size_t cores, size_t mem)
 {
 	hardware_t *hw = malloc(sizeof(struct hardware));
 
@@ -791,9 +797,7 @@ hardware_t* sim_init(size_t cores, size_t mem)
 
 
 	/* Initialize basic devices */
-	hw->mem->io_device[0] = shutdown_device_init();
-
-
+	init_io(hw);
 
 	return hw;
 }

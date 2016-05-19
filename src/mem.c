@@ -7,6 +7,7 @@
 #include "mem.h"
 #include "exception.h"
 #include "mips32.h"
+#include "io.h"
 #include "error.h"
 
 mmu_t* mem_init(size_t size)
@@ -22,11 +23,12 @@ mmu_t* mem_init(size_t size)
 		exit(1);
 	}
 
-	mmu->io_descriptor_start = dev_desc;
+	mmu->device_descriptor_start = dev_desc;
 	mmu->pmem = pmem;
 	mmu->size_total = size;
 
-	mmu->next_device_register = IO_REGISTER_AREA;
+	/* Point to start of IO REGISTER AREA */
+	mmu->next_io_register = IO_REGISTER_AREA;
 
 	mmu->size_kseg0 = mmu->size_kseg1 = size / 8;
 	mmu->size_kseg2 = size / 4;
@@ -103,8 +105,13 @@ uint32_t translate_vaddr(uint32_t vaddr)
 
 	/* See Mips Run p. 48 */
 	/* I/O mapping */
-	if(vaddr > IO_ADDR_START) {
+	if(vaddr > IO_REGISTER_AREA) {
 		return vaddr;
+
+		/* io descriptor area */
+	} else if(vaddr > IO_DESCRIPTOR_AREA) {
+		/* TODO */
+
 		/* kseg2 */
 	} else if(vaddr > KSEG2_PSTART) {
 		/* TODO: NOT MAPPED YET */
@@ -136,9 +143,13 @@ uint8_t* translate_paddr(uint32_t paddr, mmu_t *mem)
 	uint8_t *aaddr = NULL;
 
 	/* IO mapped address */
-	if(paddr >= IO_ADDR_START) {
+	if(paddr >= IO_REGISTER_AREA) {
 		/* XXX: What to do here? */
 		return NULL;
+
+	} else if(paddr >= IO_DESCRIPTOR_AREA) {
+		/* TODO */
+
 	/* KSEG2 */
 	} else if(paddr >= KSEG0_SIZE + KSEG1_SIZE + KUSEG_SIZE) {
 		/* TODO */
@@ -190,4 +201,54 @@ void mem_free(mmu_t *mem)
 {
 	free(mem->pmem);
 	free(mem);
+}
+
+void device_descriptor_add(mmu_t *mmu, device_t *dev)
+{
+	device_descriptor_t* dev_desc = get_free_descriptor(mmu);
+
+	if(dev_desc == NULL) {
+		ERROR("No free device descriptors found");
+		return;
+	}
+
+	/* Set the fields */
+	device_descriptor_set_fields(dev, dev_desc);
+
+	/* Reverse the fields (MSB<->LSB) */
+	device_descriptor_reverse(dev_desc);
+}
+
+void mmu_add_device(mmu_t *mmu, device_t *dev)
+{
+	/* Allocate io registers
+	 * TODO: Check overflow */
+	dev->io_addr_base = mmu->next_io_register;
+	mmu->next_io_register += dev->io_addr_len;
+
+	/* Point to the first device */
+	dev->next = mmu->devices;
+
+	/* Add device to the top of the list */
+	mmu->devices = dev;
+
+	/* Add device scriptor */
+	device_descriptor_add(mmu, dev);
+}
+
+/* Find next free device descriptor */
+device_descriptor_t *get_free_descriptor(mmu_t *mmu)
+{
+	size_t i = 0;
+	for(i = 0; i < MAX_IO_DEVICES; i++) {
+		device_descriptor_t dev = mmu->device_descriptor_start[i];
+		device_descriptor_reverse(&dev);
+
+		if(dev.typecode == TYPECODE_EMPTY) {
+			return mmu->device_descriptor_start+i;
+		}
+	}
+
+	/* None found */
+	return NULL;
 }

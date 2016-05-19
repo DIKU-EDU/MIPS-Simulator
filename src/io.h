@@ -28,13 +28,13 @@
 
 /* Device type codes */
 #define TYPECODE_EMPTY		0x0000
-#define TYPECODE_MEMINFO	0x101
-#define TYPECODE_RTC		0x102
-#define TYPECODE_SHUTDOWN	0x103
-#define TYPECODE_TTY		0x201
-#define TYPECODE_DISK		0x301
-#define TYPECODE_NIC		0x401
-#define TYPECODE_CPUINFO	0xC00
+#define TYPECODE_MEMINFO	0x0101
+#define TYPECODE_RTC		0x0102
+#define TYPECODE_SHUTDOWN	0x0103
+#define TYPECODE_TTY		0x0201
+#define TYPECODE_DISK		0x0301
+#define TYPECODE_NIC		0x0401
+#define TYPECODE_CPUINFO	0x0C00
 
 /* IRQs */
 #define IRQ_INVALID		(-1)
@@ -59,9 +59,10 @@ typedef struct _device_t {
 
 	uint32_t typecode;
 	char vendor_string[8];
-	uint32_t io_base;
 	uint32_t irq;
-	uint32_t io_length;
+
+	uint32_t io_addr_base;
+	uint32_t io_addr_len;
 
 	void *realdevice;
 
@@ -72,10 +73,10 @@ typedef struct _device_t {
 	int (*tick)(struct _device_t *dev);
 } device_t;
 
-/* Find next free device descriptor */
-device_descriptor_t* get_free_descriptor(mmu_t *mmu);
+/* Sets the fields from a device_t */
+void device_descriptor_set_fields(device_t *dev, device_descriptor_t *dev_desc);
 
 /* Reverses the endianess of the device descriptor */
-void reverse_device_descriptor(device_descriptor_t *dev);
+void device_descriptor_reverse(device_descriptor_t *dev);
 
 #endif /* _IO_H */
