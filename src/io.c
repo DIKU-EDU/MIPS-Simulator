@@ -13,8 +13,6 @@
 /* extern'd in sim.c */
 extern bool g_finished;
 
-
-
 /* Find next free device descriptor */
 device_descriptor_t *get_free_descriptor(mmu_t *mmu)
 {
@@ -32,7 +30,6 @@ device_descriptor_t *get_free_descriptor(mmu_t *mmu)
 	return NULL;
 }
 
-
 void reverse_device_descriptor(device_descriptor_t *dev)
 {
 	/* Reverse the fields */
@@ -49,27 +46,5 @@ void reverse_device_descriptor(device_descriptor_t *dev)
 }
 
 
-
-int shutdown_device_init(device_descriptor_t *dev)
-{
-	dev->device_type = TYPECODE_SHUTDOWN;
-	memcpy(dev->vendor_string, "SHUTDOWN", 8);
-	dev->irq = IRQ_INVALID;
-	dev->io_write = &shutdown_device_write;
-
-	dev->io_addr_len =
-
-
-	return dev;
-}
-
-int shutdown_device_write(io_device_descriptor_t *dev, uint32_t addr,
-			  uint32_t data)
-{
-	if(data == POWEROFF_SHUTDOWN_MAGIC) {
-		g_finished = true;
-	}
-	return 0;
-}
 
 

@@ -53,6 +53,7 @@ typedef struct device_descriptor {
 	uint32_t _reserved2;
 } __attribute__((packed)) device_descriptor_t;
 
+/* IO device struct used internally in the simulator only */
 typedef struct _device_t {
 	struct _device_t *next;
 
@@ -68,47 +69,13 @@ typedef struct _device_t {
 			uint32_t data);
 	int (*io_read)(struct _device_t *dev, uint32_t addr,
 		       uint32_t *data);
-	int (*update)(struct _device_t *dev);
+	int (*tick)(struct _device_t *dev);
 } device_t;
 
 /* Find next free device descriptor */
 device_descriptor_t* get_free_descriptor(mmu_t *mmu);
 
-
-
 /* Reverses the endianess of the device descriptor */
 void reverse_device_descriptor(device_descriptor_t *dev);
-
-#if 0
-/* Simulator IO device structure */
-typedef struct io_device {
-	struct io_device_descriptor *next;	/* Linked list */
-
-	uint32_t device_type;
-	uint32_t addr_base;
-	uint32_t io_length;
-	uint32_t irq;
-	char vendor_string[8];
-
-	uint64_t reserved;
-
-	/* Pointer to a structure specific for the actual device */
-	void *device;
-
-	int (*io_read)(struct io_device_descriptor*, uint32_t, uint32_t *);
-	int (*io_write)(struct io_device_descriptor*, uint32_t, uint32_t);
-	int (*tick)();
-}__attribute__((packed)) device_t;
-#endif
-
-
-/* Shutdown device */
-#define IO_LENGTH_SHUTDOWN	0x04
-#define POWEROFF_SHUTDOWN_MAGIC 0x0badf00d /* Defined in KUDOS */
-
-io_device_descriptor_t *shutdown_device_init();
-
-int shutdown_device_write(io_device_descriptor_t *dev, uint32_t addr,
-			  uint32_t data);
 
 #endif /* _IO_H */
