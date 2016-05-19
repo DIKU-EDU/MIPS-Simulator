@@ -1,20 +1,48 @@
 #include <stdint.h>
+#include <string.h>
 
 #include "tty.h"
 #include "io.h"
 
-
-io_device_descriptor_t *tty_device_create()
+/* Sets-up shared memory for the tty_device */
+static void tty_device_init(tty_device_t *dev)
 {
-	io_device_descriptor_t *dev = malloc(sizeof(io_device_descriptor_t));
-	if(dev == NULL) {
+	/* Set SHM key */
+	dev->shm_key = SHM_KEY_TTY;
+
+	/* Create memory segment */
+	if ((dev->shmid = shmget(dev->shm_key, dev->io_length,
+						IPC_CREAT | 0666)) < 0) {
+		ERROR("shmget failed: %s", strerror(errno));
+		return;
+	}
+
+	/* Attach shared memory segment to our program */
+	if ((dev->shm = shmat(dev->shm_id, NULL, 0)) == (char *) -1) {
+		ERROR("shmat failed: %s", strerror(errno));
+		exit(1);
+	}
+
+	/* device_t should now be fully set up */
+}
+
+
+device_t *tty_device_create()
+{
+	device_t *dev = calloc(1, sizeof(device_t));
+
+	if(dev == NULL || tty_device_t) {
 		ERROR("Could not allocate tty device IO.");
 		return NULL;
 	}
 
 	dev->device_type = TYPECODE_TTY;
-	memcpy(dev->vendor_string, "TTY     ", 8);
+	memcpy(dev->vendor_string, TTY_VENDOR_STRING, 8);
 	dev->irq = IRQ_TTY;
+	dev->io_length = IO_LENGTH_TTY
+		dev->io_write = &tty_device_write;
+	dev->io_read = &tty_device_read;
+	dev->addr_base = 0; /* NOTE: Set in the simulator */
 
 
 	tty_device_t *tty_dev = malloc(sizeof(tty_device_t));
@@ -23,42 +51,22 @@ io_device_descriptor_t *tty_device_create()
 		return NULL;
 	}
 
-	dev->io_write = &tty_device_write;
-	dev->io_read = &tty_device_read;
 
-	dev->addr_base = 0; /* XXX? */
-	dev->io_length = 0; /* XXX? */
-
-	/* Unlink (delete) the existing file */
-	if(unlink(IO_FIFO_TTY) == -1) {
-		LOG("Could not unlink FIFO: %s", strerror(errno));
-	}
-
-	/* Create FIFO and check for error */
-	if((mkfifo(IO_FIFO_TTY, 0666)) != 0) {
-		ERROR("Could not create a new FIFO: %s", strerror(errno));
-		return dev;
-	}
-
-	/* Open the FIFO */
-	if((tty_dev->fd = open(IO_FIFO_TTY, O_RDWR)) == -1) {
-		ERROR("Could not open a new FIFO: %s", strerror(errno));
-		return	dev;
-	}
-
-	tty_dev->fifo = IO_FIFO_TTY;
-
+	/* Init the tty_device */
+	tty_device_init(tty_dev);
 	dev->device = (void*)tty_dev;
+
 
 	return dev;
 }
 
-int tty_device_read(io_device_descriptor_t *, uint32_t, uint32_t*)
+int tty_device_read(device_t *dev, uint32_t addr, uint32_t* data)
 {
+
 
 }
 
-int tty_device_write(io_device_descriptor_t *, uint32_t, uint32_t)
+int tty_device_write(device_t *, uint32_t addr, uint32_t data)
 {
 
 
