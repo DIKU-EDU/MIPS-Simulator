@@ -18,5 +18,8 @@ void dump_registers(core_t *core);
 /* Print pipeline registers in columns */
 void print_pipeline_registers(core_t *core);
 
+/* Prints a device_descriptor */
+void print_device(device_t *dev);
+
 
 #endif /* _DEBUG_H */

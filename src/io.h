@@ -79,4 +79,5 @@ void device_descriptor_set_fields(device_t *dev, device_descriptor_t *dev_desc);
 /* Reverses the endianess of the device descriptor */
 void device_descriptor_reverse(device_descriptor_t *dev);
 
+
 #endif /* _IO_H */

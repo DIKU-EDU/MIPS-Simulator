@@ -36,6 +36,7 @@ i		- Prints current instruction\n\
 [v|s|t]<N>	- Prints register v/s/t number <N>\n\
 m		- Print from memory (will ask for addr)\n\
 c		- Continue executing\n\
+d		- List IO devices \n\
 q		- Quit\n\
 '\\n'		- Step\n\n");
 			break;
@@ -56,7 +57,7 @@ q		- Quit\n\
 			uint32_t addr = 0;
 			uint32_t word = 0;
 			if(scanf("%X", &addr) > 0) {
-				mem_read(core, mem, addr, &word, MEM_OP_WORD);
+				mmu_read(core, mem, addr, &word, MEM_OP_WORD);
 			}
 			fseek(stdin,0,SEEK_END);
 
@@ -87,6 +88,17 @@ q		- Quit\n\
 		case 'q':
 			g_finished = true;
 			return;
+
+		/* List devices */
+		case 'd':
+			; /* uuughh */
+			device_t *ptr = mem->devices;
+			while(ptr != NULL) {
+				print_device(ptr);
+				ptr = ptr->next;
+			}
+			break;
+
 		case '\n':
 		default:
 			return;
@@ -96,8 +108,7 @@ q		- Quit\n\
 }
 
 
-void
-print_registers(core_t *core)
+void print_registers(core_t *core)
 {
 	int i;
 	for(i = 0; i < NUM_REGISTERS; i++) {
@@ -107,8 +118,7 @@ print_registers(core_t *core)
 	}
 }
 
-void
-dump_registers(core_t *core)
+void dump_registers(core_t *core)
 {
 	size_t i;
 	/* PC is not included */
@@ -197,3 +207,12 @@ void print_pipeline_registers(core_t *core)
 	printf("\n\n");
 }
 
+
+
+void print_device(device_t *dev)
+{
+	/* print it */
+	printf("typecode: 0x%x, vendor_string %.8s, io_addr_base: %d, io_addr_len: %d, irq: %d\n",
+	       dev->typecode, dev->vendor_string, dev->io_addr_base,
+	       dev->io_addr_len, dev->irq);
+}

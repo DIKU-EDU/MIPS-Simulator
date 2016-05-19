@@ -95,11 +95,11 @@ typedef struct mmu {
 } mmu_t;
 
 /* Reads from memory and writes to dst. Returns a relevant exception */
-exception_t mem_read(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t *dst,
+exception_t mmu_read(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t *dst,
 		     mem_op_size_t op_size);
 
 /* Writes src to addr. Returns a relevant exception. */
-exception_t mem_write(core_t *core, mmu_t *mem, int32_t addr, uint32_t src,
+exception_t mmu_write(core_t *core, mmu_t *mem, int32_t addr, uint32_t src,
 		      mem_op_size_t op_size);
 
 /* Translate virtual memory address to physical */
@@ -110,18 +110,18 @@ uint8_t* translate_paddr(uint32_t paddr, mmu_t *mem);
 
 
 /* Returns a new memory block */
-mmu_t* mem_init(size_t size);
+mmu_t* mmu_init(size_t size);
 
 
 /* Frees ressources used by mem */
-void mem_free(mmu_t *mem);
+void mmu_free(mmu_t *mem);
 
 
 /* Adds a device descriptor to device descriptor memory area.
  * Will create a duplicate if device already exists! */
 void device_descriptor_add(mmu_t *mmu, device_t *dev);
 
-/* Adds a device to the MMU list */
+/* Adds a device to the MMU list and creates a descriptor for it */
 void mmu_add_device(mmu_t *mmu, device_t *dev);
 
 /* Find next free device descriptor */

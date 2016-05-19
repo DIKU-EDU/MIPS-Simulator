@@ -8,7 +8,7 @@
 
 typedef struct hardware {
 	cpu_t* cpu;
-	mmu_t *mem;
+	mmu_t *mmu;
 
 } hardware_t;
 

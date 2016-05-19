@@ -12,6 +12,8 @@
 #include "disasm.h"
 #include "debug.h"
 #include "error.h"
+#include "shutdown_dev.h"
+
 
 /* MACROS for less typing */
 #define IF_ID (core->if_id)
@@ -33,7 +35,7 @@ void interpret_if(core_t *core, mmu_t *mem)
 {
 	/* Fetch the next instruction */
 	uint32_t inst = 0;
-	IF_ID.exception = mem_read(core, mem, REGS(REG_PC), &inst,
+	IF_ID.exception = mmu_read(core, mem, REGS(REG_PC), &inst,
 				 MEM_OP_WORD);
 
 	/* Hazard control
@@ -475,18 +477,18 @@ void interpret_mem(core_t *core, mmu_t *mem)
 	if(EX_MEM.c_mem_read) {
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_LW:
-			MEM_WB.exception = mem_read(core, mem, EX_MEM.alu_res,
+			MEM_WB.exception = mmu_read(core, mem, EX_MEM.alu_res,
 						    &MEM_WB.read_data,
 						    MEM_OP_WORD);
 
 			break;
 		case OPCODE_LBU:
-			MEM_WB.exception = mem_read(core, mem, EX_MEM.alu_res,
+			MEM_WB.exception = mmu_read(core, mem, EX_MEM.alu_res,
 						    &MEM_WB.read_data,
 						    MEM_OP_BYTE);
 			break;
 		case OPCODE_LHU:
-			MEM_WB.exception = mem_read(core, mem, EX_MEM.alu_res,
+			MEM_WB.exception = mmu_read(core, mem, EX_MEM.alu_res,
 						    &MEM_WB.read_data,
 						    MEM_OP_HALF);
 			break;
@@ -496,17 +498,17 @@ void interpret_mem(core_t *core, mmu_t *mem)
 	} else if(EX_MEM.c_mem_write) {
 		switch(GET_OPCODE(MEM_WB.inst)) {
 		case OPCODE_SW:
-			MEM_WB.exception  = mem_write(core, mem, EX_MEM.alu_res,
+			MEM_WB.exception  = mmu_write(core, mem, EX_MEM.alu_res,
 						      EX_MEM.rt_value,
 						      MEM_OP_WORD);
 			break;
 		case OPCODE_SB:
-			MEM_WB.exception  = mem_write(core, mem, EX_MEM.alu_res,
+			MEM_WB.exception  = mmu_write(core, mem, EX_MEM.alu_res,
 						      EX_MEM.rt_value,
 						      MEM_OP_BYTE);
 			break;
 		case OPCODE_SH:
-			MEM_WB.exception  = mem_write(core, mem, EX_MEM.alu_res,
+			MEM_WB.exception  = mmu_write(core, mem, EX_MEM.alu_res,
 						      EX_MEM.rt_value,
 						      MEM_OP_HALF);
 			break;
@@ -731,7 +733,7 @@ void forwarding_unit(core_t *core)
 void tick(hardware_t *hw)
 {
 	cpu_t* cpu = hw->cpu;
-	mmu_t* mem = hw->mem;
+	mmu_t* mem = hw->mmu;
 
 	/* Iterate over each core */
 	int i;
@@ -752,12 +754,12 @@ int run(hardware_t *hw)
 		/* XXX: Assumes one core */
 		if(g_debugging) {
 			uint32_t inst = 0;
-			exception_t e = mem_read(&hw->cpu->core[0],
-						 hw->mem,
+			exception_t e = mmu_read(&hw->cpu->core[0],
+						 hw->mmu,
 						 hw->cpu->core[0].regs[REG_PC],
 						 &inst, MEM_OP_WORD);
 			e = e;
-			debug(inst, &hw->cpu->core[0], hw->mem);
+			debug(inst, &hw->cpu->core[0], hw->mmu);
 		}
 		tick(hw);
 	}
@@ -770,7 +772,8 @@ int run(hardware_t *hw)
 
 static void init_io(hardware_t *hw)
 {
-
+	LOG();
+	mmu_add_device(hw->mmu, shutdown_device_create());
 }
 
 
@@ -784,14 +787,14 @@ static hardware_t* sim_init(size_t cores, size_t mem)
 	}
 
 	/* Initialize the memory */
-	hw->mem = mem_init(mem);
+	hw->mmu = mmu_init(mem);
 
 	/* Create a new CPU */
 	hw->cpu = cpu_init(cores);
 
 	/* Set stack pointer to top of memory */
 	hw->cpu->core[0].regs[REG_SP] = (uint32_t)(KSEG0_VSTART +
-		hw->mem->size_kseg0) - 4;
+		hw->mmu->size_kseg0) - 4;
 
 	DEBUG("Stack-Pointer set to: 0x%08x", hw->cpu->core[0].regs[REG_SP]);
 
@@ -806,7 +809,7 @@ void sim_free(hardware_t *hw)
 {
 	/* Free allocated resources */
 	cpu_free(hw->cpu);
-	mem_free(hw->mem);
+	mmu_free(hw->mmu);
 	free(hw);
 }
 
@@ -823,7 +826,7 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 	int retval;
 	if((retval = elf_dump(program,
 			      &(hw->cpu->core[0].regs[REG_PC]),
-			      hw->mem)) != 0) {
+			      hw->mmu)) != 0) {
 		ERROR("Elf file could not be read: %d.", retval);
 		exit(0);
 	}

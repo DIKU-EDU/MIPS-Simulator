@@ -10,7 +10,7 @@
 #include "io.h"
 #include "error.h"
 
-mmu_t* mem_init(size_t size)
+mmu_t* mmu_init(size_t size)
 {
 	mmu_t* mmu = (mmu_t*)calloc(1, sizeof(mmu_t));
 	uint8_t* pmem = (uint8_t*)calloc(1, size);
@@ -41,7 +41,7 @@ mmu_t* mem_init(size_t size)
 }
 
 
-exception_t mem_read(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t *dst,
+exception_t mmu_read(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t *dst,
 		     mem_op_size_t op_size)
 {
 	/* Translated physical address */
@@ -73,7 +73,7 @@ exception_t mem_read(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t *dst,
 	return EXC_None;
 }
 
-exception_t mem_write(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t src,
+exception_t mmu_write(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t src,
 		      mem_op_size_t op_size)
 {
 	/* Translate to physical */
@@ -197,7 +197,7 @@ uint8_t* translate_paddr(uint32_t paddr, mmu_t *mem)
 	return aaddr;
 }
 
-void mem_free(mmu_t *mem)
+void mmu_free(mmu_t *mem)
 {
 	free(mem->pmem);
 	free(mem);
@@ -221,6 +221,12 @@ void device_descriptor_add(mmu_t *mmu, device_t *dev)
 
 void mmu_add_device(mmu_t *mmu, device_t *dev)
 {
+	LOG();
+	if(dev == NULL) {
+		LOG("Trying to add a NULL device.");
+		return;
+	}
+
 	/* Allocate io registers
 	 * TODO: Check overflow */
 	dev->io_addr_base = mmu->next_io_register;

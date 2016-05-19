@@ -1,5 +1,6 @@
 #include <string.h>
 
+#include "error.h"
 #include "io.h"
 #include "shutdown_dev.h"
 
@@ -7,10 +8,19 @@
 /* extern'd in sim.c */
 extern bool g_finished;
 
-device_t* shutdown_device_init(device_t *dev)
+device_t* shutdown_device_create()
 {
+	device_t *dev = calloc(1, sizeof(struct _device_t));
+
+	if(dev == NULL) {
+		ERROR("Could not alloc shutdown device");
+		return NULL;
+	}
+
 	dev->typecode = TYPECODE_SHUTDOWN;
-	memcpy(dev->vendor_string, "SHUTDOWN", 8);
+
+	memcpy(dev->vendor_string, SHUTDOWN_VENDOR_STRING, 8);
+
 	dev->irq = IRQ_INVALID;
 	dev->io_write = &shutdown_device_write;
 
