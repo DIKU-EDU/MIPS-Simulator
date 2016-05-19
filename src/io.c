@@ -15,12 +15,8 @@ extern bool g_finished;
 
 
 
-
-
-
-
 /* Find next free device descriptor */
-device_descriptor_t *get_free_descriptor(mmu_t *
+device_descriptor_t *get_free_descriptor(mmu_t *mmu)
 {
 	size_t i = 0;
 	for(i = 0; i < NUM_IO_DEVICES; i++) {
@@ -45,6 +41,8 @@ void reverse_device_descriptor(device_descriptor_t *dev)
 	dev->io_addr_len	= REVERSE(dev->io_addr_len);
 	dev->irq		= REVERSE(dev->irq);
 
+	/* vendor_string need not be reversed */
+
 	/* Reverse the reserved fields as well, just to be sure */
 	dev->_reserved1		= REVERSE(dev->_reserved1);
 	dev->_reserved2		= REVERSE(dev->_reserved2);
@@ -52,20 +50,14 @@ void reverse_device_descriptor(device_descriptor_t *dev)
 
 
 
-device__t *shutdown_device_init()
+int shutdown_device_init(device_descriptor_t *dev)
 {
-	device_t *dev = malloc(sizeof(struct device));
-	if(dev == NULL) {
-		ERROR("Could not allocate shutdown io device.");
-		return dev;
-	}
-
 	dev->device_type = TYPECODE_SHUTDOWN;
 	memcpy(dev->vendor_string, "SHUTDOWN", 8);
 	dev->irq = IRQ_INVALID;
 	dev->io_write = &shutdown_device_write;
 
-	dev->
+	dev->io_addr_len =
 
 
 	return dev;

@@ -27,6 +27,7 @@
 #define TDATA_BYTE		(uint32_t)(0xFF)
 
 /* Device type codes */
+#define TYPECODE_EMPTY		0x0000
 #define TYPECODE_MEMINFO	0x101
 #define TYPECODE_RTC		0x102
 #define TYPECODE_SHUTDOWN	0x103
@@ -52,9 +53,33 @@ typedef struct device_descriptor {
 	uint32_t _reserved2;
 } __attribute__((packed)) device_descriptor_t;
 
+typedef struct _device_t {
+	struct _device_t *next;
+
+	uint32_t typecode;
+	char vendor_string[8];
+	uint32_t io_base;
+	uint32_t irq;
+	uint32_t io_length;
+
+	void *realdevice;
+
+	int (*io_write)(struct _device_t *dev, uint32_t addr,
+			uint32_t data);
+	int (*io_read)(struct _device_t *dev, uint32_t addr,
+		       uint32_t *data);
+	int (*update)(struct _device_t *dev);
+} device_t;
+
+/* Find next free device descriptor */
+device_descriptor_t* get_free_descriptor(mmu_t *mmu);
+
+
+
 /* Reverses the endianess of the device descriptor */
 void reverse_device_descriptor(device_descriptor_t *dev);
 
+#if 0
 /* Simulator IO device structure */
 typedef struct io_device {
 	struct io_device_descriptor *next;	/* Linked list */
@@ -74,7 +99,7 @@ typedef struct io_device {
 	int (*io_write)(struct io_device_descriptor*, uint32_t, uint32_t);
 	int (*tick)();
 }__attribute__((packed)) device_t;
-
+#endif
 
 
 /* Shutdown device */

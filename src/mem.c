@@ -13,14 +13,20 @@ mmu_t* mem_init(size_t size)
 {
 	mmu_t* mmu = (mmu_t*)calloc(1, sizeof(mmu_t));
 	uint8_t* pmem = (uint8_t*)calloc(1, size);
+	device_descriptor_t* dev_desc = (device_descriptor_t*)
+					calloc(1, IO_DESCRIPTOR_AREA_LENGTH);
 
-	if(mmu == NULL || pmem == NULL) {
-		printf("Could not allocate memory.\n");
+
+	if(mmu == NULL || pmem == NULL || dev_desc == NULL) {
+		ERROR("Could not allocate memory.");
 		exit(1);
 	}
 
+	mmu->io_descriptor_start = dev_desc;
 	mmu->pmem = pmem;
 	mmu->size_total = size;
+
+	mmu->next_device_register = IO_REGISTER_AREA;
 
 	mmu->size_kseg0 = mmu->size_kseg1 = size / 8;
 	mmu->size_kseg2 = size / 4;
@@ -90,7 +96,6 @@ exception_t mem_write(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t src,
 	*/
 	return EXC_None;
 }
-
 
 uint32_t translate_vaddr(uint32_t vaddr)
 {

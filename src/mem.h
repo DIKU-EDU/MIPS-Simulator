@@ -27,12 +27,15 @@
 /* TODO: Addresses 0x00000000 through 0xfffeffff are used for memory, and
  * addresses 0xffff0000 - 0xffffffff (the last 64 kilobytes) are reserved for
  * I/O device registers */
-#define IO_ADDR_START	0xFFFF0000
-#define IO_ADDR_END	0xFFFFFFFF
+#define IO_REGISTER_AREA		0xFFFF0000
+#define IO_DESCRIPTOR_AREA		0xFFFE0000
+#define IO_DESCRIPTOR_AREA_LENGTH	0x00010000
 
-/* Number of IO devices per CPU */
-#define NUM_IO_DEVICES		0x10
 
+/* Number of IO devices */
+#define NUM_IO_DEVICES		(IO_DESCRIPTOR_AREA_LENGTH / sizeof(struct device_descriptor))
+
+#if 0
 /* Macros for reading from memory */
 #define GET_BIGWORD(addr) ((uint32_t) \
 			   ((addr)[0] << 24)  | \
@@ -60,7 +63,7 @@
 #define SET_BIGHALF(addr, value) \
 	(addr)[0] = (value) >> 8; \
 (addr)[1] = (value) << 24 >> 24;
-
+#endif
 
 /* Memory operations size */
 typedef enum {
@@ -75,8 +78,11 @@ typedef struct mmu {
 	uint8_t *pmem;	/* Raw memory */
 	uint32_t size_total;  /* Allocated memory */
 
-	/* Memory-mapped I/O devices */
-	io_device_descriptor_t* io_device[NUM_IO_DEVICES];
+	/* Pointer to IO descriptor area */
+	device_descriptor_t *device_descriptor_start;
+
+	/* Pointer to next free IO register area */
+	uint32_t next_device_register;
 
 	/* Sizes of the different segments.
 	 * Sum up to size_total */
