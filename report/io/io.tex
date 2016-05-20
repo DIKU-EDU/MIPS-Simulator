@@ -1,3 +1,4 @@
+\label{sec:io}
 There are multiple ways a computer can communicate with its peripheral devices.
 The most used techniques are Memory-Mapped I/O (MMIO) and Port-Mapped I/O
 (PMIO). Port-Mapped I/O is an older method of accessing peripherals, and is much
@@ -96,27 +97,72 @@ When the peripheral is finished with its actions on the memory, it will usually
 notify the CPU using an interrupt, having the processor taking care of the rest.\\
 Direct Memory Access is often utilized by peripherals with heavy IO use, such
 as the storage drives, as well as network-, sound-, and graphics-cards.\\
-Because our simulator will not be enjoying heavy data-transfers between its
-IO devices, DMA will not be implemented.
+Because KUDOS does not read large portions of data from its IO devices, nor is
+there any DMA support in the current YAMS simulator, DMA will not be implemented.
+
+\subsection{Detecting and mapping peripherals}
+When a computer is turned on, or a new peripheral device is plugged in, the MIPS
+processor and its MMU automatically map the device to a given address, allocating
+the necessary IO registers. All this happens seamlessly and without the interaction
+of the operating system. This is problematic, because the OS needs to know the
+type of the device and the address of its memory mapped registers, amongst other
+things. There is no real way to communicate this between the processor and the
+operating system. To make matters worse, each processor has its own addresses
+for the registers, and a slightly different configuration. On top of that, each
+board has its own set of external components, busses and metadevices\cite{devicetree_spec}\cite{xillybus:devicetree}.
+Instead of compiling a very specialized kernel for seemingly every configuration
+of a System on a Chip (SoC), operating system and bootloader developers have
+designed a specification \emph{devicetree}, which is used to describe system
+hardware\cite{devicetree_spec}.\\
+The devicetree specification can describe a lot of aspects of a hardware devices,
+such as the interrupt number, size of the IO registers, even the device clock
+speeds.\\
+The Linux kernel also enjoys this devicetree specification, both for ARM and
+MIPS architecuters\cite[\texttt{linux-4.6/arch/mips/boot/dts}]{linux}, reducing the time
+and complexity of implementing a new board or a SoC.\\
+In KUDOS, this data structure is unfortunatelly not used, because the hardware
+it is run on is very limited, consisting almost only of simulated devices. As
+a result of that, KUDOS looks for at a predefined address for data structures
+describing the devices, called the device descriptors.
+
+\subsection{Device descriptors}
+To detect and communicate with external devices, device descriptors are used.
+A device descriptor is a data structure which, just like a devicetree, specifies
+all the relevant information about the device, such as its type, name, register
+addresses and so on. The format of the device descriptor is defined in Yet Another
+MIPS Simulator, the current simulator used to run KUDOS. The same device descriptor
+structure is defined in KUDOS, so that KUDOS can interface with the underlying
+simulator, retrieving the relevant information.
+The structure is defined in \texttt{kudos/drivers/mips32/arch.h}\cite{kudos} as:
+\begin{lstlisting}[language=c]
+typedef struct {
+    uint32_t type;
+    uint32_t io_area_base;
+    uint32_t io_area_len;
+    uint32_t irq;
+    char vendor_string[8];
+
+   /* Reserved area (unused). */
+    uint32_t resv[2];
+} io_descriptor_t;
+\end{lstlisting}
+
+\textbf{TO BE COMPLETED.}
+
 
 \subsection{Implementation}
 Implementation of external devices requires a lot of new modules and features
 in the simulator. The main issue is that we require to communicate with
-events, not handled by the simulator. To achieve this, we will use first-in
-first-out special files (FIFO), more commonly known as named pipes. This pipes
-will serve as a communication channels to external devices (or rather, external
-programs).
+events, not necessarily handled by the simulator.
 
-\subsection{Named pipes}
-For every unique device available, the simulator will create a named pipe,
-using which these two will communicate.
 
-\begin{lstlisting}[language=c]
-/* Simulator pipe structure */
-typedef struct pipe_io {
-	bool ready;
-	bool interrupt_enable;
-	uint8_t byte;
-} pipe_io_t;
 
-\end{lstlisting}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=1]{io/io_memory_layout.eps}
+	\caption{Memory layout of IO device descriptors and registers.}
+	\label{fig:io_memory_layout}
+\end{figure}
+
+
+

@@ -67,8 +67,28 @@ Thus, the IRQ pin can be enabled over multiple clock-cycles before it is
 acknowledged\cite{cs_pitt:exceptions}. While it may sound that having a hardware
 device wait several clock-cycles results in delayed output, it should be noted
 how fast MIPS CPUs (and many others) are, and how many instructions they are
-able to carry out before the external device even notices.
+able to carry out before the external device even notices.\\
+It should be noted that this is another point where MIPS32 deviates from its
+more mainstream x86 counterpart. While the MIPS processor knows that an hardware
+interrupt has occured, it does not know which device raised it. To detect the
+device that raised the interrupt, it must scan all the device IO registers,
+discussed in section \ref{sec:io}. This approach is called "Polled Interrupts".
 
+\subsubsection{Polled Interrupts and Vectored Interrupts}
+In polled interrupts, the processor does not know the hardware source of the
+interrupt, and must therefore check the status IO register of each device in
+order to determine if the device needs to be serviced\cite{cs_pitt:exceptions}.
+This method is used in MIPS, for simplicity of the hardware, and because exceptions
+are handled by generic exception handler code as well.\\
+Another method of handling interrupts is using vectored interrupts, used by
+the x86 architecture. In vectored interrupts, much like vectored exceptions, the
+processor jumps to a certain interrupt handling code, based on the interrupt type.
+However, since the event is external to the processor (caused by hardware),
+additional wires must be attached to the CPU, informing it of the IRQ number,
+which is unique for each type of device\cite{osdev:interrupts}. This requires
+a lot of added hardware complexity in the form of an interrupt controller,
+such as the well known Intel 8259 IRQ controller, which can queue up
+multiple interrupts, even prioritizing them according to the need of the CPU\cite{osdev:interrupts}.
 
 \subsubsection{Exception procedure}
 \label{sec:exception_procedure}
