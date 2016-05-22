@@ -21,7 +21,7 @@ computers grew more powerful, more complex and much faster, larger programs coul
 executed. Because it is hard and time-consuming to write programs using
 only the
 assembly language, compilers are used to remove this complexity. A
-compiler takes a high-level language, such as C, C++ or Java, and creates the
+compiler takes a high-level language, such as C, C++ or Rust, and creates the
 corresponding assembly language program for the specific architecture,
 containing the instructions. This assembly language file is in turn assembled
 or translated to binary, that the particular CPU can understand.
@@ -37,7 +37,7 @@ works. An ISA determines the instructions
 supported, the registers available, memory architecture, addressing modes as
 well as handling of interrupts.
 
-There exists many different types of ISAs, with both their advantages and
+There exist many different types of ISAs, with both their advantages and
 disadvantages. For example, some architectures have a very few instructions
 and registers, which is very practical for small embedded devices,
 whereas large
@@ -64,7 +64,7 @@ whole ISA.
 
 \subsection{MIPS Architecture}
 The MIPS architecture (acronym for Microprocessor without Interlocked Pipeline
-Stages) was first created in the early 1980s.\cite{imgtec:MIPS_Overview}
+Stages) was first created in the early 1980s\cite{imgtec:MIPS_Overview}.
 MIPS is a reduced instruction set architecture (RISC), developed by MIPS
 technologies, to bring new levels of
 performance and efficiency into the world of processing units. As an RISC
@@ -94,7 +94,7 @@ These are \cite{COD5}:
 	\item \textit{Design Principle 2:} Smaller is faster.
 	\item \textit{Design Principle 3:} Good design demands good
 	compromises.
-	\item \textit{Design Principle 4:} Make common case fast.
+	\item \textit{Design Principle 4:} Make the common case fast.
 \end{itemize}
 These decisions withstood the trial by fire and proved, that honoring these
 principles yields good design, easing implementation as well as simplifying
@@ -102,15 +102,15 @@ hardware.
 
 
 \section{MIPS Core Processing Unit}
-MIPS CPUs are pipelined, meaning that it implements a pipeline which
-enables it
+MIPS CPUs are pipelined, meaning that they implement an instruction pipeline which
+enables them
 to execute different stages of multiple instructions at once. This gives the
 processor a higher throughput that would otherwise be possible at a given
 clock-rate. The processor has 31 general purpose (GP) registers, with
 additional registers
 per co-processing unit. Even the first models of the MIPS CPUs, such as the
-MIPS R2000, had memory caches and a translation lookaside-buffer, which improves
-the speed of the processor by reducing the number of main memory lookups.
+MIPS R2000, had memory caches and a translation lookaside-buffer, which
+improved the speed of the processor by reducing the number of main memory lookups.
 
 \subsection{Registers}
 MIPS contains multiple types of registers. The most common and most used
@@ -170,8 +170,8 @@ architectures,
 this register is better known as the Instruction Pointer (IP).
 
 \subsubsection{Co-processor 0 registers}
-Registers in co-processor 0 are mainly used by the system, to provide
-additional features. The co-processor can have 32 registers, but only few of
+Registers in co-processor 0 are mainly used by the system, to provide features
+required to run an operating-system. The co-processor can have 32 registers, but only few of
 them are used consistently across the different CPU implementations. That is
 due to the wide applications of the MIPS architecture, where manufacturers
 only define and implement the truly necessary co-processor registers.
@@ -182,12 +182,12 @@ only define and implement the truly necessary co-processor registers.
 	\textbf{Name} & \textbf{\#} & \textbf{Use} \\ \hline \hline
 	\texttt{index}		& -	& TLB entry index\\ \hline
 	\texttt{random}		& -	& TLB random access register \\ \hline
-	\texttt{entrylo}	& -	& Low order current TLB entry \\
+	\texttt{entrylo}	& -	& Current low TLB entry \\
 	\hline
 	\texttt{context}	& -	& Page-Table lookup addr. \\ \hline
 	\texttt{vaddr}		& -	& Virtual address of exceptions
 	\\ \hline
-	\texttt{entryhi}	& -	& High order current TLB entry\\
+	\texttt{entryhi}	& -	& Current high TLB entry\\
 	\hline
 	\texttt{status}		& -	& Processor status \\ \hline
 	\texttt{cause}		& -	& Exception cause \\ \hline
@@ -211,17 +211,17 @@ the processor as well as the programmer.
 In MIPS, the instructions have 3 basic formats:
 \begin{figure}[H]
 
-\begin{subfigure}[b]{0.3\textwidth}
+\begin{subfigure}[b]{0.6\textwidth}
 	\includegraphics{cpu_architecture/r_format.eps}
 	\label{fig:instruction_r_format}
 \end{subfigure}
 
-\begin{subfigure}[b]{0.3\textwidth}
+\begin{subfigure}[b]{0.6\textwidth}
 	\includegraphics{cpu_architecture/i_format.eps}
 	\label{fig:instruction_i_format}
 \end{subfigure}
 
-\begin{subfigure}[b]{0.3\textwidth}
+\begin{subfigure}[b]{0.6\textwidth}
 	\includegraphics{cpu_architecture/j_format.eps}
 	\label{fig:instruction_j_format}
 \end{subfigure}
