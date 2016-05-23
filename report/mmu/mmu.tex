@@ -1,3 +1,4 @@
+\label{sec:mmu}
 Most processors strive to help the OS and its developers to ensure optimal
 utilization of the main memory, as well as the overall security of the programs
 memory usage.\\
@@ -42,7 +43,7 @@ bootup.
 When the CPU starts up, it is by default in kernel mode. In this mode, it has
 the privilege to access all addresses (along with many other things). The
 kernel will retain this privilege until it starts user programs, in which case,
-the OS flips the \texttt{KUc} bit in the co-processor0 status register\cite{harvard_mips_summary}.
+the OS flips the \texttt{KSU} bit in the co-processor0 status register\cite{harvard_mips_summary}.
 
 \subsection{Translation Lookaside Buffer}
 TODO

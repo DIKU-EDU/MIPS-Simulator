@@ -8,22 +8,25 @@ just for communication with I/O devices. I/O devices have a specified port
 number, which the processor uses to identify and communicate with the device,
 much like an address.
 For example, Intel x86 processors might be polling\footnote{Polling refers to
-the activity where a CPU periodically samples the status of an external device} a keyboard using the
-special \texttt{in} instruction, specifying keyboard ID
-\texttt{0x60}\cite{intel:pch}\cite{osdev:io_ports}:
+the activity where a CPU periodically samples the status of an external device}
+a keyboard using the special \texttt{in} instruction, specifying the predefined
+keyboard status ID \texttt{0x60}, then reading from keyboard data, with ID
+\texttt{0x64}\cite{intel:pch}\cite{osdev:io_ports}:
 \begin{lstlisting}[language={[x86masm]Assembler}]
 _wait:
-  in  al, 64H	; Read status
-  and al, 1		; Check if ready
+  in  al, 64H ; Read keyboard status
+  and al, 1   ; Check if ready
   jz  _wait
-  in  al, 60H	; Read data
+  in  al, 60H ; Read keyboard data
 \end{lstlisting}
 Besides the added circuitry in the processor, port-mapped I/O are fairly
-simple to implement and easy to use. They have their own special instructions,
+simple to implement for chip manufacturers, and easy to use for programmers.
+They have their own special instructions,
 and they do not share memory space, which prevents confusion about
 memory segmenting.
 However, PMIO approach is very limited to only \texttt{in} and \texttt{out}
-instructions, as well as very limited "ID" space for the devices.\\
+instructions, reading only a few bytes at a time into the EAX register, as well
+as a limited port numbers for the devices.\cite{intelmanual}\\
 
 Memory-Mapped I/O is commonly used by RISC architectures. In MMIO,
 communication with the peripherals happens over the same address bus as the
@@ -34,12 +37,12 @@ The advantage of memory-mapped I/O is that the method uses already existing
 memory bus lanes for communication, unlike the port implementation. However,
 since the memory is shared with peripherals, and these addresses are not
 maintained by the processor, additional logic has to be created in the
-memory-management unit. However, PMIO is very limited to the simple \texttt{in
+memory-management unit (discussed in the next section). However, PMIO is very limited to the simple \texttt{in
 / out} instructions, as well as a hardware-limited device allocation, whereas
 MMIO is much more free with device "address" allocation. Due to these reasons,
 memory-mapped I/O is becoming increasingly popular, even on modern x86
 hardware\cite{osdev:io_ports}.\\
-MIPS sees Input/Output (IO) devices as a set of special-purpose registers. These
+MIPS initially sees Input/Output (IO) devices as a set of special-purpose registers. These
 special registers are the processors only way of communicating with a given
 device.\\
 For every device, there 3 types of
@@ -58,8 +61,9 @@ registers\cite{cs_uwm:memory_mapped_io}\cite{imgtec:pra}:
 	on the keyboard might be stored in this register.
 \end{itemize}
 
-In memory, these registers have allocated 4 bytes each, and are always located
-sequentially in the memory. Figure \ref{fig:io_registers} shows the actual bit-allocation in the register.
+On MIPS32, in the memory, these registers have allocated 4 bytes each, and are
+always located sequentially in the memory. Figure \ref{fig:io_registers} shows
+the actual bit-allocation in the register.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=1]{io/io_registers.eps}
@@ -74,7 +78,7 @@ Depending on the type of the IO device, the device can be represented from a
 few registers to dozens. For example, a mouse or a keyboard only transmits few
 bytes of information at a time, needing only a few registers, while graphic
 adaptors or disk drives might need more\cite{cs_uwm:memory_mapped_io}.\\
-These special-purpose registers are located in the RAM, mapped to a certain
+These special-purpose registers are located in the memory, mapped to a certain
 segment. A device controller maintains a list of these registers, and maps new
 devices to the memory.\cite{britton:mips}\\
 On MIPS32, the highest 64 kilobytes (\texttt{0xffff0000 - 0xffffffff}) in the
@@ -83,12 +87,12 @@ The memory mapping the IO area must not be cached, as it can cause major problem
 for the caches, and heavy delays due to many cache-misses\cite{see_mips_run}.\\
 However, it is obvious that IO registers can be very inconvenient for larger and
 fast data-transfer, due to the very limited register size. To dodge this
-bottlenect, memory controllers are implemented to give IO devices direct access
-to larger parts the main memory, without the need of going through the CPU first.
+bottleneck, memory controllers are implemented to give IO devices direct access
+to larger parts of the main memory, without the need of going through the CPU first.
 
 \subsection{Direct Memory Access}
-Direct Memory Access controllers, also called DMA controllers, are features
-that allows certain hardware to access the main memory independently of the CPU.
+Direct Memory Access controllers, also called DMA controllers, allow certain
+hardware to access the main memory independently of the CPU.
 In MIPS, this feature is built-in in the MMU.\\
 Larger transfers between hardware and the memory is usually initiated through
 the device registers, where the CPU sets up the MMU and communicates the target
@@ -122,7 +126,7 @@ MIPS architecuters\cite[\texttt{linux-4.6/arch/mips/boot/dts}]{linux}, reducing 
 and complexity of implementing a new board or a SoC.\\
 In KUDOS, this data structure is unfortunatelly not used, because the hardware
 it runs on is very limited, consisting almost only of simulated devices. As
-a result of that, KUDOS looks for at a predefined address for data structures
+a result of that, KUDOS looks at a predefined address for data structures
 describing the devices, called the device descriptors.
 
 \subsection{Device descriptors}
