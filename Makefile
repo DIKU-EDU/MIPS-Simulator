@@ -23,5 +23,8 @@ $(TARGET): $(OBJECTS) Makefile
 test: $(wildcard $(TESTDIR)*.S) Makefile
 	make -C $(TESTDIR)
 
+perf: all perf.gdb ../KUDOS/kudos/kudos-mips32
+	gdb -x perf.gdb --args bin/mips-sim -p ../KUDOS/kudos/kudos-mips32
+
 clean:
 	rm -f $(OBJECTS) $(TARGET)
