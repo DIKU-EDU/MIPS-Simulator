@@ -32,6 +32,7 @@
 #define IO_DESCRIPTOR_AREA_LENGTH	0x00010000
 
 
+
 /* Number of IO devices */
 #define MAX_IO_DEVICES		(IO_DESCRIPTOR_AREA_LENGTH / sizeof(struct device_descriptor))
 

@@ -113,6 +113,7 @@ extern char* funct_codes[];
 
 #define SIGN_EXTEND(value)  ((int32_t)(int16_t)value)
 #define ZERO_EXTEND(value)  ((uint32_t)value)
+#define ZERO_EXTEND_MASK	(uint32_t)0x0000FFFF
 
 /* Exception codes
  * COD Green Card */
