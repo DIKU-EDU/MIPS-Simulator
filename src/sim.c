@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "tools.h"
 #include "sim.h"
@@ -36,7 +40,7 @@ void interpret_if(core_t *core, mmu_t *mem)
 	/* Fetch the next instruction */
 	uint32_t inst = 0;
 	IF_ID.exception = mmu_read(core, mem, REGS(REG_PC), &inst,
-				 MEM_OP_WORD);
+				   MEM_OP_WORD);
 
 	/* Hazard control
 	 * COD5 p. 314 */
@@ -123,7 +127,7 @@ void interpret_id_control(core_t *core)
 
 	case OPCODE_BEQ:
 		ID_EX.c_beq		= 1;
-			break;
+		break;
 
 	case OPCODE_BNE:
 		ID_EX.c_bne		= 1;
@@ -147,7 +151,7 @@ void interpret_id_control(core_t *core)
 			| (GET_ADDRESS(ID_EX.inst)<<2);
 		break;
 
-	/* Same as JUMP, but store the next address in $ra */
+		/* Same as JUMP, but store the next address in $ra */
 	case OPCODE_JAL:
 		ID_EX.c_jump		= 1;
 		ID_EX.jump_addr = (ID_EX.next_pc & 0xF0000000)
@@ -166,12 +170,12 @@ void interpret_id_control(core_t *core)
 		ID_EX.c_reg_write = 1;
 		break;
 
-	/* NOTE: These instructions cannot be executed in the same clock, due
-	 * data-hazards.
-	 *
-	 * These functions work by adding the source register with $0, saving
-	 * to the specified register (basically converting instruction to ADD).
-	 */
+		/* NOTE: These instructions cannot be executed in the same clock, due
+		 * data-hazards.
+		 *
+		 * These functions work by adding the source register with $0, saving
+		 * to the specified register (basically converting instruction to ADD).
+		 */
 	case OPCODE_CP0:
 		/* Function in encoded in RS */
 		switch(GET_RS(inst)) {
@@ -352,7 +356,7 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case OPCODE_ADDIU:
-				EX_MEM.alu_res = a + b;
+			EX_MEM.alu_res = a + b;
 			break;
 
 		case OPCODE_SLTI:
@@ -531,7 +535,7 @@ void handle_exception(core_t *core, mmu_t *mem)
 	/* PC is inaccessible using regular instruction encoding. We will just
 	 * assign it directly, which will skip a few clocks. Hack? */
 	core->cp0.regs[REG_EPC] = MEM_WB.next_pc; /* next_pc points to next
-							 instruction, so subtract 4.*/
+						     instruction, so subtract 4.*/
 
 
 	DEBUG("EPC = 0x%08x", core->cp0.regs[REG_EPC]);
@@ -748,24 +752,43 @@ void tick(hardware_t *hw)
 	}
 }
 
-int run(hardware_t *hw)
+int run(hardware_t *hw, int fd_log)
 {
+
+	char *buf = (char*)calloc(1, INSTRUCTION_BUFFER_SIZE);
+	if(buf == NULL) {
+		ERROR("Could not allocate instruction string buffer");
+	}
+
 	while(g_finished == false) {
 		/* XXX: Assumes one core */
+
+		uint32_t inst = 0;
+		exception_t e = mmu_read(&hw->cpu->core[0],
+					 hw->mmu,
+					 hw->cpu->core[0].regs[REG_PC],
+					 &inst, MEM_OP_WORD);
+		e = e;
+
+
 		if(g_debugging) {
-			uint32_t inst = 0;
-			exception_t e = mmu_read(&hw->cpu->core[0],
-						 hw->mmu,
-						 hw->cpu->core[0].regs[REG_PC],
-						 &inst, MEM_OP_WORD);
-			e = e;
 			debug(inst, &hw->cpu->core[0], hw->mmu);
+		}
+
+		if(fd_log != -1 && buf != NULL) {
+			int len = instruction_string(
+						     inst,
+						     &hw->cpu->core[0],
+						     buf,
+						     INSTRUCTION_BUFFER_SIZE);
+			write(fd_log, buf, len);
 		}
 		tick(hw);
 	}
 
 	DEBUG("RETURNED: %d", hw->cpu->core[0].regs[REG_V0]);
 
+	free(buf);
 	/* XXX */
 	return hw->cpu->core[0].regs[REG_V1];
 }
@@ -794,7 +817,7 @@ static hardware_t* sim_init(size_t cores, size_t mem)
 
 	/* Set stack pointer to top of memory */
 	hw->cpu->core[0].regs[REG_SP] = (uint32_t)(KSEG0_VSTART +
-		hw->mmu->size_kseg0) - 4;
+						   hw->mmu->size_kseg0) - 4;
 
 	DEBUG("Stack-Pointer set to: 0x%08x", hw->cpu->core[0].regs[REG_SP]);
 
@@ -814,7 +837,7 @@ void sim_free(hardware_t *hw)
 }
 
 
-int simulate(char *program, size_t cores, size_t mem, bool debug)
+int simulate(char *program, size_t cores, size_t mem, bool debug, bool log)
 {
 	/* Set debugging */
 	g_debugging = debug;
@@ -831,6 +854,19 @@ int simulate(char *program, size_t cores, size_t mem, bool debug)
 		exit(0);
 	}
 
-	int ret = run(hw);
+	/* If logging enabled, open file */
+	int fd = -1;
+	if(log) {
+		if((fd = open("./instruction_log.txt", O_RDWR | O_CREAT, 0666)) == -1) {
+			perror("open");
+		}
+	}
+
+
+	int ret = run(hw, fd);
+
+	/* free */
+	close(fd);
+
 	return ret;
 }

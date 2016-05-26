@@ -1,33 +1,51 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 
 #include "mips32.h"
 #include "disasm.h"
 
 void print_instruction(uint32_t instr, core_t *core)
 {
-	/* Print the hex */
-	printf("0x%08X\t",instr);
+	char buf[INSTRUCTION_BUFFER_SIZE];
+	memset(buf,0, sizeof(buf));
+
+	instruction_string(instr, core, buf, INSTRUCTION_BUFFER_SIZE);
+
+	printf("%s", buf);
+}
+
+
+int instruction_string(uint32_t instr, core_t *core, char *buf, size_t buf_size)
+{
+	int i = 0; /* bytes written */
+	/* get hex value, move pointer */
+
+	i = snprintf(buf, buf_size - i,"0x%08X\t", instr);
+
 
 	switch(GET_OPCODE(instr)) {
 		/* R-type */
 	case OPCODE_R:
-		printf("%s  rs = %s = %d,  rt = %s = %d,  rd = %s = %d,  shamt = %d\n",
-		       funct_codes[GET_FUNCT(instr)],
-		       reg_names[GET_RS(instr)], core->regs[GET_RS(instr)],
-		       reg_names[GET_RT(instr)], core->regs[GET_RT(instr)],
-		       reg_names[GET_RD(instr)], core->regs[GET_RD(instr)],
-		       GET_SHAMT(instr));
-		return;
+		i += snprintf(buf+i, buf_size - i,
+			      "%s  rs = %s = %d,  rt = %s = %d,  rd = %s = %d,  shamt = %d\n",
+			      funct_codes[GET_FUNCT(instr)],
+			      reg_names[GET_RS(instr)], core->regs[GET_RS(instr)],
+			      reg_names[GET_RT(instr)], core->regs[GET_RT(instr)],
+			      reg_names[GET_RD(instr)], core->regs[GET_RD(instr)],
+			      GET_SHAMT(instr));
+		return i;
 
 		/* J-type */
 	case OPCODE_J:
 	case OPCODE_JAL:
-		printf("%s   0x%08X\n",
-		       op_codes[GET_OPCODE(instr)],
-		       GET_IMM(instr));
-		return;
+		i += snprintf(buf+i, buf_size - i,
+			      "%s   0x%08X\n",
+			      op_codes[GET_OPCODE(instr)],
+			      GET_IMM(instr));
+		return i;
 
 		/* I-type */
 	case OPCODE_BEQ:
@@ -46,25 +64,28 @@ void print_instruction(uint32_t instr, core_t *core)
 	case OPCODE_LHU:
 	case OPCODE_LW:
 	case OPCODE_SW:
-		printf("%s  rs = %s = %d,  rt = %s = %d,  imm = %d\n",
-		       op_codes[GET_OPCODE(instr)],
-		       reg_names[GET_RS(instr)], core->regs[GET_RS(instr)],
-		       reg_names[GET_RT(instr)], core->regs[GET_RT(instr)],
-		       GET_IMM(instr));
-		return;
+		i += snprintf(buf+i, buf_size - i,
+			      "%s  rs = %s = %d,  rt = %s = %d,  imm = %d\n",
+			      op_codes[GET_OPCODE(instr)],
+			      reg_names[GET_RS(instr)], core->regs[GET_RS(instr)],
+			      reg_names[GET_RT(instr)], core->regs[GET_RT(instr)],
+			      GET_IMM(instr));
+		return i;
 
 
-	/* SPECIAL */
+		/* SPECIAL */
 	case OPCODE_CP0:
-		printf("%s, %s  rt = %s = %d,  rd = %s = %d\n",
-		       op_codes[GET_OPCODE(instr)],
-			cp0_codes[GET_RS(instr)],
-		       reg_names[GET_RT(instr)], core->regs[GET_RT(instr)],
-		       cp0_reg_names[GET_RD(instr)], core->cp0.regs[GET_RD(instr)]);
-		return;
+		i += snprintf(buf+i, buf_size - i,
+			      "%s, %s  rt = %s = %d,  rd = %s = %d\n",
+			      op_codes[GET_OPCODE(instr)],
+			      cp0_codes[GET_RS(instr)],
+			      reg_names[GET_RT(instr)], core->regs[GET_RT(instr)],
+			      cp0_reg_names[GET_RD(instr)], core->cp0.regs[GET_RD(instr)]);
+		return i;
 	default:
-		printf("Unknown instruction: 0x%08X", instr);
+		i += snprintf(buf+i, buf_size - i,
+			      "Unknown instruction: 0x%08X", instr);
 	}
 
-	return;
+	return i;
 }

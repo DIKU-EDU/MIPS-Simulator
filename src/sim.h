@@ -12,7 +12,7 @@ typedef struct hardware {
 
 } hardware_t;
 
-int simulate(char *program, size_t cores, size_t mem, bool debug);
+int simulate(char *program, size_t cores, size_t mem, bool debug, bool log);
 
 /* Deallocates hardware component as well as the subsequent structures */
 void sim_free(hardware_t *hw);

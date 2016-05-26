@@ -31,6 +31,8 @@ device_t* shutdown_device_create()
 
 int shutdown_device_write(device_t *dev, uint32_t addr, uint32_t data)
 {
+	DEBUG("SHUTDOWN WRITTEN");
+
 	if(data == POWEROFF_SHUTDOWN_MAGIC) {
 		g_finished = true;
 	}

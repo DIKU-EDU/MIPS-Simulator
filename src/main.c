@@ -33,6 +33,9 @@ showHelp(const char *progname)
 		"the number of memory bytes to simulate\n");
 	printf("  -d, --debug            "
 		"print debug information during simulation\n");
+	printf("  -l, --log              "
+		"log executed instructions in instruction_log.txt during simulation\n");
+
 }
 
 static void
@@ -60,6 +63,9 @@ int main(int argc, char **argv)
 	/* Memory size */
 	size_t memsz = MEMORY_SIZE;
 
+	/* log instruction flag */
+	bool log_instructions = false;
+
 	/* Parse command line arguments. */
 
 	static struct option
@@ -71,6 +77,7 @@ int main(int argc, char **argv)
 		{"help",     no_argument,       0, 'h'},
 		{"memory",   required_argument, 0, 'm'},
 		{"program",  required_argument, 0, 'p'},
+		{"log",	     no_argument,       0, 'l'},
 		{0, 0, 0, 0}
 	};
 
@@ -106,6 +113,9 @@ int main(int argc, char **argv)
 			exit(EXIT_SUCCESS);
 			break;
 
+		case 'l':
+			log_instructions = true;
+			break;
 		case '?':
 		default:
 			showUsage(argv[0]);
@@ -124,5 +134,5 @@ int main(int argc, char **argv)
 	}
 
 	cores = cores; /* Ignore warning */
-	return simulate(program, cores, memsz, debug);
+	return simulate(program, cores, memsz, debug, log_instructions);
 }

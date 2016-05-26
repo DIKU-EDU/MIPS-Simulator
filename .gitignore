@@ -12,6 +12,8 @@ programs/regs.txt
 *.log
 *.aux
 
+instruction_log.txt
+
 
 # Ignore everything in the report folder except .tex and .eps files
 report/*.*
