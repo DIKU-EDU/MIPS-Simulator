@@ -782,6 +782,8 @@ int run(hardware_t *hw, int fd_log)
 						     buf,
 						     INSTRUCTION_BUFFER_SIZE);
 			write(fd_log, buf, len);
+
+			memset(buf, 0, INSTRUCTION_BUFFER_SIZE);
 		}
 		tick(hw);
 	}

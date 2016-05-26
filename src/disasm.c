@@ -21,7 +21,6 @@ void print_instruction(uint32_t instr, core_t *core)
 int instruction_string(uint32_t instr, core_t *core, char *buf, size_t buf_size)
 {
 	int i = 0; /* bytes written */
-	/* get hex value, move pointer */
 
 	i = snprintf(buf, buf_size - i,"0x%08X\t", instr);
 
@@ -30,7 +29,7 @@ int instruction_string(uint32_t instr, core_t *core, char *buf, size_t buf_size)
 		/* R-type */
 	case OPCODE_R:
 		i += snprintf(buf+i, buf_size - i,
-			      "%s  rs = %s = %d,  rt = %s = %d,  rd = %s = %d,  shamt = %d\n",
+			      "%s  rs = %s = 0x%08X,  rt = %s = 0x%08X,  rd = %s = 0x%08X,  shamt = 0x%08X\n",
 			      funct_codes[GET_FUNCT(instr)],
 			      reg_names[GET_RS(instr)], core->regs[GET_RS(instr)],
 			      reg_names[GET_RT(instr)], core->regs[GET_RT(instr)],
@@ -65,7 +64,7 @@ int instruction_string(uint32_t instr, core_t *core, char *buf, size_t buf_size)
 	case OPCODE_LW:
 	case OPCODE_SW:
 		i += snprintf(buf+i, buf_size - i,
-			      "%s  rs = %s = %d,  rt = %s = %d,  imm = %d\n",
+			      "%s  rs = %s = 0x%08X,  rt = %s = 0x%08X,  imm = 0x%08X\n",
 			      op_codes[GET_OPCODE(instr)],
 			      reg_names[GET_RS(instr)], core->regs[GET_RS(instr)],
 			      reg_names[GET_RT(instr)], core->regs[GET_RT(instr)],
@@ -76,7 +75,7 @@ int instruction_string(uint32_t instr, core_t *core, char *buf, size_t buf_size)
 		/* SPECIAL */
 	case OPCODE_CP0:
 		i += snprintf(buf+i, buf_size - i,
-			      "%s, %s  rt = %s = %d,  rd = %s = %d\n",
+			      "%s, %s  rt = %s = 0x%08X,  rd = %s = 0x%08X\n",
 			      op_codes[GET_OPCODE(instr)],
 			      cp0_codes[GET_RS(instr)],
 			      reg_names[GET_RT(instr)], core->regs[GET_RT(instr)],
