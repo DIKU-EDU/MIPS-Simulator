@@ -33,7 +33,11 @@
 \usepackage{tablefootnote}
 \usepackage{footnote}
 \usepackage{subcaption}
+\usepackage{lipsum}
+
+
 \makesavenoteenv{tabular}
+
 % More subsubsub sections
 
 \iffalse
@@ -234,8 +238,6 @@
 \section{Introduction}
 \input{introduction/introduction.tex}
 
-
-
 \section{CPU Architectures}
 \input{cpu_architecture/cpu_architecture.tex}
 
@@ -249,15 +251,13 @@
 \section{Exceptions and Interrupts}
 \input{exceptions/exceptions.tex}
 
+\section{MMU}
+\input{mmu/mmu.tex}
+
 \section{Memory Mapped IO}
 \input{io/io.tex}
 
 \section{TLB}
-
-\section{MMU}
-\input{mmu/mmu.tex}
-
-\section{SMP}
 
 \section{Tests}
 
@@ -266,6 +266,7 @@
 \section{Conclusion}
 
 
+\newpage
 \newpage
 \bibliography{mybib}{}
 \bibliographystyle{plain}

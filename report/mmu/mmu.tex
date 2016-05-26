@@ -39,21 +39,24 @@ mode. This segment is mapped and cached, and thus, cannot be used immediatelly a
 bootup.
 \end{itemize}
 
-\subsection{Privilege levels}
+\subsection{Memory access privileges}
 When the CPU starts up, it is by default in kernel mode. In this mode, it has
 the privilege to access all addresses (along with many other things). The
 kernel will retain this privilege until it starts user programs, in which case,
 the OS flips the \texttt{KSU} bit in the co-processor0 status register\cite{harvard_mips_summary}.
-
-\subsection{Translation Lookaside Buffer}
-TODO
+Privilege levels are described in further detail in section
+\ref{sec:privileges}.
 
 \subsection{Implementation}
+
+
 \ref{fig:address_space_mapping}
 
-\begin{figure*}[ht]
-	\centering
-	\includegraphics[scale=0.70]{mmu/memory_mapping.eps}
+
+\begin{figure*}[h]
+	\includegraphics[width=\textwidth]{mmu/memory_mapping.eps}
 	\caption{Main memory mapping in the simulator.}
 	\label{fig:address_space_mapping}
 \end{figure*}
+
+
