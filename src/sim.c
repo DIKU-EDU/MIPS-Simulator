@@ -819,12 +819,12 @@ static hardware_t* sim_init(size_t cores, size_t mem)
 	hw->cpu = cpu_init(cores);
 
 	/* Set stack pointer to top of memory */
-#if 0
+	/* XXX: The OS should do this by itself, but for testing programs, we
+	 * will let it be.*/
 	hw->cpu->core[0].regs[REG_SP] = (uint32_t)(KSEG0_VSTART +
 						   hw->mmu->size_kseg0) - 4;
 
 	DEBUG("Stack-Pointer set to: 0x%08x", hw->cpu->core[0].regs[REG_SP]);
-#endif
 
 	/* Initialize basic devices */
 	init_io(hw);
