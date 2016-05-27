@@ -47,10 +47,32 @@ the OS flips the \texttt{KSU} bit in the co-processor0 status register\cite{harv
 Privilege levels are described in further detail in section
 \ref{sec:privileges}.
 
+
 \subsection{Implementation}
-
-
-\ref{fig:address_space_mapping}
+The simulator must support multiple memory sizes, for better simulation of
+MIPS programs, as well as being more portable on host machines with limited
+memory.\\
+Since the physical addresses do not match the address of the data on the host
+machine, an additional layer of memory mapping is created, which will ensure the
+segment sizes still match. We will call these addresses for "actual" addresses,
+representing the actual address on the host machine.\\
+A new command-line flag "\texttt{-m}" followed by an integer is added to the
+simulator, which will be used by the user to control how much actual memory is allocated
+for the simulator memory. By default, this is 512MiB.\\
+When the MMU module is initialized, the 4 segments are scaled accordingly --
+\texttt{kuseg} is half of the allocated memory, \texttt{kseg2} makes up a quarter
+of the memory and \texttt{kseg0} and \texttt{kseg1} share the rest.\\
+Now that the addresses are allocated, the simulator needs a way to translate
+between the layers of mappings.\\
+All addresses an ordinary MIPS program uses, are virtual, that is, translated by
+the processor. For translation of a virtual address, the simulator uses
+\texttt{translate\_vaddr(uint32\_t vaddr)}, which translates an address to the
+physical location on the simulated memory, or an IO device, discussed in section
+\ref {sec:io}. However, since we are using a simulator, we must translate the
+address further, into an "actual" address. For this, \texttt{translate\_paddr(uint32\_t paddr, ...)}
+is used, which translates a physical address into an actual address -- the
+address of the data on the host machine. A figure of an example mapping can be
+seen on figure \ref{fig:address_space_mapping}.\\
 
 
 \begin{figure*}[h]
