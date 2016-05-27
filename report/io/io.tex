@@ -151,7 +151,11 @@ typedef struct {
 } io_descriptor_t;
 \end{lstlisting}
 
-\textbf{TO BE COMPLETED.}
+Learning from the devicetree specification and the seasoned Linux developers,
+it would probably be better with a more general method to describe system
+hardware. However, to be compatible with KUDOS and not break it, we will use
+this exact same interface with devices, although modifying its location in
+memory slightly.
 
 
 \subsection{Implementation}
@@ -169,4 +173,34 @@ events, not necessarily handled by the simulator.
 \end{figure}
 
 
+\subsection{Hardware Devices}
+Naturally, we are going to need to implement some essential hardware devices
+for KUDOS to use.\\
+There are no definite specifications for how a hardware device must work.
+Effectivelly, each manufacturer decides the specification of their devices
+themselves. It is impossible for an operating system to keep track of all these
+devices, and so, a special kind of interface, called a \texttt{driver},
+is implemented and used for each device.\\
+Most drivers are specific to certain devices, removing the subsequent complexity
+for the communication with the device. This is also why certain devices refuse
+to work in Linux, Windows or other OS, before the correct driver is installed.
+\cite{microsoft:driver}\\
+Lucky for us, we can define our own devices and its drivers -- that is,
+we do not emulate an existing device, rather we define our own, with its own
+set of magic numbers, IO registers etc.
+
+
+\subsubsection{Shutdown device}
+The first most important device is the shutdown-device, which turns off the
+device (in our case, the simulator).
+In KUDOS and YAMS, this device is implemented with only 1 data register, which
+will trigger a shutdown, if a magic number \texttt{POWEROFF\_SHUTDOWN\_MAGIC} is
+written to it\cite[drivers/metadev.h]{kudos}.\\
+In the simulator, if the write-address is that of the shutdown device, and the
+magic number is known, the global boolean variable \texttt{g\_finished} is
+toggled, stopping the simulator.\\
+Once again, to avoid unneccesarry compatibility breaks with YAMS, we will use
+the same magic number.
+
+\subsubsection{TTY device}
 
