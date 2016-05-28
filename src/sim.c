@@ -777,11 +777,17 @@ int run(hardware_t *hw, int fd_log)
 		}
 
 		if(fd_log != -1 && buf != NULL) {
-			int len = instruction_string(
-						     inst,
-						     &hw->cpu->core[0],
-						     buf,
-						     INSTRUCTION_BUFFER_SIZE);
+			/* Instruction address */
+			int len = snprintf(buf, INSTRUCTION_BUFFER_SIZE, "0x%08X: ",
+				 hw->cpu->core[0].regs[REG_PC]);
+			write(fd_log, buf, len);
+			memset(buf, 0, len);
+
+			len = instruction_string(inst,
+						 &hw->cpu->core[0],
+						 buf,
+						 INSTRUCTION_BUFFER_SIZE);
+
 			write(fd_log, buf, len);
 
 			memset(buf, 0, INSTRUCTION_BUFFER_SIZE);
