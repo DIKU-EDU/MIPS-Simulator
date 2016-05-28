@@ -847,36 +847,21 @@ void sim_free(hardware_t *hw)
 }
 
 
-int simulate(char *program, size_t cores, size_t mem, bool debug, bool log)
+int simulate(simulator_t *simulator)
 {
-	/* Set debugging */
-	g_debugging = debug;
-
 	/* Initialize hardware */
 	hardware_t *hw = sim_init(cores, mem);
+	simulator->hw = hw;
 
 	/* Load the program into memory */
 	int retval;
-	if((retval = elf_dump(program,
+	if((retval = elf_dump(simulator->program,
 			      &(hw->cpu->core[0].regs[REG_PC]),
 			      hw->mmu)) != 0) {
 		ERROR("Elf file could not be read: %d.", retval);
 		exit(0);
 	}
-
-	/* If logging enabled, open file */
-	int fd = -1;
-	if(log) {
-		if((fd = open("./instruction_log.txt", O_RDWR | O_CREAT, 0666)) == -1) {
-			perror("open");
-		}
-	}
-
-
 	int ret = run(hw, fd);
-
-	/* free */
-	close(fd);
 
 	return ret;
 }

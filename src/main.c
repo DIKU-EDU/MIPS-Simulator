@@ -33,7 +33,7 @@ showHelp(const char *progname)
 		"the number of memory bytes to simulate\n");
 	printf("  -d, --debug            "
 		"print debug information during simulation\n");
-	printf("  -l, --log              "
+	printf("  -l, --log=FILE             "
 		"log executed instructions in instruction_log.txt during simulation\n");
 
 }
@@ -51,23 +51,24 @@ parse_size_t(size_t *target, const char *message)
 
 int main(int argc, char **argv)
 {
+	simulator_t simulator = {0};
+
 	/* Program to simulate */
-	char *program = NULL;
+	simulator.program = NULL;
 
 	/* Debug flag */
-	static int debug = 0;
+	simulator.debug = 0;
 
 	/* Number of cores. 1 by default*/
-	size_t cores = 1;
+	simulator.cores = 1;
 
 	/* Memory size */
-	size_t memsz = MEMORY_SIZE;
+	simulator.memsz = MEMORY_SIZE;
 
 	/* log instruction flag */
-	bool log_instructions = false;
+	simulator.logging = false;
 
 	/* Parse command line arguments. */
-
 	static struct option
 	long_options[] =
 	{
@@ -77,7 +78,7 @@ int main(int argc, char **argv)
 		{"help",     no_argument,       0, 'h'},
 		{"memory",   required_argument, 0, 'm'},
 		{"program",  required_argument, 0, 'p'},
-		{"log",	     no_argument,       0, 'l'},
+		{"log",	     required_argument, 0, 'l'},
 		{0, 0, 0, 0}
 	};
 
@@ -97,15 +98,15 @@ int main(int argc, char **argv)
 			break;
 
 		case 'c':
-			parse_size_t(&cores, "Invalid number of cores.");
+			parse_size_t(&simulator.cores, "Invalid number of cores.");
 			break;
 
 		case 'p':
-			program = optarg;
+			simulator.program = optarg;
 			break;
 
 		case 'm':
-			parse_size_t(&memsz, "Invalid memory size.");
+			parse_size_t(&simulator.memsz, "Invalid memory size.");
 			break;
 
 		case 'h':
@@ -114,7 +115,8 @@ int main(int argc, char **argv)
 			break;
 
 		case 'l':
-			log_instructions = true;
+			simulator.logging = true;
+			simulator.log_file = optarg;
 			break;
 		case '?':
 		default:
@@ -124,15 +126,23 @@ int main(int argc, char **argv)
 	}
 
 	if (optind < argc) {
-		program = argv[optind];
+		simulator.program = argv[optind];
 	}
 
 	/* Exit if no program has been supplied*/
-	if(program == NULL) {
+	if(simulator.program == NULL) {
 		printf("No program supplied. Exitting.\n");
 		return 0;
 	}
 
-	cores = cores; /* Ignore warning */
-	return simulate(program, cores, memsz, debug, log_instructions);
+	/* If logging, open new file */
+	if(simulator.logging == true) {
+		if((simulator.fh_log = fopen(simulator.log_file, simulator."a+"))
+		   == NULL) {
+			perror("log file fopen");
+			simulator.logging = false;
+		}
+	}
+
+	return simulate(&simulator);
 }
