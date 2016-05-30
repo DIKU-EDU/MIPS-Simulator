@@ -83,7 +83,7 @@ int instruction_string(uint32_t instr, core_t *core, char *buf, size_t buf_size)
 		return i;
 	default:
 		i += snprintf(buf+i, buf_size - i,
-			      "Unknown instruction: 0x%08X", instr);
+			      "Unknown instruction: 0x%08X\n", instr);
 	}
 
 	return i;

@@ -39,5 +39,3 @@ int shutdown_device_write(device_t *dev, uint32_t addr, uint32_t data)
 	return 0;
 }
 
-
-
