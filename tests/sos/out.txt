@@ -1,0 +1,438 @@
+
+sos.elf:     file format elf32-bigmips
+
+
+Disassembly of section .text:
+
+80010000 <init>:
+80010000:	27bdffe8 	addiu	sp,sp,-24
+80010004:	afbf0014 	sw	ra,20(sp)
+80010008:	afbe0010 	sw	s8,16(sp)
+8001000c:	03a0f025 	move	s8,sp
+80010010:	3c020bad 	lui	v0,0xbad
+80010014:	3444f00d 	ori	a0,v0,0xf00d
+80010018:	0c00400a 	jal	80010028 <shutdown>
+8001001c:	00000000 	nop
+80010020:	1000ffff 	b	80010020 <init+0x20>
+80010024:	00000000 	nop
+
+80010028 <shutdown>:
+80010028:	27bdfff0 	addiu	sp,sp,-16
+8001002c:	afbe000c 	sw	s8,12(sp)
+80010030:	03a0f025 	move	s8,sp
+80010034:	afc40010 	sw	a0,16(s8)
+80010038:	3c02fffe 	lui	v0,0xfffe
+8001003c:	afc20000 	sw	v0,0(s8)
+80010040:	1000000d 	b	80010078 <shutdown+0x50>
+80010044:	00000000 	nop
+80010048:	8fc20000 	lw	v0,0(s8)
+8001004c:	00000000 	nop
+80010050:	88430000 	lwl	v1,0(v0)
+80010054:	00000000 	nop
+80010058:	98430003 	lwr	v1,3(v0)
+8001005c:	24020103 	li	v0,259
+80010060:	1062000c 	beq	v1,v0,80010094 <shutdown+0x6c>
+80010064:	00000000 	nop
+80010068:	8fc20000 	lw	v0,0(s8)
+8001006c:	00000000 	nop
+80010070:	24420020 	addiu	v0,v0,32
+80010074:	afc20000 	sw	v0,0(s8)
+80010078:	8fc30000 	lw	v1,0(s8)
+8001007c:	3c02ffef 	lui	v0,0xffef
+80010080:	0062102b 	sltu	v0,v1,v0
+80010084:	1440fff0 	bnez	v0,80010048 <shutdown+0x20>
+80010088:	00000000 	nop
+8001008c:	10000002 	b	80010098 <shutdown+0x70>
+80010090:	00000000 	nop
+80010094:	00000000 	nop
+80010098:	8fc20000 	lw	v0,0(s8)
+8001009c:	00000000 	nop
+800100a0:	88430004 	lwl	v1,4(v0)
+800100a4:	00000000 	nop
+800100a8:	98430007 	lwr	v1,7(v0)
+800100ac:	00000000 	nop
+800100b0:	00601025 	move	v0,v1
+800100b4:	00401825 	move	v1,v0
+800100b8:	8fc20010 	lw	v0,16(s8)
+800100bc:	00000000 	nop
+800100c0:	ac620000 	sw	v0,0(v1)
+800100c4:	00000000 	nop
+800100c8:	03c0e825 	move	sp,s8
+800100cc:	8fbe000c 	lw	s8,12(sp)
+800100d0:	27bd0010 	addiu	sp,sp,16
+800100d4:	03e00008 	jr	ra
+800100d8:	00000000 	nop
+
+800100dc <_start>:
+800100dc:	3c1d8000 	lui	sp,0x8000
+800100e0:	0c004000 	jal	80010000 <init>
+800100e4:	37bdfffc 	ori	sp,sp,0xfffc
+800100e8:	3402000a 	li	v0,0xa
+800100ec:	0000000c 	syscall
+	...
+
+Disassembly of section .MIPS.abiflags:
+
+80010108 <KERNEL_ENDS_HERE-0x18>:
+80010108:	00002001 	movf	a0,zero,$fcc0
+8001010c:	01010001 	movt	zero,t0,$fcc0
+	...
+80010118:	00000001 	movf	zero,zero,$fcc0
+8001011c:	00000000 	nop
+
+Disassembly of section .reginfo:
+
+00000000 <.reginfo>:
+   0:	e0000014 	sc	zero,20(zero)
+	...
+
+Disassembly of section .pdr:
+
+00000000 <.pdr>:
+   0:	80010000 	lb	at,0(zero)
+   4:	c0000000 	ll	zero,0(zero)
+   8:	fffffffc 	sdc3	$31,-4(ra)
+	...
+  14:	00000018 	mult	zero,zero
+  18:	0000001e 	0x1e
+  1c:	0000001f 	0x1f
+  20:	80010028 	lb	at,40(zero)
+  24:	40000000 	mfc0	zero,c0_index
+  28:	fffffffc 	sdc3	$31,-4(ra)
+	...
+  34:	00000010 	mfhi	zero
+  38:	0000001e 	0x1e
+  3c:	0000001f 	0x1f
+
+Disassembly of section .comment:
+
+00000000 <.comment>:
+   0:	4743433a 	c1	0x143433a
+   4:	2028474e 	addi	t0,at,18254
+   8:	55292035 	bnel	t1,t1,80e0 <init-0x80007f20>
+   c:	2e332e30 	sltiu	s3,s1,11824
+	...
+
+Disassembly of section .gnu.attributes:
+
+00000000 <.gnu.attributes>:
+   0:	41000000 	bc0f	4 <init-0x8000fffc>
+   4:	0f676e75 	jal	d9db9d4 <init-0x7263462c>
+   8:	00010000 	sll	zero,at,0x0
+   c:	00070401 	0x70401
+
+Disassembly of section .debug_info:
+
+00000000 <.debug_info>:
+   0:	00000056 	0x56
+   4:	00040000 	sll	zero,a0,0x0
+   8:	00000401 	0x401
+   c:	00000000 	nop
+  10:	0c000000 	jal	0 <init-0x80010000>
+  14:	32000000 	andi	zero,s0,0x0
+  18:	39800100 	xori	zero,t4,0x100
+  1c:	00000000 	nop
+  20:	28000000 	slti	zero,zero,0
+  24:	00020108 	0x20108
+  28:	0000007e 	0x7e
+  2c:	02020700 	0x2020700
+  30:	00001f02 	srl	v1,zero,0x1c
+  34:	04070000 	0x4070000
+  38:	00250204 	0x250204
+  3c:	07000000 	bltz	t8,40 <init-0x8000ffc0>
+  40:	8c020106 	lw	v0,262(zero)
+  44:	00000087 	0x87
+  48:	03000000 	0x3000000
+  4c:	1a010380 	0x1a010380
+  50:	01000000 	0x1000000
+  54:	00002801 	movf	a1,zero,$fcc0
+  58:	9c000000 	0x9c000000
+  5c:	01000004 	sllv	zero,zero,t0
+  60:	00000037 	0x37
+  64:	04010000 	b	68 <init-0x8000ff98>
+  68:	00000c00 	sll	at,zero,0x10
+  6c:	00009500 	sll	s2,zero,0x14
+  70:	00003980 	sll	a3,zero,0x6
+  74:	01002800 	0x1002800
+  78:	0000b400 	sll	s6,zero,0x10
+  7c:	00003a02 	srl	a3,zero,0x8
+  80:	01080000 	0x1080000
+  84:	007e0202 	0x7e0202
+  88:	07000000 	bltz	t8,8c <init-0x8000ff74>
+  8c:	1f030000 	0x1f030000
+  90:	00c50306 	0xc50306
+  94:	0000003e 	0x3e
+  98:	02040700 	0x2040700
+  9c:	00002504 	0x2504
+  a0:	20021700 	addi	v0,zero,5888
+  a4:	0000a205 	0xa205
+  a8:	000000da 	0xda
+  ac:	02180000 	0x2180000
+  b0:	00330005 	0x330005
+  b4:	0000009f 	0x9f
+  b8:	02190000 	0x2190000
+  bc:	00330405 	0x330405
+  c0:	000000ce 	0xce
+  c4:	021a0000 	0x21a0000
+  c8:	00330806 	srlv	at,s3,at
+  cc:	69727100 	0x69727100
+  d0:	021b0000 	0x21b0000
+  d4:	00330c05 	0x330c05
+  d8:	000000b7 	0xb7
+  dc:	021c0000 	0x21c0000
+  e0:	00a21005 	0xa21005
+  e4:	000000ac 	0xac
+  e8:	021f0000 	0x21f0000
+  ec:	00331805 	0x331805
+  f0:	000000e3 	0xe3
+  f4:	02200000 	0x2200000
+  f8:	00331c00 	0x331c00
+  fc:	07000000 	bltz	t8,100 <init-0x8000ff00>
+ 100:	b9000000 	swr	zero,0(t0)
+ 104:	b2080000 	0xb2080000
+ 108:	00b20700 	0xb20700
+ 10c:	02040700 	0x2040700
+ 110:	00008c02 	srl	s1,zero,0x10
+ 114:	01060000 	0x1060000
+ 118:	00870300 	0x870300
+ 11c:	0000ee02 	srl	sp,zero,0x18
+ 120:	21000000 	addi	zero,t0,0
+ 124:	45090000 	bc1t	$fcc2,128 <init-0x8000fed8>
+ 128:	01020104 	0x1020104
+ 12c:	80010028 	lb	at,40(zero)
+ 130:	000000b4 	teq	zero,zero,0x2
+ 134:	019c0000 	0x19c0000
+ 138:	00fd0a00 	0xfd0a00
+ 13c:	0000de01 	0xde01
+ 140:	04000000 	bltz	zero,144 <init-0x8000febc>
+ 144:	33029100 	andi	v0,t8,0x9100
+ 148:	0b646576 	j	d9195d8 <init-0x726f6a28>
+ 14c:	00010700 	sll	zero,at,0x1c
+ 150:	0000fd02 	srl	ra,zero,0x14
+ 154:	9170000c 	lbu	s0,12(t3)
+ 158:	04000000 	bltz	zero,15c <init-0x8000fea4>
+ 15c:	Address 0x000000000000015c is out of bounds.
+
+
+Disassembly of section .debug_abbrev:
+
+00000000 <.debug_abbrev>:
+   0:	01110125 	0x1110125
+   4:	0e130b03 	jal	84c2c0c <init-0x77b4d3f4>
+   8:	0e1b0e11 	jal	86c3844 <init-0x7794c7bc>
+   c:	01120610 	0x1120610
+  10:	17000002 	bnez	t8,1c <init-0x8000ffe4>
+  14:	24000b0b 	li	zero,2827
+  18:	3e0b030e 	0x3e0b030e
+  1c:	0000032e 	0x32e
+  20:	003f1903 	0x3f1903
+  24:	0e3a0b3b 	jal	8e82cec <init-0x7718d314>
+  28:	0b271911 	j	c9c6444 <init-0x73649bbc>
+  2c:	01120640 	0x1120640
+  30:	18964219 	0x18964219
+  34:	00000001 	movf	zero,zero,$fcc0
+  38:	1101250e 	beq	t0,at,9474 <init-0x80006b8c>
+  3c:	130b030e 	beq	t8,t3,c78 <init-0x8000f388>
+  40:	1b0e1101 	0x1b0e1101
+  44:	12061017 	beq	s0,a2,40a4 <init-0x8000bf5c>
+  48:	00000224 	0x224
+  4c:	000b0b3e 	0xb0b3e
+  50:	0b030e00 	j	c0c3800 <init-0x73f4c800>
+  54:	00031600 	sll	v0,v1,0x18
+  58:	030e3a0b 	0x30e3a0b
+  5c:	3b0b4913 	xori	t3,t8,0x4913
+  60:	00000413 	0x413
+  64:	010b0b3a 	0x10b0b3a
+  68:	0b3b0b01 	j	cec2c04 <init-0x7314d3fc>
+  6c:	13000005 	beqz	t8,84 <init-0x8000ff7c>
+  70:	0d00030e 	jal	4000c38 <init-0x7c00f3c8>
+  74:	3a0b3b0b 	xori	t3,s0,0x3b0b
+  78:	4913380b 	bc2tl	$cc4,e0a8 <init-0x80001f58>
+  7c:	0000060d 	break	0x0,0x18
+  80:	0003083a 	0x3083a
+  84:	0b3b0b49 	j	cec2d24 <init-0x7314d2dc>
+  88:	13380b00 	beq	t9,t8,2c8c <init-0x8000d374>
+  8c:	00070101 	0x70101
+  90:	49130113 	bc2tl	$cc4,4e0 <init-0x8000fb20>
+  94:	00000821 	move	at,zero
+  98:	0049132f 	0x49132f
+  9c:	0b000009 	j	c000024 <init-0x7400ffdc>
+  a0:	2e013f19 	sltiu	at,s0,16153
+  a4:	030e3a0b 	0x30e3a0b
+  a8:	3b0b2719 	xori	t3,t8,0x2719
+  ac:	11011206 	beq	t0,at,48c8 <init-0x8000b738>
+  b0:	40189742 	0x40189742
+  b4:	19011300 	0x19011300
+  b8:	000a0500 	sll	zero,t2,0x14
+  bc:	030e3a0b 	0x30e3a0b
+  c0:	3b0b4913 	xori	t3,t8,0x4913
+  c4:	02180000 	0x2180000
+  c8:	0b340003 	j	cd0000c <init-0x7330fff4>
+  cc:	083a0b3b 	j	e82cec <init-0x7f18d314>
+  d0:	0b491302 	j	d244c08 <init-0x72dcb3f8>
+  d4:	1800000c 	blez	zero,108 <init-0x8000fef8>
+  d8:	0f000b0b 	jal	c002c2c <init-0x7400d3d4>
+  dc:	49130000 	bc2tl	$cc4,e0 <init-0x8000ff20>
+  e0:	Address 0x00000000000000e0 is out of bounds.
+
+
+Disassembly of section .debug_aranges:
+
+00000000 <.debug_aranges>:
+   0:	0000001c 	0x1c
+   4:	00020000 	sll	zero,v0,0x0
+   8:	00000400 	sll	zero,zero,0x10
+   c:	00000000 	nop
+  10:	80010000 	lb	at,0(zero)
+  14:	00000028 	0x28
+	...
+  20:	0000001c 	0x1c
+  24:	00020000 	sll	zero,v0,0x0
+  28:	005a0400 	0x5a0400
+  2c:	00000000 	nop
+  30:	80010028 	lb	at,40(zero)
+  34:	000000b4 	teq	zero,zero,0x2
+	...
+
+Disassembly of section .debug_line:
+
+00000000 <.debug_line>:
+   0:	00000036 	tne	zero,zero
+   4:	00020000 	sll	zero,v0,0x0
+   8:	001d0101 	0x1d0101
+   c:	fb0e0d00 	sdc2	$14,3328(t8)
+  10:	01010101 	0x1010101
+  14:	00000001 	movf	zero,zero,$fcc0
+  18:	00000100 	sll	zero,zero,0x4
+  1c:	6d61696e 	0x6d61696e
+  20:	2e630000 	sltiu	v1,s3,0
+  24:	00000000 	nop
+  28:	05028001 	bltzl	t0,fffe0030 <KERNEL_ENDS_HERE+0x7ffcff10>
+  2c:	000015f3 	tltu	zero,zero,0x57
+  30:	00020401 	0x20401
+  34:	f5020800 	sdc1	$f2,2048(t0)
+  38:	01010000 	0x1010000
+  3c:	00570002 	0x570002
+  40:	00000038 	0x38
+  44:	0101fb0e 	0x101fb0e
+  48:	0d000101 	jal	4000404 <init-0x7c00fbfc>
+  4c:	01010000 	0x1010000
+  50:	00010000 	sll	zero,at,0x0
+  54:	01006472 	tlt	t0,zero,0x191
+  58:	69766572 	0x69766572
+  5c:	732e6300 	0x732e6300
+  60:	00000064 	0x64
+  64:	72697665 	0x72697665
+  68:	72732e68 	0x72732e68
+  6c:	00000000 	nop
+  70:	74797065 	jalx	1e5c194 <init-0x7e1b3e6c>
+  74:	732e6800 	0x732e6800
+  78:	00000000 	nop
+  7c:	00050280 	sll	zero,a1,0xa
+  80:	01002816 	0x1002816
+  84:	f4848308 	sdc1	$f4,-31992(a0)
+  88:	e8ed08ae 	swc2	$13,2222(a3)
+  8c:	50022c13 	beql	zero,v0,b0dc <init-0x80004f24>
+  90:	02180001 	movf	zero,s0,$fcc6
+  94:	Address 0x0000000000000094 is out of bounds.
+
+
+Disassembly of section .debug_str:
+
+00000000 <.debug_str>:
+   0:	474e5520 	c1	0x14e5520
+   4:	43393920 	wait	0x4e4e4
+   8:	352e332e 	ori	t6,t1,0x332e
+   c:	30202d67 	andi	zero,at,0x2d67
+  10:	202d7374 	addi	t5,at,29556
+  14:	643d6339 	0x643d6339
+  18:	3900696e 	xori	zero,t0,0x696e
+  1c:	69740073 	0x69740073
+  20:	686f7274 	0x686f7274
+  24:	20756e73 	addi	s5,v1,28275
+  28:	69676e65 	0x69676e65
+  2c:	6420696e 	0x6420696e
+  30:	74006d61 	jalx	1b584 <init-0x7fff4a7c>
+  34:	696e2e63 	0x696e2e63
+  38:	002f686f 	0x2f686f
+  3c:	6d652f6a 	0x6d652f6a
+  40:	616e2f44 	0x616e2f44
+  44:	726f7062 	0x726f7062
+  48:	6f782f64 	0x6f782f64
+  4c:	6174616c 	0x6174616c
+  50:	6f67692f 	0x6f67692f
+  54:	62616368 	0x62616368
+  58:	656c6f72 	0x656c6f72
+  5c:	5f70726f 	0x5f70726f
+  60:	6a656b74 	0x6a656b74
+  64:	2f4d4950 	sltiu	t5,k0,18768
+  68:	532d5369 	beql	t9,t5,14e10 <init-0x7fffb1f0>
+  6c:	6d756c61 	0x6d756c61
+  70:	746f722f 	jalx	1bdc8bc <init-0x7e433744>
+  74:	74657374 	jalx	195cdd0 <init-0x7e6b3230>
+  78:	732f736f 	0x732f736f
+  7c:	7300756e 	0x7300756e
+  80:	7369676e 	0x7369676e
+  84:	65642063 	0x65642063
+  88:	68617200 	0x68617200
+  8c:	73697a65 	0x73697a65
+  90:	74797065 	jalx	1e5c194 <init-0x7e1b3e6c>
+  94:	00647269 	0x647269
+  98:	76657273 	jalx	995c9cc <init-0x766b3634>
+  9c:	2e630069 	sltiu	v1,s3,105
+  a0:	6f5f6164 	0x6f5f6164
+  a4:	64725f62 	0x64725f62
+  a8:	61736500 	0x61736500
+  ac:	5f726573 	0x5f726573
+  b0:	65727665 	0x65727665
+  b4:	64310076 	0x64310076
+  b8:	656e646f 	0x656e646f
+  bc:	725f7374 	0x725f7374
+  c0:	72696e67 	0x72696e67
+  c4:	0075696e 	0x75696e
+  c8:	7433325f 	jalx	ccc97c <init-0x7f343684>
+  cc:	7400696f 	jalx	1a5bc <init-0x7fff5a44>
+  d0:	5f616464 	0x5f616464
+  d4:	725f6c65 	0x725f6c65
+  d8:	6e007479 	0x6e007479
+  dc:	7065636f 	0x7065636f
+  e0:	6465005f 	0x6465005f
+  e4:	72657365 	0x72657365
+  e8:	72766564 	0x72766564
+  ec:	32006465 	andi	zero,s0,0x6465
+  f0:	76696365 	jalx	9a58d94 <init-0x765b726c>
+  f4:	5f646573 	0x5f646573
+  f8:	63726970 	0x63726970
+  fc:	746f725f 	jalx	1bdc97c <init-0x7e433684>
+ 100:	74007368 	jalx	1cda0 <init-0x7fff3260>
+ 104:	7574646f 	jalx	5d191bc <init-0x7a2f6e44>
+ 108:	Address 0x0000000000000108 is out of bounds.
+
+
+Disassembly of section .debug_frame:
+
+00000000 <.debug_frame>:
+   0:	0000000c 	syscall
+   4:	ffffffff 	sdc3	$31,-1(ra)
+   8:	0100017c 	0x100017c
+   c:	1f0d1d00 	0x1f0d1d00
+  10:	00000018 	mult	zero,zero
+  14:	00000000 	nop
+  18:	80010000 	lb	at,0(zero)
+  1c:	00000028 	0x28
+  20:	440e1848 	0x440e1848
+  24:	9f019e02 	0x9f019e02
+  28:	440d1e00 	0x440d1e00
+  2c:	0000000c 	syscall
+  30:	ffffffff 	sdc3	$31,-1(ra)
+  34:	0100017c 	0x100017c
+  38:	1f0d1d00 	0x1f0d1d00
+  3c:	00000020 	add	zero,zero,zero
+  40:	0000002c 	0x2c
+  44:	80010028 	lb	at,40(zero)
+  48:	000000b4 	teq	zero,zero,0x2
+  4c:	440e1044 	0x440e1044
+  50:	9e01440d 	0x9e01440d
+  54:	1e02980d 	0x1e02980d
+  58:	1d48de0e 	0x1d48de0e
+  5c:	00000000 	nop
