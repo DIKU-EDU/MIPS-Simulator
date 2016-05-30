@@ -33,7 +33,7 @@ typedef struct simulator {
 	bool finished;
 
 	/* Indicates whether debugging is enabled */
-	bool debugging;
+	bool debug;
 
 	/* Pointer to the hardware */
 	hardware_t *hw;
@@ -43,6 +43,6 @@ typedef struct simulator {
 int simulate(simulator_t *simulator);
 
 /* Deallocates hardware component as well as the subsequent structures */
-void sim_free(hardware_t *hw);
+void hw_free(hardware_t *hw);
 
 #endif /* _SIM_H */

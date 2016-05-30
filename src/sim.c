@@ -753,12 +753,14 @@ void tick(hardware_t *hw)
 	}
 }
 
-int run(hardware_t *hw, int fd_log)
+int run(simulator_t *simulator)
 {
+	hardware_t *hw = simulator->hw;
 
 	char *buf = (char*)calloc(1, INSTRUCTION_BUFFER_SIZE);
 	if(buf == NULL) {
 		ERROR("Could not allocate instruction string buffer");
+		simulator->logging = false;
 	}
 
 	while(g_finished == false) {
@@ -776,11 +778,12 @@ int run(hardware_t *hw, int fd_log)
 			debug(inst, &hw->cpu->core[0], hw->mmu);
 		}
 
-		if(fd_log != -1 && buf != NULL) {
+		if(simulator->logging) {
 			/* Instruction address */
 			int len = snprintf(buf, INSTRUCTION_BUFFER_SIZE, "0x%08X: ",
 				 hw->cpu->core[0].regs[REG_PC]);
-			write(fd_log, buf, len);
+
+			fputs(buf, simulator->log_fh);
 			memset(buf, 0, len);
 
 			len = instruction_string(inst,
@@ -788,7 +791,7 @@ int run(hardware_t *hw, int fd_log)
 						 buf,
 						 INSTRUCTION_BUFFER_SIZE);
 
-			write(fd_log, buf, len);
+			fputs(buf, simulator->log_fh);
 
 			memset(buf, 0, INSTRUCTION_BUFFER_SIZE);
 		}
@@ -809,7 +812,7 @@ static void init_io(hardware_t *hw)
 }
 
 
-static hardware_t* sim_init(size_t cores, size_t mem)
+static hardware_t* hw_init(size_t cores, size_t mem)
 {
 	hardware_t *hw = malloc(sizeof(struct hardware));
 
@@ -838,7 +841,7 @@ static hardware_t* sim_init(size_t cores, size_t mem)
 	return hw;
 }
 
-void sim_free(hardware_t *hw)
+void hw_free(hardware_t *hw)
 {
 	/* Free allocated resources */
 	cpu_free(hw->cpu);
@@ -850,7 +853,7 @@ void sim_free(hardware_t *hw)
 int simulate(simulator_t *simulator)
 {
 	/* Initialize hardware */
-	hardware_t *hw = sim_init(cores, mem);
+	hardware_t *hw = hw_init(simulator->cores, simulator->memsz);
 	simulator->hw = hw;
 
 	/* Load the program into memory */
@@ -861,7 +864,7 @@ int simulate(simulator_t *simulator)
 		ERROR("Elf file could not be read: %d.", retval);
 		exit(0);
 	}
-	int ret = run(hw, fd);
+	int ret = run(simulator);
 
 	return ret;
 }

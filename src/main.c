@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 			break;
 
 		case 'd':
-			debug = 1;
+			simulator.debug = 1;
 			break;
 
 		case 'c':
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 
 	/* If logging, open new file */
 	if(simulator.logging == true) {
-		if((simulator.fh_log = fopen(simulator.log_file, simulator."a+"))
+		if((simulator.log_fh = fopen(simulator.log_file, "a+"))
 		   == NULL) {
 			perror("log file fopen");
 			simulator.logging = false;
