@@ -774,8 +774,8 @@ int run(simulator_t *simulator)
 		e = e;
 
 
-		if(g_debugging) {
-			debug(inst, &hw->cpu->core[0], hw->mmu);
+		if(simulator->debug) {
+			debug(inst, simulator);
 		}
 
 		if(simulator->logging) {
