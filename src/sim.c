@@ -94,6 +94,8 @@ void interpret_id_control(core_t *core)
 		}
 		break;
 
+	case OPCODE_LWL:
+	case OPCODE_LWR:
 	case OPCODE_LBU:
 	case OPCODE_LHU:
 	case OPCODE_LW:
@@ -104,7 +106,6 @@ void interpret_id_control(core_t *core)
 		break;
 
 	case OPCODE_LL:
-
 	case OPCODE_LUI:
 		ID_EX.c_alu_op		= 0x03;
 		ID_EX.c_alu_src		= 1;
@@ -112,6 +113,8 @@ void interpret_id_control(core_t *core)
 		ID_EX.c_reg_dst		= 0; /* write to RT */
 		break;
 
+	case OPCODE_SWR:
+	case OPCODE_SWL:
 	case OPCODE_SB:
 	case OPCODE_SH:
 	case OPCODE_SW:
@@ -373,7 +376,7 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case OPCODE_ORI:
-//			DEBUG("ORI: 0x%08x | 0x%08x",a,(uint32_t)b & ZERO_EXTEND_MASK);
+			//			DEBUG("ORI: 0x%08x | 0x%08x",a,(uint32_t)b & ZERO_EXTEND_MASK);
 			EX_MEM.alu_res = a | (b & ZERO_EXTEND_MASK);
 			break;
 
@@ -497,6 +500,59 @@ void interpret_mem(core_t *core, mmu_t *mem)
 						    &MEM_WB.read_data,
 						    MEM_OP_HALF);
 			break;
+
+
+			/* From yams */
+		case OPCODE_LWL:
+			{
+				/* Read the word to temp32 */
+				uint32_t temp32 = 0x00;
+				MEM_WB.exception = mmu_read(core,
+							    mem,
+							    EX_MEM.alu_res & 0xfffffffc,
+							    &temp32,
+							    MEM_OP_WORD);
+
+				uint32_t mask;
+				uint32_t shift;
+
+				temp32 = temp32 << ((EX_MEM.alu_res & 0x00000003)
+						    *8);
+
+				shift = 32-(EX_MEM.alu_res & 3)*8;
+				mask = ((uint32_t)0xffffffff) >> shift;
+				if(shift >= 32) mask = 0x00000000;
+
+				MEM_WB.read_data = core->regs[EX_MEM.reg_dst]
+					& mask
+					| temp32;
+			}
+			break;
+
+			/* From yams */
+		case OPCODE_LWR:
+			{
+				/* Read the word to temp32 */
+				uint32_t temp32 = 0x00;
+				MEM_WB.exception = mmu_read(core,
+							    mem,
+							    EX_MEM.alu_res & 0xfffffffc,
+							    &temp32,
+							    MEM_OP_WORD);
+
+				uint32_t mask;
+				uint32_t shift;
+
+				temp32 = temp32 >> (24-(EX_MEM.alu_res & 0x00000003)*8);
+
+				shift = 8+(EX_MEM.alu_res & 3)*8;
+				mask = ((uint32_t)0xffffffff) << shift;
+				if(shift >= 32) mask = 0x00000000;
+
+				MEM_WB.read_data = core->regs[EX_MEM.reg_dst] & mask |
+					temp32;
+			}
+			break;
 		}
 
 		/* If write */
@@ -517,10 +573,77 @@ void interpret_mem(core_t *core, mmu_t *mem)
 						      EX_MEM.rt_value,
 						      MEM_OP_HALF);
 			break;
+			/* From yams */
+		case OPCODE_SWL:
+			{
+				/* Read the word to temp32 */
+				uint32_t temp32 = 0x00;
+				MEM_WB.exception = mmu_read(core,
+							    mem,
+							    EX_MEM.alu_res & 0xfffffffc,
+							    &temp32,
+							    MEM_OP_WORD);
+
+				uint32_t shift = 32-(EX_MEM.alu_res & 3) * 8;
+				uint32_t mask = ((uint32_t)0xffffffff) << shift;
+				if(shift >= 32) mask = 0x00000000;
+
+				temp32 = temp32 & mask;
+				temp32 = temp32
+					| core->regs[GET_RT(EX_MEM.inst)]
+					>> ((EX_MEM.alu_res & 3) * 8);
+
+
+
+
+				temp32 = temp32 >> (24-(EX_MEM.alu_res & 0x00000003)*8);
+
+				shift = 8+(EX_MEM.alu_res & 3)*8;
+				mask = ((uint32_t)0xffffffff) << shift;
+				if(shift >= 32) mask = 0x00000000;
+
+				MEM_WB.exception  = mmu_write(core,
+							      mem,
+							      EX_MEM.alu_res & 0xfffffffc,
+							      temp32,
+							      MEM_OP_WORD);
+			}
+			break;
+
+
+			/* From yams */
+		case OPCODE_SWR:
+			{
+				/* Read the word to temp32 */
+				uint32_t temp32 = 0x00;
+				MEM_WB.exception = mmu_read(core,
+							    mem,
+							    EX_MEM.alu_res & 0xfffffffc,
+							    &temp32,
+							    MEM_OP_WORD);
+
+				uint32_t shift = 8+(EX_MEM.alu_res & 3) * 8;
+
+				uint32_t mask = ((uint32_t)0xffffffff) >> shift;
+
+				if(shift >= 32) mask = 0x00000000;
+
+				temp32 = temp32 & mask;
+				temp32 = temp32
+					| core->regs[GET_RT(EX_MEM.inst)]
+					<< (24-(EX_MEM.alu_res & 3) * 8);
+
+				MEM_WB.exception  = mmu_write(core,
+							      mem,
+							      EX_MEM.alu_res & 0xfffffffc,
+							      temp32,
+							      MEM_OP_WORD);
+			}
+			break;
+
 		}
 	}
 }
-
 /* NOTE: This does not use pipelined approach, and so, theoretically skips a
  * few clock cycles. */
 void handle_exception(core_t *core, mmu_t *mem)
@@ -781,7 +904,7 @@ int run(simulator_t *simulator)
 		if(simulator->logging) {
 			/* Instruction address */
 			int len = snprintf(buf, INSTRUCTION_BUFFER_SIZE, "0x%08X: ",
-				 hw->cpu->core[0].regs[REG_PC]);
+					   hw->cpu->core[0].regs[REG_PC]);
 
 			fputs(buf, simulator->log_fh);
 			memset(buf, 0, len);
