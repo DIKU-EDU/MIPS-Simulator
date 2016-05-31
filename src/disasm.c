@@ -63,6 +63,10 @@ int instruction_string(uint32_t instr, core_t *core, char *buf, size_t buf_size)
 	case OPCODE_LHU:
 	case OPCODE_LW:
 	case OPCODE_SW:
+	case OPCODE_SWL:
+	case OPCODE_SWR:
+	case OPCODE_LWR:
+	case OPCODE_LWL:
 		i += snprintf(buf+i, buf_size - i,
 			      "%s  rs = %s = 0x%08X,  rt = %s = 0x%08X,  imm = 0x%08X\n",
 			      op_codes[GET_OPCODE(instr)],
