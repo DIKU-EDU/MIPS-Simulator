@@ -1,0 +1,46 @@
+It is essential to repeatedly perform tests on the simulator, to ensure its
+correct behaviour, and in cases, detect and fix errors and other bugs.\\
+To very first tests ensure the basic functionality of the simulator, usually
+testing each instruction for the correct behaviour. When the simulator gets more
+advanced, additional features are added, that also need to be tested.
+
+\subsection{Basic tests}
+Tests for the correct behaviour of an instruction is very simple. Each test uses
+the related instruction in as many ways as possible, using as few other
+instructions as possible. For example, the \texttt{add} instruction is tested
+for both being able to add, but also subtract in one test.\\
+For simplicity, the tests return their value in \texttt{\$v1}, which the
+simulator uses as its exit value.\\
+All test programs lie in the \texttt{tests/} subdirectory, with a corresponding
+file ending with \texttt{".text"}, containing the expected result.
+To run all tests, a bash script \texttt{run\_tests.sh} is stored on the project
+root, which runs each test program with the simulator, comparing the return
+value with the expected return value.
+
+\subsection{Advanced tests}
+Executing instructions is only a part of the simulation. The simulator also
+needs to be able to handle certain situations and problems correctly, and
+according to the specification.\\
+One of these advanced tests is the pipeline testing, which are programs
+with instructions structured in a way so that the pipeline forwarding unit and
+hazard unit are used repeatedly. If one of these units fail, the result will be
+seen immediately on the output value.\\
+Other more advanced tests ensure many side-effects of instructions, such as the
+branch-delay slot, or correct flag-toggling of the status register on exception
+occurrence.
+
+\subsection{Partial conclusion}
+Having a suite of testing programs for each instruction was a tremendous help to
+find and fix bugs.\\
+However, a big issue with the test suite is that some of the tests depend on
+other instructions to work, as to setup the test. This is not necessarily
+always the case, and can cause false-negatives, or worse, false-positives.
+Optimally, the simulator should be able to start in a certain state, defined by
+some configuration file, describing the values and flags of all the processor
+registers, flags, even pipeline registers. This would help to test certain
+cases in the simulator, avoiding possible side-effects of other possibly faulty
+instructions.\\
+Another small, but useful improvement would be having dynamic tests, that would
+generate test values on every run, so that each time a test is run, it uses new
+values, covering a bigger area of the instruction, and further increasing the
+chance of finding a bug in the simulator.
