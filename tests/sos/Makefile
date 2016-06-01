@@ -3,7 +3,7 @@ TARGET=sos.elf
 CC=mips-elf-gcc
 AS=mips-elf-as
 LD=mips-elf-ld
-CFLAGS=-c -g -I. -Wall -Wextra -Werror -std=c99 -pedantic
+CFLAGS=-c -g -I. -Wall -Wextra -Werror -std=c99 -pedantic -march=mips32
 AFLAGS=-mips32 --fatal-warnings
 LDFLAGS=--script=ld.script
 
