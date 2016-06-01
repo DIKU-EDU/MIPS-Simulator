@@ -935,7 +935,7 @@ static void init_io(hardware_t *hw)
 }
 
 
-static hardware_t* hw_init(size_t cores, size_t mem)
+static hardware_t* hw_init(size_t cores, size_t memsz)
 {
 	hardware_t *hw = malloc(sizeof(struct hardware));
 
@@ -945,10 +945,20 @@ static hardware_t* hw_init(size_t cores, size_t mem)
 	}
 
 	/* Initialize the memory */
-	hw->mmu = mmu_init(mem);
+	hw->mmu = mmu_init(memsz);
+	if(hw->mmu == NULL) {
+		ERROR("Failed to init MMU");
+		exit(-1);
+	}
+
 
 	/* Create a new CPU */
 	hw->cpu = cpu_init(cores);
+	if(hw->cpu == NULL) {
+		ERROR("Failed to init CPU");
+		exit(-1);
+	}
+
 
 	/* Set stack pointer to top of memory */
 	/* XXX: The OS should do this by itself, but for testing programs, we
@@ -987,6 +997,7 @@ int simulate(simulator_t *simulator)
 		ERROR("Elf file could not be read: %d.", retval);
 		exit(0);
 	}
+
 	int ret = run(simulator);
 
 	return ret;
