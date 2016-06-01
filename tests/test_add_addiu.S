@@ -8,6 +8,10 @@ _start:
 	add $t1, $t2, $t1	# $t1 = 50
 	addiu $v1, $t1, 20	# $v1 = 50 + 20
 
+	addi $t1, $t1, -60	# $t1 = 50 - 60 = -10
+	add $v1, $v1, $t1	# $t1 = 60
 
+
+	# exit
 	addi $v0, $0, 10
 	syscall
