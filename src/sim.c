@@ -113,6 +113,10 @@ void interpret_id_control(core_t *core)
 		ID_EX.c_reg_dst		= 0; /* write to RT */
 		break;
 
+
+	case OPCODE_SC:
+		DEBUG("SC Instruction not fully implemented. Storing only.");
+
 	case OPCODE_SWR:
 	case OPCODE_SWL:
 	case OPCODE_SB:
@@ -123,10 +127,6 @@ void interpret_id_control(core_t *core)
 		ID_EX.c_mem_write	= 1;
 		break;
 
-	case OPCODE_SC:
-		ERROR("INSTRUCTION NOT IMPLEMENTED: %s",
-		      op_codes[GET_OPCODE(inst)]);
-		break;
 
 	case OPCODE_BEQ:
 		ID_EX.c_beq		= 1;
