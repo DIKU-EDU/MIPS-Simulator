@@ -342,6 +342,7 @@ void interpret_ex_alu(core_t *core)
 			break;
 		default:
 			ERROR("Unknown funct: 0x%x", ID_EX.funct);
+			print_instruction(ID_EX.inst, core);
 			break;
 		}
 	}
@@ -886,7 +887,7 @@ int run(simulator_t *simulator)
 		simulator->logging = false;
 	}
 
-	while(g_finished == false) {
+	while(simulator->finished == false) {
 		/* XXX: Assumes one core */
 
 		uint32_t inst = 0;
