@@ -203,6 +203,32 @@ Once again, to avoid unneccesarry compatibility breaks with YAMS, we will use
 the same magic number.
 
 \subsubsection{TTY device}
-To avoid a separated keyboard and display, we implement a TTY device, which
+To avoid a separated keyboard and display, a TTY device is implement, which
 takes care of both. Once again, it will use the same number of IO registers
-and the same typecode, as to use
+and the same typecode, so that the KUDOS TTY drivers do not have to be
+re-written.\\
+For usability, the TTY device needs to be controlled from a separate window, as
+the simulator itself prints a lot of logging, debugging, and error messages,
+which would choke the actual OS input and output.
+For simplicity of the simulator, this TTY window will be implemented in a
+separate program, which will wait for the simulator to start, and then connect
+to it.\\
+
+\subsubsection{External program communication}
+Each external program, that acts as an IO device, needs a way
+to communicate with our simulator. In Linux systems, there are multiple ways for
+separate programs to communicate, such as using files, sockets, signals,
+message passing as well as named pipes and shared memory\cite{love2013linux}.\\
+For simplicity, the simulator and the programs will use shared memory model,
+in which the OS will create and share a section of the process' memory,
+identified with a key.\\
+In the simulator, the IO register memory area will be split up into chunks of
+shared memory, each identified with a unique key. Every IO device, that the
+simulator supports, will have this key, and use it to access the registers at
+the location.\\
+Since MIPS32 does not implement interrupt numbers, we need not any elaborate
+way of signalling the counterpart program of an event -- we simply need a binary
+signal, just as the one implemented in the bare-metal of the processor. Thus,
+for signalling an interrupt, the simulator uses a POSIX user-defined signal
+\texttt{SIGUSR1}, which will be our indicator of an event.\\
+This way, the simulator and the device can work independently of each other.
