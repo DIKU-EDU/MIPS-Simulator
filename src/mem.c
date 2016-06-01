@@ -20,7 +20,7 @@ mmu_t* mmu_init(size_t size)
 
 	if(mmu == NULL || pmem == NULL || dev_desc == NULL) {
 		ERROR("Could not allocate memory.");
-		exit(1);
+		return NULL;
 	}
 
 	mmu->device_descriptor_start = dev_desc;
