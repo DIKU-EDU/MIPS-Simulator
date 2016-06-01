@@ -6,11 +6,15 @@ SRC=$(patsubst %.S,%.elf,$(wildcard *.S))
 
 .DEFAULT: all
 
-all: $(SRC)
+all: $(SRC) sos
 
 %.elf: %.S
 	$(AS) $(AFLAGS) -o $*.o --fatal-warnings $*.S
 	$(LD) $(LDFLAGS) -o $*.elf $*.o
+
+
+sos:
+	make -C sos/
 
 clean:
 	rm -f *.o *.elf

@@ -3,9 +3,9 @@ TARGET=sos.elf
 CC=mips-elf-gcc
 AS=mips-elf-as
 LD=mips-elf-ld
-CFLAGS=-c -g -I. -Wall -Wextra -Werror -std=c99 -pedantic -march=mips32
+CFLAGS=-c -ggdb -I. -Wall -Wextra -Werror -std=c99 -pedantic -march=mips32
 AFLAGS=-mips32 --fatal-warnings
-LDFLAGS=--script=ld.script
+LDFLAGS=--script=ld.script -Map=sos.map
 
 HEADERS=$(wildcard *.h)
 
