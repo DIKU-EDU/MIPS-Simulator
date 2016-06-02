@@ -13,13 +13,16 @@
 \usepackage{geometry}
 \usepackage{listings}
 \usepackage{mips}
+\usepackage[hyphens]{url}
+\usepackage{breakurl}
 \usepackage{cite}
 \usepackage{color}
 \usepackage{array}
 \usepackage{multicol}
 \usepackage[toc,page]{appendix}
 \usepackage{cleveref}
-\usepackage{hyperref}
+\usepackage[breaklinks=true]{hyperref}
+%\usepackage[breaklinks=true,pdfborder={0 0 0},bookmarksopen]{hyperref}
 \usepackage{float}
 \usepackage{xcolor,colortbl}
 \usepackage{soul}
@@ -30,7 +33,11 @@
 \usepackage{tablefootnote}
 \usepackage{footnote}
 \usepackage{subcaption}
+\usepackage{lipsum}
+
+
 \makesavenoteenv{tabular}
+
 % More subsubsub sections
 
 \iffalse
@@ -202,6 +209,9 @@
 \input{abstract/abstract.tex}
 \end{abstract}
 
+\section*{Preface}
+\input{preface/preface.tex}
+
 \newpage
 
 \twocolumn
@@ -228,41 +238,43 @@
 \section{Introduction}
 \input{introduction/introduction.tex}
 
-
-
 \section{CPU Architectures}
 \input{cpu_architecture/cpu_architecture.tex}
 
+
+\section{Privilege levels}
+\input{privileges/privileges.tex}
 
 \section{Pipeline}
 \input{pipeline/pipeline.tex}
 
 \section{Exceptions and Interrupts}
-\input{interrupts/interrupts.tex}
-
-\section{TLB}
+\input{exceptions/exceptions.tex}
 
 \section{MMU}
 \input{mmu/mmu.tex}
 
-\section{User and Kernel mode}
+\section{Memory Mapped IO}
+\input{io/io.tex}
 
-\section{SMP}
+\section{TLB}
 
 \section{Tests}
+\input{tests/tests.tex}
+
 
 \section{Performance}
+\input{performance/performance.tex}
 
 \section{Conclusion}
 
 
 \newpage
-
+\clearpage % force new page(?)
 \bibliography{mybib}{}
 \bibliographystyle{plain}
 
 \newpage
-
 \appendix
 \begin{appendices}
 % Appendix here
