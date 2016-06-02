@@ -289,15 +289,11 @@ void interpret_ex_alu(core_t *core)
 	if(ID_EX.c_alu_op == 0x02) {
 		switch(ID_EX.funct) {
 		case FUNCT_ADD:
+			DEBUG("OVERFLOW 0x%08x + 0x%08x", a, b);
 			EX_MEM.alu_res = (int32_t)a + (int32_t)b;
 			break;
 
 		case FUNCT_ADDU:
-			/* Check for overflow */
-			if(check_uoverflow(a,b) == 1) {
-				EX_MEM.exception = EXC_ArithmeticOverflow;
-			}
-
 			EX_MEM.alu_res = a + b;
 			break;
 
@@ -377,7 +373,6 @@ void interpret_ex_alu(core_t *core)
 			break;
 
 		case OPCODE_ORI:
-			//			DEBUG("ORI: 0x%08x | 0x%08x",a,(uint32_t)b & ZERO_EXTEND_MASK);
 			EX_MEM.alu_res = a | (b & ZERO_EXTEND_MASK);
 			break;
 
