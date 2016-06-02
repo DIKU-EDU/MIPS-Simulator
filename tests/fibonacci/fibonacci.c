@@ -1,5 +1,6 @@
 /* Intentionally cumbersome program to test simulator performance. */
 
+
 #define N 30
 
 
@@ -20,8 +21,6 @@ int main(void)
 		fib_array[i] = fib(i);
 	}
 
-	return 0;
+	return 2;
+//	return fib_array[N-1];
 }
-
-
-
