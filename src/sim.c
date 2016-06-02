@@ -887,7 +887,7 @@ int run(simulator_t *simulator)
 		simulator->logging = false;
 	}
 
-	while(simulator->finished == false) {
+	while(g_finished == false && simulator->finished == false) {
 		/* XXX: Assumes one core */
 
 		uint32_t inst = 0;
