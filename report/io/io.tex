@@ -159,11 +159,13 @@ memory slightly.
 
 
 \subsection{Implementation}
-Implementation of external devices requires a lot of new modules and features
-in the simulator. The main issue is that we require to communicate with
-events, not necessarily handled by the simulator.
-
-
+The OS, or rather, KUDOS in our case, needs to know the exact memory address of
+the device descriptors, so that it can interact with the underlying IO devices.
+KUDOS and the simulator agree on a memory address, which is the start of the
+device descriptor area. In KUDOS and the simulator, this area is defined by
+\texttt{IO\_DESCRIPTOR\_AREA}, with the value of \texttt{0xFFFE0000}. From there,
+KUDOS searches for the underlying devices. The structure is represented on figure
+\ref{fig:io_memory_layout}
 
 \begin{figure}[H]
 	\centering
@@ -171,6 +173,8 @@ events, not necessarily handled by the simulator.
 	\caption{Memory layout of IO device descriptors and registers.}
 	\label{fig:io_memory_layout}
 \end{figure}
+
+
 
 
 \subsection{Hardware Devices}
@@ -226,7 +230,7 @@ In the simulator, the IO register memory area will be split up into chunks of
 shared memory, each identified with a unique key. Every IO device, that the
 simulator supports, will have this key, and use it to access the registers at
 the location.\\
-Since MIPS32 does not implement interrupt numbers, we need not any elaborate
+Since MIPS32 does not implement interrupt numbers, we need not need any elaborate
 way of signalling the counterpart program of an event -- we simply need a binary
 signal, just as the one implemented in the bare-metal of the processor. Thus,
 for signalling an interrupt, the simulator uses a POSIX user-defined signal
