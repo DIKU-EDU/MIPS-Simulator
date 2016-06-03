@@ -1,8 +1,10 @@
 /* Intentionally cumbersome program to test simulator performance. */
 
 
-#define N 30
+#define N 10
 
+
+unsigned int fib_array[N];
 
 unsigned int fib(unsigned int n)
 {
@@ -10,9 +12,6 @@ unsigned int fib(unsigned int n)
 
 	return fib(n-1) + fib(n-2);
 }
-
-
-unsigned int fib_array[N];
 
 int main(void)
 {
@@ -24,3 +23,5 @@ int main(void)
 	return 2;
 //	return fib_array[N-1];
 }
+
+
