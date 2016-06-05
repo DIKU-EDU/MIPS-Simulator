@@ -897,6 +897,11 @@ int run(simulator_t *simulator)
 			debug(inst, simulator);
 		}
 
+
+		/* Execute the instruction */
+		tick(hw);
+
+
 		if(simulator->logging) {
 			/* Instruction address */
 			int len = snprintf(buf, INSTRUCTION_BUFFER_SIZE, "0x%08X: ",
@@ -914,13 +919,15 @@ int run(simulator_t *simulator)
 
 			memset(buf, 0, INSTRUCTION_BUFFER_SIZE);
 		}
-		tick(hw);
+
 	}
 
 	DEBUG("RETURNED: %d", hw->cpu->core[0].regs[REG_V0]);
 
 	free(buf);
+
 	/* XXX */
+	LOG("RESULT: %d", hw->cpu->core[0].regs[REG_V1]);
 	return hw->cpu->core[0].regs[REG_V1];
 }
 
