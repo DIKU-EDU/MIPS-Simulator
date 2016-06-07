@@ -145,7 +145,7 @@ void print_pipeline_registers(core_t *core)
 	       INST_STR(MEM_WB.inst));
 
 	printf("---------------------------------------------------------------------------------------------\n");
-	printf("next_pc:    %08x  next_pc:   %08x      next_pc: %08x      next_pc:  %08x\n",
+	printf("next_pc: %08x  next_pc:   %08x       next_pc: %08x          next_pc:  %08x\n",
 	      IF_ID.next_pc, ID_EX.next_pc, EX_MEM.next_pc, MEM_WB.next_pc);
 
 	printf("inst:    %08x  c_reg_dst:   %08x      c_reg_write: %08x      c_reg_write:  %08x\n",
