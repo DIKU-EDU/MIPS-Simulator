@@ -26,8 +26,6 @@
   identifierstyle=\color{blue},
   stringstyle=\color{orange},
 }
-\lstset{escapechar=@,style=customc}
-
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
@@ -53,15 +51,14 @@
 }
 
 \lstset{style=mystyle}
-
+%\lstset{escapechar=@,style=customc}
 
 
 \title{The study of MIPS32 processor simulation}
 \subtitle{Presentation}
-\author{Jan Mezník\\pzj895@alumni.ku.dk}
+\author{Jan Mezník,\\ pzj895@alumni.ku.dk}
 \institute{Copenhagen University}
 \date{\today}
-
 
 
 
@@ -70,39 +67,32 @@
 % Frontpage
 \frame[plain]{\titlepage}
 
-% Table of contents
-\begin{frame}
-\frametitle{Outline}
-\tableofcontents
-\end{frame}
 
 
 \begin{frame}
 	\frametitle{Problem statement}
-	\textit{Is it possible to implement a simulator, to fully support the
-		current version of KUDOS?}\\
+	\textit{Is it possible to implement a pipelined MIPS simulator, to fully
+		support the current version of KUDOS?}\\
 \end{frame}
 
 \begin{frame}
 	\frametitle{Learning objectives}
 
 	\begin{itemize}
-		\item Gain deeper understanding of the MIPS32 architecture, and
-		the choices thereof
+		\item Gain deeper understanding of the MIPS32 architecture
 
-		\item How the CPU communicates and interacts with its IO devices
+		\item How the CPU communicates with the IO devices
 
-		\item Discover how operating systems, such as KUDOS, interacts
-		with the CPU
+		\item Discover how operating systems interact with the CPU
 
-		\item Learn the advantages and disadvantages of the MIPS architecture
-		compared to other architectures, such as x86.
+		\item Learn the differences compared to other architectures
+
 	\end{itemize}
 \end{frame}
 
 \begin{frame}
 	\frametitle{Problem Analysis}
-	KUDOS is based on the BUENOS operating system, originally developped at
+	KUDOS is based on the BUENOS operating system, originally developed at
 	Aalto University, Finland.
 
 \begin{block}{Requirements}
@@ -110,7 +100,7 @@
 		\item Translation Lookaside Buffer
 		\item Memory Management Unit
 		\item I/O devices
-		\item Pipeline
+		\item Pipeline (for our project)
 	\end{itemize}
 \end{block}
 \begin{block}{Optional}
@@ -120,7 +110,6 @@
 	\end{itemize}
 \end{block}
 \end{frame}
-
 
 
 \begin{frame}
@@ -135,57 +124,92 @@
 \begin{columns}
 \begin{column}{0.5\textwidth}
 
-\begin{itemize}
-	\item<1> Pipeline registers
-	\item<2> Other stuff
-\end{itemize}
+\includegraphics[scale=0.4]{simple_cpu.png}
 
+\begin{verbatim}
+void tick() {
+   interpret_wb(...);
+   interpret_mem(...);
+   interpret_ex(...);
+   interpret_id(...);
+   interpret_if(...);
+   forwarding_unit(...);
+}
+\end{verbatim}
 \end{column}
 
 \begin{column}{0.5\textwidth}
 
-\begin{lstlisting}<1>
-typedef struct reg_ex_mem {
+\begin{lstlisting}
+struct reg_ex_mem {
 	bool c_reg_write;
 	bool c_branch;
 	bool c_mem_read;
 	bool c_mem_write;
 	bool c_mem_to_reg;
 
-
 	uint32_t eff_addr;
 	uint32_t alu_res;
 
 	uint32_t rt_value;
-	uint8_t reg_dst;
+	uint8_t  reg_dst;
 	uint32_t next_pc;
-
 	uint32_t inst;
-
 	exception_t exception;
-} ex_mem_t;
-
-
+};
 \end{lstlisting}
 
 
 \end{column}
 \end{columns}
+\end{frame}
 
+\begin{frame}
+\frametitle{Challenges with the Pipeline}
+
+\begin{figure}
+	\includegraphics[scale=0.23]{cpu.png}
+	\caption{Borrowed from COD5.}
+\end{figure}
+
+\begin{block}{Additions}
+\begin{itemize}
+	\item "New" instructions: \texttt{SH, SB, SWR, SWL, MFC0, etc.}
+	\pause
+	\item Interrupts from IO devices
+	\pause
+	\item Instructions with multiple side-effects: \texttt{SC, LL, ERET}
+\end{itemize}
+\end{block}
+\end{frame}
+
+
+
+\begin{frame}
+\begin{center}
+DEMO
+\end{center}
 \end{frame}
 
 
 \begin{frame}
-\frametitle{Results}
-
-
-
+\frametitle{Improvements}
+	\begin{itemize}
+		\item Better IO handling (better device descriptors)
+		\item Hotplug devices
+		\item GNU Debugger integration
+		\item Breakpoints
+		\item Inspect and modify memory
+		\item Backstepping
+	\end{itemize}
 \end{frame}
 
 
 \begin{frame}
-\frametitle{Conclusion}
-\end{frame}
+\begin{center}
+Conclusion
+\end{center}
 
+\end{frame}
 
 \end{document}

@@ -7,8 +7,8 @@ PMIO requires the processor to have additional pins and special instructions,
 just for communication with I/O devices. I/O devices have a specified port
 number, which the processor uses to identify and communicate with the device,
 much like an address.
-For example, Intel x86 processors might be polling\footnote{Polling refers to
-the activity where a CPU periodically samples the status of an external device}
+For example, Intel x86 processors might be polling
+%\footnote{Polling refers to the activity where a CPU periodically samples the status of an external device}
 a keyboard using the special \texttt{in} instruction, specifying the predefined
 keyboard status ID \texttt{0x60}, then reading from keyboard data, with ID
 \texttt{0x64}\cite{intel:pch}\cite{osdev:io_ports}:
@@ -26,7 +26,7 @@ and they do not share memory space, which prevents confusion about
 memory segmenting.
 However, PMIO approach is very limited to only \texttt{in} and \texttt{out}
 instructions, reading only a few bytes at a time into the EAX register, as well
-as a limited port numbers for the devices.\cite{intelmanual}\\
+as a limited number of ports for devices.\cite{intelmanual}\\
 
 Memory-Mapped I/O is commonly used by RISC architectures. In MMIO,
 communication with the peripherals happens over the same address bus as the
@@ -37,9 +37,12 @@ The advantage of memory-mapped I/O is that the method uses already existing
 memory bus lanes for communication, unlike the port implementation. However,
 since the memory is shared with peripherals, and these addresses are not
 maintained by the processor, additional logic has to be created in the
-memory-management unit (discussed in the next section). However, PMIO is very limited to the simple \texttt{in
-/ out} instructions, as well as a hardware-limited device allocation, whereas
-MMIO is much more free with device "address" allocation. Due to these reasons,
+memory-management unit (discussed in the previous section).
+%However, PMIO is very limited to the simple \texttt{in
+%/ out} instructions, as well as a hardware-limited device allocation, whereas
+%MMIO is much more free with device "address" allocation.
+
+ Due to these reasons,
 memory-mapped I/O is becoming increasingly popular, even on modern x86
 hardware\cite{osdev:io_ports}.\\
 MIPS initially sees Input/Output (IO) devices as a set of special-purpose registers. These
@@ -54,16 +57,18 @@ registers\cite{cs_uwm:memory_mapped_io}\cite{imgtec:pra}:
 
 	\item \texttt{Control registers}\\
 	Used to communicate and control the device. These registers are
-	writeable for the CPU, but may not always be readable.
+	writeable by the CPU, but may not always be readable.
 
 	\item \texttt{Data registers}\\
 	Used for the actual data-transport. For example, the latest key pressed
-	on the keyboard might be stored in this register.
+	on the keyboard might be stored in a data register.
 \end{itemize}
 
-On MIPS32, in the memory, these registers have allocated 4 bytes each, and are
-always located sequentially in the memory. Figure \ref{fig:io_registers} shows
-the actual bit-allocation in the register.
+On MIPS32, these registers have allocated 4 memory bytes each, and are
+always located sequentially in the memory.
+
+For example, figure \ref{fig:io_registers} shows an example of IO register
+layout of a very simple keyboard device.
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=1]{io/io_registers.eps}
@@ -78,13 +83,14 @@ Depending on the type of the IO device, the device can be represented from a
 few registers to dozens. For example, a mouse or a keyboard only transmits few
 bytes of information at a time, needing only a few registers, while graphic
 adaptors or disk drives might need more\cite{cs_uwm:memory_mapped_io}.\\
-These special-purpose registers are located in the memory, mapped to a certain
+These special-purpose registers are located in memory, mapped to a certain
 segment. A device controller maintains a list of these registers, and maps new
-devices to the memory.\cite{britton:mips}\\
+devices to memory.\cite{britton:mips}\\
 On MIPS32, the highest 64 kilobytes (\texttt{0xffff0000 - 0xffffffff}) in the
 available memory are used for mapping these special registers\cite{cs_uwm:memory_mapped_io}.
-The memory mapping the IO area must not be cached, as it can cause major problems
-for the caches, and heavy delays due to many cache-misses\cite{see_mips_run}.\\
+The memory mapping of the IO area must not be cached, as a cache assumes the
+memory is only modified from the CPU, and not by any external device, such as
+an IO device.\\
 However, it is obvious that IO registers can be very inconvenient for larger and
 fast data-transfer, due to the very limited register size. To dodge this
 bottleneck, memory controllers are implemented to give IO devices direct access
@@ -94,10 +100,10 @@ to larger parts of the main memory, without the need of going through the CPU fi
 Direct Memory Access controllers, also called DMA controllers, allow certain
 hardware to access the main memory independently of the CPU.
 In MIPS, this feature is built-in in the MMU.\\
-Larger transfers between hardware and the memory is usually initiated through
+Larger transfers between hardware and memory are usually initiated through
 the device registers, where the CPU sets up the MMU and communicates the target
 address. Then, the IO device is free to read and write in the target address.
-When the peripheral is finished with its actions on the memory, it will usually
+When the peripheral is finished with its memory actions, it will usually
 notify the CPU using an interrupt, having the processor taking care of the rest.\\
 Direct Memory Access is often utilized by peripherals with heavy IO use, such
 as the storage drives, as well as network-, sound-, and graphics-cards.\\
@@ -137,7 +143,7 @@ addresses and so on. The format of the device descriptor is defined in Yet Anoth
 MIPS Simulator, the current simulator used to run KUDOS. The same device descriptor
 structure is defined in KUDOS, so that KUDOS can interface with the underlying
 simulator, retrieving the relevant information.
-The structure is defined in \texttt{kudos/drivers/mips32/arch.h}\cite{kudos} as:
+The structure is defined in \cite[kudos/drivers/mips32/arch.h]{kudos} as:
 \begin{lstlisting}[language=c]
 typedef struct {
     uint32_t type;
@@ -174,9 +180,6 @@ KUDOS searches for the underlying devices. The structure is represented on figur
 	\label{fig:io_memory_layout}
 \end{figure}
 
-
-
-
 \subsection{Hardware Devices}
 Naturally, we are going to need to implement some essential hardware devices
 for KUDOS to use.\\
@@ -187,16 +190,16 @@ devices, and so, a special kind of interface, called a \texttt{driver},
 is implemented and used for each device.\\
 Most drivers are specific to certain devices, removing the subsequent complexity
 for the communication with the device. This is also why certain devices refuse
-to work in Linux, Windows or other OS, before the correct driver is installed.
-\cite{microsoft:driver}\\
+to work in Linux, Windows or other OS, before the correct driver is installed
+\cite{microsoft:driver}.\\
 Lucky for us, we can define our own devices and its drivers -- that is,
 we do not emulate an existing device, rather we define our own, with its own
 set of magic numbers, IO registers etc.
 
 
 \subsubsection{Shutdown device}
-The first most important device is the shutdown-device, which turns off the
-device (in our case, the simulator).
+The first most important device is the shutdown-device, which powers off the
+machine (in our case, the simulator).
 In KUDOS and YAMS, this device is implemented with only 1 data register, which
 will trigger a shutdown, if a magic number \texttt{POWEROFF\_SHUTDOWN\_MAGIC} is
 written to it\cite[drivers/metadev.h]{kudos}.\\
@@ -211,7 +214,8 @@ To avoid a separated keyboard and display, a TTY device is implement, which
 takes care of both. Once again, it will use the same number of IO registers
 and the same typecode, so that the KUDOS TTY drivers do not have to be
 re-written.\\
-For usability, the TTY device needs to be controlled from a separate window, as
+For usability, the TTY device needs to be controlled from a separate terminal
+emulator, as
 the simulator itself prints a lot of logging, debugging, and error messages,
 which would choke the actual OS input and output.
 For simplicity of the simulator, this TTY window will be implemented in a

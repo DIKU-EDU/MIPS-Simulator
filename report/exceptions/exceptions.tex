@@ -44,11 +44,11 @@ Although MIPS32 has a type of an interrupt vector table\cite{see_mips_run}, it i
 flaws mentioned above, and the fact that each interrupt handler is only 32
 instructions long - something no real exception handler can fit into\cite{see_mips_run}.\\
 Due to the speeds of modern processors, MIPS32 exception handling routines always
-start at the same address.
-handler, when an exception arises. This exception handler is by default located in the
+start at the same address, when an exception arises. \\
+This exception handler is by default located in the
 unmapped and uncached memory segment KSEG1, address \texttt{0x80000080}, although
-this can be changed by modifying the CP0 \texttt{EBase} register the status register bit
-\texttt{BEV} is set\cite{see_mips_run}.
+this can be changed by modifying the CP0 \texttt{EBase} register, while also
+setting the status register bit \texttt{BEV}\cite{see_mips_run}.
 
 \subsection{Interrupts}
 \label{sec:exceptions_interrupts}
@@ -99,7 +99,7 @@ actions, required to correctly recover from the exception. These steps are\cite{
 \item Setup the \texttt{EPC} register, which hold the address of the victim
 instruction. This is used when returning from the exception, so that the
 execution can continue from the correct position. \texttt{EPC} is very similar to the
-general-purpose \texttt{\$RA}, which also holds the return-address for user
+general-purpose \texttt{\$RA}, which holds the return-address for user
 programs.
 \item Flip on the \texttt{EXL} bit in the status register. This bit forces the
 CPU into kernel-mode, giving it higher privileges.
@@ -119,10 +119,10 @@ holds all the necessary excetion types (none-exception included).
 All functions in the simulator, that can cause an exception, such as reading
 from the memory, now return an exception to signal the simulator of the event.
 In the simulator, this exception is stored in the corresponding pipeline-register,
-forwarded to the next stages. When an instruction with an exception code other
+forwarded to the subsequent stages. When an instruction with an exception code other
 than "exception none" reaches the Write-Back stage, the exception handling
 mechanism is called.\\
-Note that the exceptions are not necessarilly handled in the order they are
+Note that the exceptions are not necessarily handled in the order they are
 raised, but rather, the order of the instructions. For example, in the following
 assembly code, a memory exception might occur in MEM at the same time as the arithmetic
 overflow exception in EX:
@@ -157,7 +157,7 @@ Then, the cause is determined by analyzing the exception, and stored in the
 Privileged mode (kernel mode) is entered and PC is set to the exception-
 handler address to force the jump.
 In the end, stage WB is also cleared to ensure no faulty results are written
-back to.
+back.
 \iffalse
 \begin{lstlisting}[language=C]
 bzero(&IF_ID, sizeof(struct reg_if_id));

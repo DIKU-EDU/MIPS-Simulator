@@ -8,23 +8,24 @@ program or defective code to take over the machine, it is desireable to keep
 track of the execution, limiting the access to certain systems.\\
 While limited checks can be done by the operating system, it is much more
 secure and efficient to let the hardware, in our case, the CPU, to keep track
-of each action, stopping on any suspicious activity.\\
-This protection mechanism is often called "Protection rings", where the privilege
+of each action, faulting on any suspicious activity.\\
+This protection mechanism is often called Protection Rings, where the privilege
 of a program is determined by the position on a privilege ring --- the inner ring 0
 often called "kernel" for being the most privileged, to the outtermost ring,
-often used by user applications. Depending on the architecture, the protection
+often used by user applications\cite{see_mips_run}. Depending on the architecture, the protection
 ring can have multiple layers.
 
 \subsection{Kernel and User mode}
-MIPS supports only 2 privilege levels\footnote{All MIPS processors after R4000 model have a
+MIPS supports 2 privilege levels\footnote{All MIPS processors after R4000 model have a
 third \textit{supervisor} mode. This mode is mostly ignored by operating systems,
 and will not be discussed or used here.\cite{see_mips_run}}, called the kernel and user mode,
-distinguished by a bit in the status register. While competing processors support
-more levels, such as x86 supporting 4\cite{intelmanual} levels and ARM supporting 3\cite{arm:migrating_5_7},
-they are very rarely used in practice.\\
-The usage of the two privilege modes is very intuitive --- kernel mode is used
-by the operating system and its kernel, while user mode is used for user applictions
-only.\\
+distinguished by a bit in the status register. While some competing processors support
+more levels, such as x86 supporting 4\cite{intelmanual} levels, they are very
+rarely used in practice.\\
+The usage of the two privilege modes is very intuitive from the perspective of
+the OS --- kernel mode is used
+by the operating system and its kernel, while user mode is used for user
+applications only.\\
 There are multiple functionalities these modes control, ranging from memory access
 to instruction access.
 
@@ -36,7 +37,7 @@ However, if the processor has a memory-management unit (discussed in section \re
 the operating itself can control the process access to the memory, preventing
 any reads and writes to restricted areas.
 
-\subsubsection{kernel instructions}
+\subsubsection{Kernel Instructions}
 Some instructions are restricted to the kernel mode only, because they can have
 system-wide implications. These instructions are called privileged
 instruction, and consist mainly of instructions that move data to and from
@@ -50,7 +51,7 @@ the processor executes an operation with special need, by inspecting the 3rd
 and 4th bit of the status register, called the KSU\footnote{In COD5, the lower
 bit of this field is called \texttt{UM} for User-Mode\cite{COD5}}.\\
 If the process does not satisfy the privilege check, an appropriate exception
-returned from originating function. This exception is then handled in the WB
+is returned from the originating function. This exception is then handled in the WB
 stage, described in section \ref{sec:exceptions}.\\
 It is to be noted that when handling exceptions, if the EXL flag is on, the
 processor is automatically assumed to be in kernel-mode\cite{see_mips_run}.

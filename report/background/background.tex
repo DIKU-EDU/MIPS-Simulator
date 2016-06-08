@@ -1,6 +1,6 @@
 KUDOS is heavily based on the BUENOS operating system, originally developed at
 Aalto University, Finland\cite{readthedocs:kudos}.\\
-Although KUDOS has been extended for the x86 architecture, it mainly supports
+Although KUDOS has been extended for the Intel IA-32 architecture, it mainly supports
 MIPS32 architecture, just as its predecessor. The OS has been developed along
 side a machine simulator YAMS (\textit{Yet Another Machine Simulator}), which
 is used to run the operating system.\cite{readthedocs:kudos}
@@ -22,7 +22,9 @@ listed below:
 \begin{itemize}
 	\item \texttt{Translation Lookaside Buffer}\\
 Most noteably, KUDOS lets the students research and extend the Translation
-Lookaside Buffer (TLB), which is a cache used to translate virtual addresses\cite{COD5}.\\
+Lookaside Buffer (TLB), which is a cache used to translate virtual addresses\cite{COD5}.
+It is an essential element in modern operating systems, and thus, very
+interesting to support in the simulator.
 
 	\item \texttt{TTY device}\\
 A typewriter, more commonly known as a TTY is required, to be able to communicate
@@ -59,7 +61,7 @@ code, such as assignments and exercises.
 
 \item \textit{Simplicity over performance}\\
 The goal of the simulator is to seamlessly interface with the OS, while still
-being simple to understand and research. KUDOS is a very simple OS, and YAMS is
+being simple to understand. KUDOS is a very simple OS, and YAMS is
 by no means computationally intensive -- the host machine should have no problems
 running both. Therefore, we want to focus on the readability rather than on the
 performance.

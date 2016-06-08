@@ -1,6 +1,11 @@
+All test programs lie in the \texttt{tests/} subdirectory, with a corresponding
+file ending with \texttt{".text"}, containing the expected result.
+To run all tests, a bash script \texttt{run\_tests.sh} is stored on the project
+root, which runs each test program with the simulator, comparing the return
+value with the expected return value.\\
 It is essential to repeatedly perform tests on the simulator, to ensure its
 correct behaviour, and in cases, detect and fix errors and other bugs.\\
-To very first tests ensure the basic functionality of the simulator, usually
+The very first tests ensure the basic functionality of the simulator, usually
 testing each instruction for the correct behaviour. When the simulator gets more
 advanced, additional features are added, that also need to be tested.
 
@@ -11,11 +16,7 @@ instructions as possible. For example, the \texttt{add} instruction is tested
 for both being able to add, but also subtract in one test.\\
 For simplicity, the tests return their value in \texttt{\$v1}, which the
 simulator uses as its exit value.\\
-All test programs lie in the \texttt{tests/} subdirectory, with a corresponding
-file ending with \texttt{".text"}, containing the expected result.
-To run all tests, a bash script \texttt{run\_tests.sh} is stored on the project
-root, which runs each test program with the simulator, comparing the return
-value with the expected return value.
+
 
 \subsection{Advanced tests}
 Executing instructions is only a part of the simulation. The simulator also
@@ -30,7 +31,12 @@ branch-delay slot, or correct flag-toggling of the status register on exception
 occurrence.
 
 \subsection{Travis-CI}
-TO BE WRITTEN
+To make development easier, Travis-CI is used. Travis-CI is a service used to
+automatically build and test software projects\cite{travisci:readme}. For each
+new change in the simulator project, Travis-CI builds and runs the test suite,
+reporting back on any errors. This way, it is easy to find working builds, as
+well as finding sources of bugs in the code.
+
 
 \subsection{Partial conclusion}
 Having a suite of testing programs for each instruction was a tremendous help to

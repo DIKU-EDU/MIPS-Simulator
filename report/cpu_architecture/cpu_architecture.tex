@@ -105,15 +105,19 @@ hardware.
 MIPS CPUs are pipelined, meaning that they implement an instruction pipeline which
 enables them
 to execute different stages of multiple instructions at once. This gives the
-processor a higher throughput that would otherwise be possible at a given
+processor a higher throughput than would otherwise be possible at a given
 clock-rate. The processor has 31 general purpose (GP) registers, with
-additional registers
-per co-processing unit. Even the first models of the MIPS CPUs, such as the
+additional registers per co-processing unit. A MIPS processor can have up to
+4 co-processing units, the first one being required. Co-processing units add
+functionality to the processor, that might not otherwise be required. For
+example, the co-processor 1 contains floating-point logic specially
+designed to carry out operations on floating point numbers.\\
+Even the first models of the MIPS CPUs had many features, such as the
 MIPS R2000, had memory caches and a translation lookaside-buffer, which
 improved the speed of the processor by reducing the number of main memory lookups.
 
 \subsection{Registers}
-MIPS contains multiple types of registers. The most common and most used
+MIPS CPUs have multiple types of registers. The most common and most used
 registers are the general-purpose registers (GP), which can be used for
 practically anything by the programmer. Special registers are registers
 implemented for cases where GP registers were either too small or otherwise
@@ -123,7 +127,7 @@ registers that, along with an operating system, bring many features to the
 system.
 
 \subsubsection{General Purpose Registers}
-In MIPS, there are 32 general-purpose registers, all 32 bit wide. Although
+In MIPS32, there are 32 general-purpose registers, all 32 bit wide. Although
 they
 can all theoretically be used however the programmer or assembler
 wants\footnote{Except the 0'th (\$0) register, which can only hold the
