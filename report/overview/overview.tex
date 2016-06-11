@@ -1,0 +1,33 @@
+This report serves as documentation to the MIPS simulator, codename
+\texttt{See KUDOS Run}, written as a part of a bachelor project at University
+of Copenhagen. See KUDOS Run is a machine simulator, containing pipelined CPUs,
+memory-management unit, IO-mapped devices as well as external devices.\\
+The simulator and the version-controlled source-code is located at \url{https://github.com/JanmanX/MIPS-Simulator}.
+\subsection*{Building the simulator}
+After downloading the source, the simulator can be built using:
+\begin{verbatim}
+$ make
+\end{verbatim}
+The simulator should be built in the \texttt{./bin/} directory as \texttt{mips-sim}.\\
+The simulator can be tested by running the testing script:\\
+\begin{verbatim}
+$ ./run_tests.sh
+\end{verbatim}
+\subsection*{Running the simulator}
+The simulator has a variety of command-line options, which can all be listed
+using the \texttt{-h} or \texttt{--help} flag.\\
+Running the simulator can be as simple as only giving the program as the first
+command-line argument:
+\begin{verbatim}
+$ ./bin/mips-sim tests/test_add_addiu.elf
+$ echo $?
+60
+\end{verbatim}
+To run a program with debugging enabled, the \texttt{-d} flag is supplied, which
+will let the user step the instructions:
+\begin{verbatim}
+$ ./bin/mips-sim -d tests/test_add_addiu.elf
+PC: 0x80010000
+0x2408000A	ADDIU  rs = zero = 0x00000000,  rt = t0 = 0x00000000,  imm = 0x0000000A
+> q
+\end{verbatim}
