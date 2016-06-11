@@ -20,8 +20,8 @@ int main(void)
 		fib_array[i] = fib(i);
 	}
 
-	return 2;
-//	return fib_array[N-1];
+//	return 2;
+	return fib_array[N-1];
 }
 
 
