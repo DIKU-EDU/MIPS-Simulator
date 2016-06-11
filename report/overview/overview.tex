@@ -9,8 +9,12 @@ After downloading the source, the simulator can be built using:
 $ make
 \end{verbatim}
 The simulator should be built in the \texttt{./bin/} directory as \texttt{mips-sim}.\\
-The simulator can be tested by running the testing script:\\
+A few test-programs are supplied along the simulator. These must be compiled
+using a cross-compiler. A shell-script installing the cross-compiler is supplied
+along side the simulator:
 \begin{verbatim}
+$ ./tools/cross_compiler.sh
+...
 $ ./run_tests.sh
 \end{verbatim}
 \subsection*{Running the simulator}

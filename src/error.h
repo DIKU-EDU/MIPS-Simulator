@@ -6,16 +6,16 @@
 #include <string.h>
 
 
+#define VERBAL
+
+
+#ifndef VERBAL
 #define LOG(str, ...)
-
-
 #define ERROR(str, ...)
-
-
 #define DEBUG(str, ...)
 
+#else
 
-#ifdef VERBAL
 #define LOG(str, ...) fprintf(stdout, "[LOG] %s, %s():%d: " str "\n", \
 			      __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
