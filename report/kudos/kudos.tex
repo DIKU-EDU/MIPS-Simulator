@@ -1,0 +1,47 @@
+The simulators main target is to run KUDOS, and so, operating systems such as KUDOS
+can be run just as any other userspace program.\\
+For initial testing purposes, KUDOS is modified to startup, initialize only
+the shutdown device, and trigger the shutdown device.\\
+When running the simulator (git commit version \texttt{0ff2a1c8}) on the modified
+KUDOS, a crash occurs:
+\begin{verbatim}
+$ bin/mips-sim -l out.txt kudos-mips32
+...
+[ERROR] src/mem.c, translate_paddr():216:
+ADDRESS OVERFLOW, PADDR: 0x40000004.
+Out of bounds: 0x38000000
+Segmentation fault (core dumped)
+\end{verbatim}
+Inspecting the code, the crash occurs at \texttt{0x80011034}\footnote{The instructions
+are logged when they enter the pipeline, but the instruction causing the fault is
+in memory stage.}. Since KUDOS correctly only uses the user segment (\texttt{kuseg})
+for user-space programs, the modified version of KUDOS, which does not start
+any userspace programs, should \textit{never} write to the middle of the user segment.\\
+The faulting instruction address is located just at the start of \texttt{semaphore\_P},
+which are not used in the modified KUDOS. Indeed, the simulator has gone wild and
+continued execution, where it should clearly have been shutdown, until a crash
+occurs.\\
+Upon further inspection of the code, a very peculiar behaviour is uncovered ---
+the simulator enters a kind of "NOP" sled, that is, a long section of a program
+that only consists of instructions that does nothing. This occurs after instruction
+located at \texttt{0x80000084}:
+\begin{verbatim}
+0x8001891C: 0x1466FFFA  BNE  rs = ...
+0x80000088: 0x00000000  SLL  rs = ...
+0x8000008C: 0x00000000  SLL  rs = ...
+0x80000090: 0x00000000  SLL  rs = ...
+0x80000094: 0x00000000  SLL  rs = ...
+0x80000098: 0x00000000  SLL  rs = ...
+0x8000009C: 0x00000000  SLL  rs = ...
+\end{verbatim}
+Another peculiar behaviour is exposed --- the program executes in kernel segment
+(\texttt{> 0x80000000}), but it is not after the KUDOS start-point \texttt{0x80001000}.
+However, the instruction prior can be tracked down to be the comparison of the
+device typecode of the shutdown function:
+\begin{verbatim}
+8001891c: bne v1,a2,80018908 <shutdown+0x34>
+\end{verbatim}
+
+It is clear that the execution can not continue at the "NOP-sled" addresses,
+and therefore, a bug is present in the address translation mechanism in the simulator,
+more specifically, the \texttt{translate\_paddr(...)} function of the memory module.
