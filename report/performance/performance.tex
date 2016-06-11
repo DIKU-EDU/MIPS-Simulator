@@ -8,4 +8,59 @@ restricting clock, nor do they have to wait for result from the previous instruc
 continue.\\
 
 \subsection{Comparison}
-TO BE WRITTEN
+The simulator is compared to its predecessor YAMS using GNU debugger (GDB). GNU debugger
+is a program used to debug, control and inspect other programs. It is a widely
+used and very powerful tool used for development on Linux\cite{gdb}.\\
+In GDB, a breakpoint is set on every simulator clock tick, that is, every time
+the simulator reaches to the start cycle of simulating a new instruction. Then,
+GDB steps to next instructions, until the breakpoint is reached again. This
+process is repeated a number of times, the number of "steps" saved and printed
+at the end. A GDB script \texttt{perf.gdb} is used for this task, which consists
+of two \texttt{while} loops - one iterating over the number of simulated instructions,
+and the other one counting the host instructions used. At the end of the script,
+GDB prints \texttt{\$i}, which is the number of simulated instructions executed,
+and \texttt{\$count}, which is the number of host instructions used. The script
+can be seen on figure \ref{fig:gdb_perf}.
+\begin{figure}
+\lstinputlisting[caption=]{../perf.gdb}
+\caption{GDB script to test performance.}
+\label{fig:gdb_perf}
+\end{figure}
+
+Due to compatibility, the simulator will executing KUDOS, while YAMS will be
+executing BUENOS. Although this might cause the simulators to execute different
+instructions, the test runs enough instructions to approximate their performance.
+
+\begin{center}
+    \begin{tabular}{ | c | c | c | c | r | }
+    \hline
+    & i = 10 & i = 1000 & ratio \\ \hline \hline
+    \texttt{YAMS} & 3545 & 430328 &  429\\ \hline
+    \texttt{Simulator} & 9218 & 788851 & 790 \\ \hline
+    \end{tabular}
+\end{center}
+
+%
+%CKUDOS RUn
+%\$1 = 92183
+%\$2 = 10
+%
+%\$1 = 788851
+%\$2 = 1000
+%
+%
+%YAMS
+%\$1 = 3545
+%\$2 = 10
+%
+%\$3 = 430328
+%\$4 = 1000
+
+By this very primitive test, YAMS is approximatelly 2 times faster, as it uses
+the half the instructions to emulate an instruction.\\
+On the testing computer, an Intel® Core™ i5-6200U Processor is used, with turbo
+frequency up to 2.80GHz\cite{intel:i5}. If fully utilized, the simulator can on
+this machine simulate a very fast MIPS processor with over 3.5MHz clock rate,
+which is more than enough for the KUDOS operating system:
+$$2.80GHz / 790 \approx 3.5443MHz$$
+
