@@ -4,6 +4,8 @@
 #include <string.h>
 
 #include "cpu.h"
+#include "error.h"
+
 
 /* Array of register names */
 char *reg_names [] = {
@@ -47,6 +49,11 @@ cpu_init(int n_cores)
 {
 	core_t *cores = (core_t*)calloc(n_cores, sizeof(core_t));
 	cpu_t *cpu = (cpu_t*)calloc(1, sizeof(cpu_t));
+
+	if(cores == NULL || cpu == NULL) {
+		ERROR("Cannot allocate cpu structure(s).");
+		return NULL;
+	}
 
 	cpu->core = cores;
 	cpu->num_cores = n_cores;

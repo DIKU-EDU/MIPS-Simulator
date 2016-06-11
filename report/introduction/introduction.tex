@@ -1,7 +1,7 @@
 This report describes the development of a MIPS simulator, intended to support
 the operating system KUDOS. The simulator will be written in C, and will
-support the most important processor required to run KUDOS, such as the
-translation lookaside
+support the most important processor features and I/O devices, required to run
+KUDOS, such as the translation lookaside
 buffer (TLB), memory management unit (MMU), user and kernel CPU modes,
 multiple cores (SMP), and I/O device emulation. \\
 
@@ -11,22 +11,43 @@ KUDOS is a small operating system skeleton intended to be used by students
 attending operating system project courses at university of Copenhagen.
 It is used to explore operating system concepts by extending and improving on
 existing system.
-Initially, KUDOS targetsthe MIPS32 architecture, which leverages on the
+Initially, KUDOS targets the MIPS32 architecture, which leverages on the
 advantages of a
-reduced instruction set computing - RISC.\\
-To ease the development and debugging of KUDOS, it is desireable to run the OS
+reduced instruction set computing --- RISC.\\
+To ease the development and debugging of KUDOS, it is desireable to run the
+operating system
 in a simulated machine. This enables the students and other developers to
-better inspect the state of the machine while executing, as well as making up
+better inspect the state of the machine, as well as making up
 for the difference in the hardware of the host machine.
 
 \subsection{A simulator}
-Simulation is the act of imitating the operation of an existing system. In our
-case, we will be imitating, or rather, simulating a MIPS32 machine running
-KUDOS.\\
-Unlike emulating a system, the simulator will execute every instruction
-comparably to as how a hardware machine might do.
-This involves modelling the internal state of the machine, which accuratelly
-reflects the target it is simulating.
-This allows the developer to not only see how
-a program behaves, but also observe properties of the machine which are also
-present in the original target.
+A simulator is a program or a machine, that models some key characteristics
+and functions of a given target.  The purpose of a
+simulator is to be able to look inside the simulation and inspect the properties
+and behaviours, that would otherwise only be seen in the real target.
+A possible by-product of a simulator is that the simulation model will emulate
+the target and its behaviour, practically immitating the target.\\
+An emulator, on the other side, is intended to only mimick the behaviour of
+a target on the outside, not correctly reflecting the internal state of the target.
+Emulators are often used as a substitute for the real targets.
+The difference between emulation and simulation is therefore, that unlike simulating a system,
+an emulator only imitates the outward behaviour of its target, and it is hard
+to predict how the target would act internally.\\
+For example, mobile developers often use an emulator to test their
+applications.
+Instead of having thousands of real smartphones, they can simply emulate\footnote{
+To be precise, they are emulating the hardware devices, but the applications they
+are testing, are being simulated.}
+the devices on their computers, saving both time and money.\\
+A common use of a simulator is in the aircraft business, where flight-simulators
+are being used for both pilot training, engineering, design, and many other
+purposes. While it gives a very good insight on how a simulated airplane might
+react in given situations, it does not actually move the users from one point
+to another.\\
+The purpose of our project is to write a program used at the Computer Systems
+course at Copenhagen University, that can emulate KUDOS, while at the same
+time, exposes the internal workings of the machine, for the students and
+other participants to inspect and study.\\
+Our target is therefore to simulate the academically important and relevant
+parts, while others will be emulated.
+

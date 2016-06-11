@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "sim.h"
 #include "debug.h"
 #include "cpu.h"
 #include "disasm.h"
@@ -7,14 +8,13 @@
 #include "mem.h"
 #include "exception.h"
 
-/* extern'd in sim.c */
-extern bool g_debugging;
 
-/* extern'd in sim.c */
-extern bool g_finished;
-
-void debug(uint32_t inst, core_t* core, mmu_t *mem)
+void debug(uint32_t inst, simulator_t *simulator)
 {
+	core_t *core = simulator->hw->cpu->core;
+	mmu_t *mem = simulator->hw->mmu;
+
+
 	printf("PC: 0x%08X\n", core->regs[REG_PC]);
 	print_instruction(inst, core);
 
@@ -81,12 +81,12 @@ q		- Quit\n\
 			/* Continue */
 		case 'c':
 			/* XXX: This is ugly */
-			g_debugging = false;
+			simulator->debug = false;
 			break;
 
 		/* Exit */
 		case 'q':
-			g_finished = true;
+			simulator->finished = true;
 			return;
 
 		/* List devices */
@@ -145,7 +145,7 @@ void print_pipeline_registers(core_t *core)
 	       INST_STR(MEM_WB.inst));
 
 	printf("---------------------------------------------------------------------------------------------\n");
-	printf("next_pc:    %08x  next_pc:   %08x      next_pc: %08x      next_pc:  %08x\n",
+	printf("next_pc: %08x  next_pc:   %08x       next_pc: %08x          next_pc:  %08x\n",
 	      IF_ID.next_pc, ID_EX.next_pc, EX_MEM.next_pc, MEM_WB.next_pc);
 
 	printf("inst:    %08x  c_reg_dst:   %08x      c_reg_write: %08x      c_reg_write:  %08x\n",

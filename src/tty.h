@@ -17,6 +17,11 @@
 /* TTY vendor string */
 #define TTY_VENDOR_STRING	"TTY     "
 
+/* IO device register offsets  */
+#define TTY_REGISTER_STATUS	0x00000000
+#define TTY_REGISTER_COMMAND	0x00000004
+#define TTY_REGISTER_DATA	0x00000008
+
 
 /* TTY device */
 typedef struct tty_device {

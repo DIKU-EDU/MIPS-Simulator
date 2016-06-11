@@ -38,4 +38,3 @@ void device_descriptor_set_fields(device_t *dev, device_descriptor_t *dev_desc)
 	dev_desc->_reserved1		= 0;
 	dev_desc->_reserved2		= 0;
 }
-

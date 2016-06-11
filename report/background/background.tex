@@ -1,0 +1,74 @@
+KUDOS is heavily based on the BUENOS operating system, originally developed at
+Aalto University, Finland\cite{readthedocs:kudos}.\\
+Although KUDOS has been extended for the Intel IA-32 architecture, it mainly supports
+MIPS32 architecture, just as its predecessor. The OS has been developed along
+side a machine simulator YAMS (\textit{Yet Another Machine Simulator}), which
+is used to run the operating system.\cite{readthedocs:kudos}
+
+
+\subsection{KUDOS and YAMS}
+BUENOS, and thus KUDOS, has been developed very closely with the YAMS simulator.
+Since the intetion of the OS is to be used at operating system courses, it is
+heavily dependant on the simulator, its interfaces, and its devices.\\
+Despite being a very simple and basic simulation of a machine, it is still a
+very realistic hardware interface.
+
+
+\subsection{Analysis}
+The KUDOS operating system is written to fully utilize the many of MIPS32 features,
+which the students can research and extend.\\
+To be able to run KUDOS correctly, the simulator must at least support the features
+listed below:
+\begin{itemize}
+	\item \texttt{Translation Lookaside Buffer}\\
+Most noteably, KUDOS lets the students research and extend the Translation
+Lookaside Buffer (TLB), which is a cache used to translate virtual addresses\cite{COD5}.
+It is an essential element in modern operating systems, and thus, very
+interesting to support in the simulator.
+
+	\item \texttt{TTY device}\\
+A typewriter, more commonly known as a TTY is required, to be able to communicate
+with the operating system. These devices are usually very basic, only being able
+to transmit textual messages.
+
+	\item \texttt{Shutdown device}\\
+The operating system needs a way to cleanly shutdown. The simulator will setup
+this device, and when required, will efficiently bring the system down.
+
+	\item \texttt{Mapping of all memory segments}\\
+KUDOS may be extended to fully utilize the entire main memory. As memory is
+split into segments in MIPS32, it is essential for the simulator to be able to
+handle this.
+
+	\item \texttt{Bootstrapping mechanism}\\
+KUDOS is shipped without a bootloader, relying on the simulator to correctly
+load the OS and start it from an appropriate point.
+\end{itemize}
+
+
+
+\subsection{Design Goals}
+For the simulator to work flawlessly with KUDOS, it will be heavily inspired by
+the YAMS simulator. Since the OS is relying on the simulator, and vice versa,
+we do not want to make any drastic changes to the simulator, as to avoid rewriting
+parts of KUDOS. The main design goals of the simulator are:\\
+\begin{itemize}
+\item \textit{Avoid breaking compatibility}\\
+For better integration of the simulator into the operating systems course, it is
+undesireable to make such big design changes, that would need to be patched in
+the OS as well. Even minor changes in KUDOS could break previously working
+code, such as assignments and exercises.
+
+\item \textit{Simplicity over performance}\\
+The goal of the simulator is to seamlessly interface with the OS, while still
+being simple to understand. KUDOS is a very simple OS, and YAMS is
+by no means computationally intensive -- the host machine should have no problems
+running both. Therefore, we want to focus on the readability rather than on the
+performance.
+
+\item \textit{Usability}\\
+The simulator should be easy to use, stable, and flexible in regards of its
+functionality.
+Apart from running the OS and other simulated programs, the users should be able
+to stop the running program, to inspect the state of the simulated machine.
+\end{itemize}

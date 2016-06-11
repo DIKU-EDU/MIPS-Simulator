@@ -25,15 +25,15 @@ Fetches the next instruction.
 Reads the instruction, sets the appropriate control flags, reads the relevant
 registers and sends the data to the next stage.
 
-	\item Execute\\
+	\item Execute (EX)\\
 Executes the instruction. This is typically done by the ALU with the appropriate
 operation supplied.
 
-	\item Memory Access\\
+	\item Memory Access (M/MEM)\\
 All operations on memory happen here. This stage either loads a memory address
 or stores a value at an appropriate address.
 
-	\item Write Back\\
+	\item Write Back (WB)\\
 Writes the results to the CPU registers.
 \end{itemize}
 Each of these stages will naturally use less time than all of them combined, and
@@ -75,7 +75,7 @@ In MIPS32 assembly, this would be written as:
 # t0 = A, t1 = B, t2 = C, t3 = D
 add $s0, $t0, $t1 	# s0 = A + B
 add $s1, $t2, $t3	# s1 = C + D
-add $v0, $s0, $s1	# $v0 = result
+add $v0, $s0, $s1	# $v0 = $s1 + $s0
 	\end{lstlisting}
 	\caption{Code exposing data hazard situation.}
 	\label{fig:data_hazard_code}

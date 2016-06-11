@@ -15,12 +15,12 @@ mmu_t* mmu_init(size_t size)
 	mmu_t* mmu = (mmu_t*)calloc(1, sizeof(mmu_t));
 	uint8_t* pmem = (uint8_t*)calloc(1, size);
 	device_descriptor_t* dev_desc = (device_descriptor_t*)
-					calloc(1, IO_DESCRIPTOR_AREA_LENGTH);
+		calloc(1, IO_DESCRIPTOR_AREA_LENGTH);
 
 
 	if(mmu == NULL || pmem == NULL || dev_desc == NULL) {
 		ERROR("Could not allocate memory.");
-		exit(1);
+		return NULL;
 	}
 
 	mmu->device_descriptor_start = dev_desc;
@@ -44,17 +44,48 @@ mmu_t* mmu_init(size_t size)
 exception_t mmu_read(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t *dst,
 		     mem_op_size_t op_size)
 {
+	/* IO mapped address */
+	if(vaddr >= IO_REGISTER_AREA) {
+
+		LOG("Reading IO register area");
+
+		device_t *dev;
+
+		/* Iterate over the devices */
+		for(dev = mem->devices; dev->next != NULL; dev = dev->next) {
+			if(vaddr >= dev->io_addr_base
+			   && vaddr <= dev->io_addr_base + dev->io_addr_len) {
+				dev->io_read(dev, vaddr, dst);
+			}
+		}
+
+		return EXC_None;
+
+	/* IO descriptor area */
+	} else if(vaddr >= IO_DESCRIPTOR_AREA) {
+
+		LOG("Reading IO descriptor area");
+
+		if(op_size == MEM_OP_BYTE) {
+			*dst = ((uint8_t*)(mem->device_descriptor_start))
+				[vaddr-IO_DESCRIPTOR_AREA];
+		} else if(op_size == MEM_OP_HALF) {
+			*dst = ((uint16_t*)(mem->device_descriptor_start))
+				[vaddr-IO_DESCRIPTOR_AREA];
+		} else if(op_size == MEM_OP_WORD) {
+			*dst = ((uint32_t*)(mem->device_descriptor_start))
+				[vaddr-IO_DESCRIPTOR_AREA];
+		}
+
+		return EXC_None;
+	}
+
 	/* Translated physical address */
 	uint32_t paddr = translate_vaddr(vaddr);
 
 	/* Translate to actual address*/
 	uint8_t *aaddr = translate_paddr(paddr, mem);
 
-
-	/* If I/O device */
-	/* Reading any of the IO device registers in either usermode or
-	 * supervisor mode when such accesses are not allowed, results in all
-	 * zeros being returned */
 
 
 	if(op_size == MEM_OP_BYTE) {
@@ -66,9 +97,9 @@ exception_t mmu_read(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t *dst,
 	}
 
 	/*
-	DEBUG("READ: 0x%08X FROM VADDR: 0x%08X, AADDR: %p", *((uint32_t*)dst), vaddr,
-	      aaddr);
-	*/
+	   DEBUG("READ: 0x%08X FROM VADDR: 0x%08X, AADDR: %p", *((uint32_t*)dst), vaddr,
+	   aaddr);
+	   */
 
 	return EXC_None;
 }
@@ -76,6 +107,34 @@ exception_t mmu_read(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t *dst,
 exception_t mmu_write(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t src,
 		      mem_op_size_t op_size)
 {
+	/* IO mapped address */
+	if(vaddr >= IO_REGISTER_AREA) {
+
+		LOG("Writing IO register area");
+
+		device_t *dev;
+
+		/* Iterate over the devices */
+		for(dev = mem->devices; dev->next != NULL; dev = dev->next) {
+			if(vaddr >= dev->io_addr_base
+			   && vaddr <= dev->io_addr_base + dev->io_addr_len) {
+				dev->io_write(dev, vaddr, src);
+			}
+		}
+
+		return EXC_None;
+
+
+		/* If writing to descriptor area is not allowed */
+	} else if(vaddr >= IO_DESCRIPTOR_AREA) {
+
+		LOG("Writing IO descriptor area");
+
+		return EXC_AddressErrorStore;
+	}
+
+
+
 	/* Translate to physical */
 	uint32_t paddr = translate_vaddr(vaddr);
 
@@ -93,9 +152,9 @@ exception_t mmu_write(core_t *core, mmu_t *mem, int32_t vaddr, uint32_t src,
 	}
 
 	/*
-	DEBUG("WRITTEN: 0x%08X to VADDR: 0x%08X, AADDR: %p", *((uint32_t*)aaddr), vaddr,
-	      aaddr);
-	*/
+	   DEBUG("WRITTEN: 0x%08X to VADDR: 0x%08X, AADDR: %p", *((uint32_t*)aaddr), vaddr,
+	   aaddr);
+	   */
 	return EXC_None;
 }
 
@@ -142,17 +201,10 @@ uint8_t* translate_paddr(uint32_t paddr, mmu_t *mem)
 	/* Actual address */
 	uint8_t *aaddr = NULL;
 
-	/* IO mapped address */
-	if(paddr >= IO_REGISTER_AREA) {
-		/* XXX: What to do here? */
-		return NULL;
-
-	} else if(paddr >= IO_DESCRIPTOR_AREA) {
-		/* TODO */
-
 	/* KSEG2 */
-	} else if(paddr >= KSEG0_SIZE + KSEG1_SIZE + KUSEG_SIZE) {
+	if(paddr >= KSEG0_SIZE + KSEG1_SIZE + KUSEG_SIZE) {
 		/* TODO */
+		return NULL;
 		/* KUSEG */
 	} else if(paddr >= KSEG1_SIZE + KSEG0_SIZE) {
 		/* Check if out of bounds */

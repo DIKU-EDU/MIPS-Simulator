@@ -34,7 +34,9 @@
 
 
 /* Number of IO devices */
-#define MAX_IO_DEVICES		(IO_DESCRIPTOR_AREA_LENGTH / sizeof(struct device_descriptor))
+#define MAX_IO_DEVICES		(IO_DESCRIPTOR_AREA_LENGTH \
+				 / sizeof(struct device_descriptor))
+
 
 /* Macros for reading from memory */
 #define GET_BIGWORD(addr) ((uint32_t) \

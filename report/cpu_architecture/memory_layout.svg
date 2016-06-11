@@ -192,7 +192,7 @@
      inkscape:current-layer="layer1"
      inkscape:document-units="px"
      inkscape:cy="690.35351"
-     inkscape:cx="-44.197787"
+     inkscape:cx="-241.35118"
      inkscape:zoom="0.75575672"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
@@ -212,7 +212,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -379,15 +379,15 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="184.3199"
-       y="816.59686"
+       x="102.28292"
+       y="815.27368"
        id="text4897"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4899"
-         x="184.3199"
-         y="816.59686"
-         style="font-size:20px">0x00</tspan></text>
+         x="102.28292"
+         y="815.27368"
+         style="font-size:20px">0x0000 0000</tspan></text>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker4787-7)"
        d="m 241.37511,750.6766 60,0"

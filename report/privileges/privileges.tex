@@ -1,0 +1,57 @@
+\label{sec:privileges}
+To tighten the security, prevent software faults, and to protect the user from
+malware, most modern hardware support mechanisms to detect the malicious behaviour
+and act accordingly.\\
+Most computer operating systems have access to different resources, ranging from
+widely available devices to critical subsystems. To prevent malicious
+program or defective code to take over the machine, it is desireable to keep
+track of the execution, limiting the access to certain systems.\\
+While limited checks can be done by the operating system, it is much more
+secure and efficient to let the hardware, in our case, the CPU, to keep track
+of each action, faulting on any suspicious activity.\\
+This protection mechanism is often called Protection Rings, where the privilege
+of a program is determined by the position on a privilege ring --- the inner ring 0
+often called "kernel" for being the most privileged, to the outtermost ring,
+often used by user applications\cite{see_mips_run}. Depending on the architecture, the protection
+ring can have multiple layers.
+
+\subsection{Kernel and User mode}
+MIPS supports 2 privilege levels\footnote{All MIPS processors after R4000 model have a
+third \textit{supervisor} mode. This mode is mostly ignored by operating systems,
+and will not be discussed or used here.\cite{see_mips_run}}, called the kernel and user mode,
+distinguished by a bit in the status register. While some competing processors support
+more levels, such as x86 supporting 4\cite{intelmanual} levels, they are very
+rarely used in practice.\\
+The usage of the two privilege modes is very intuitive from the perspective of
+the OS --- kernel mode is used
+by the operating system and its kernel, while user mode is used for user
+applications only.\\
+There are multiple functionalities these modes control, ranging from memory access
+to instruction access.
+
+\subsubsection{Memory and IO access}
+In user mode, a MIPS32 processor can only access the bottom half of the memory
+space, that is, the first 2GB. For addresses over, the processor will check
+the top bit of the address and the privilege level, restricting non-kernel mode.
+However, if the processor has a memory-management unit (discussed in section \ref{sec:mmu}),
+the operating itself can control the process access to the memory, preventing
+any reads and writes to restricted areas.
+
+\subsubsection{Kernel Instructions}
+Some instructions are restricted to the kernel mode only, because they can have
+system-wide implications. These instructions are called privileged
+instruction, and consist mainly of instructions that move data to and from
+co-processor 0, such as \texttt{mfc0} and \texttt{mtc0}.
+
+
+\subsection{Implementation}
+In the simulator, there is no separate need for a module checking the
+privileges of the executing process. The privilege checks are done every time
+the processor executes an operation with special need, by inspecting the 3rd
+and 4th bit of the status register, called the KSU\footnote{In COD5, the lower
+bit of this field is called \texttt{UM} for User-Mode\cite{COD5}}.\\
+If the process does not satisfy the privilege check, an appropriate exception
+is returned from the originating function. This exception is then handled in the WB
+stage, described in section \ref{sec:exceptions}.\\
+It is to be noted that when handling exceptions, if the EXL flag is on, the
+processor is automatically assumed to be in kernel-mode\cite{see_mips_run}.

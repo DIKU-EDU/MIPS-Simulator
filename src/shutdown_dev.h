@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include "sim.h"
 #include "io.h"
 
 #define SHUTDOWN_VENDOR_STRING	"SHUTDOWN"
@@ -11,6 +12,9 @@
 #define IO_LENGTH_SHUTDOWN	0x04
 #define POWEROFF_SHUTDOWN_MAGIC 0x0badf00d /* Defined in KUDOS */
 
+typedef struct shutdown_device {
+	bool shutdown_triggered;
+} shutdown_device_t;
 
 
 
