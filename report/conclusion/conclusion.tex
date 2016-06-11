@@ -1,0 +1,16 @@
+The simulator has been written using modules resembling the actual design of
+MIPS32 processors. This yields a natural flow of instructions, as well as a very natural
+behaviour of the actual code.\\
+While the simulator can successfully run all the test-cases supplied along side
+the code, we have shown that the simulator still contains bugs that, when running
+KUDOS, will cause the simulator to continue execution at unknown memory addresses,
+eventually reaching some actual code that will make the simulator enter an invalid
+state, and crashing. However, despite this bug, enough material has been presented
+to show that a pipelined MIPS32 simulator with a working MMU, memory-mapped IO,
+exception mechanism as well as debugging functions, can be written, with excellent
+performance. After comparison to the more field-tested YAMS, the simulator was
+only about half as fast, with all the same features as its counterpart. However,
+due to the low performance requirements of the KUDOS system, the simulator should
+be more than fast enough.
+
+
