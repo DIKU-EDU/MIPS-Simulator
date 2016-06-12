@@ -673,8 +673,13 @@ void handle_exception(core_t *core, mmu_t *mem)
 	/* 3. Set SR(EXL) to set CPU into kernel mode and disable interrupts */
 	core->cp0.regs[REG_SR] |= SR_EXL;
 
-	/* 4. Jump to exception handler at 0x80000080 */
+	/* 4. Jump to exception handler at 0x80000080, or to EBASE, if SR_BEV
+	 * is set */
 	core->regs[REG_PC] = (uint32_t)0x80000080;
+
+	if(core->cp0.regs[REG_SR] & SR_BEV) {
+		core->regs[REG_PC] = core->cp0.regs[REG_EBASE];
+	}
 
 	/* Clear last stage */
 	bzero(&MEM_WB, sizeof(struct reg_mem_wb));
