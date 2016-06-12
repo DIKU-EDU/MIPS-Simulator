@@ -23,7 +23,7 @@ continued execution, where it should clearly have been shutdown, until a crash
 occurs.\\
 Upon further inspection of the code, a very peculiar behaviour is uncovered ---
 the simulator enters a kind of "NOP" sled, that is, a long section of a program
-that only consists of instructions that does nothing. This occurs after instruction
+that only consists of instructions that do nothing. This occurs after instruction
 located at \texttt{0x80000084}:
 \begin{verbatim}
 0x8001891C: 0x1466FFFA  BNE  rs = ...
