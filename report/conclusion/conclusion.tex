@@ -2,7 +2,8 @@ The simulator has been written using modules resembling the actual design of
 MIPS32 processors. This yields a natural flow of instructions, as well as a very natural
 behaviour of the actual code.\\
 While the simulator can successfully run all the test-cases supplied along side
-the code, we have shown that the simulator still contains bugs that, when running
+the code, as well as handling IO devices, exceptions and interrupts, we have
+shown that the simulator still contains bugs that, when running
 KUDOS, will cause the simulator to continue execution at unknown memory addresses,
 eventually reaching some actual code that will make the simulator enter an invalid
 state, and crashing. However, despite this bug, enough material has been presented

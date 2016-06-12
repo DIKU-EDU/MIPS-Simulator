@@ -1,13 +1,13 @@
 \label{sec:privileges}
 To tighten the security, prevent software faults, and to protect the user from
-malware, most modern hardware support mechanisms to detect the malicious behaviour
+malware, most modern hardware support mechanisms to detect malicious behaviour
 and act accordingly.\\
 Most computer operating systems have access to different resources, ranging from
 widely available devices to critical subsystems. To prevent malicious
-program or defective code to take over the machine, it is desireable to keep
+program or defective code from taking over the machine, it is desireable to keep
 track of the execution, limiting the access to certain systems.\\
 While limited checks can be done by the operating system, it is much more
-secure and efficient to let the hardware, in our case, the CPU, to keep track
+secure and efficient to let the hardware, in our case, the CPU, keep track
 of each action, faulting on any suspicious activity.\\
 This protection mechanism is often called Protection Rings, where the privilege
 of a program is determined by the position on a privilege ring --- the inner ring 0
@@ -34,7 +34,7 @@ In user mode, a MIPS32 processor can only access the bottom half of the memory
 space, that is, the first 2GB. For addresses over, the processor will check
 the top bit of the address and the privilege level, restricting non-kernel mode.
 However, if the processor has a memory-management unit (discussed in section \ref{sec:mmu}),
-the operating itself can control the process access to the memory, preventing
+the operating system itself can control the process access to the memory, preventing
 any reads and writes to restricted areas.
 
 \subsubsection{Kernel Instructions}
@@ -51,7 +51,7 @@ the processor executes an operation with special need, by inspecting the 3rd
 and 4th bit of the status register, called the KSU\footnote{In COD5, the lower
 bit of this field is called \texttt{UM} for User-Mode\cite{COD5}}.\\
 If the process does not satisfy the privilege check, an appropriate exception
-is returned from the originating function. This exception is then handled in the WB
+is returned from the originating function. This exception is then handled in the writeback
 stage, described in section \ref{sec:exceptions}.\\
 It is to be noted that when handling exceptions, if the EXL flag is on, the
 processor is automatically assumed to be in kernel-mode\cite{see_mips_run}.

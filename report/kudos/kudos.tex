@@ -41,7 +41,11 @@ device typecode of the shutdown function:
 \begin{verbatim}
 8001891c: bne v1,a2,80018908 <shutdown+0x34>
 \end{verbatim}
-
-It is clear that the execution can not continue at the "NOP-sled" addresses,
-and therefore, a bug is present in the address translation mechanism in the simulator,
-more specifically, the \texttt{translate\_paddr(...)} function of the memory module.
+The code continues at addresses just after \texttt{0x80000080}, which is the
+default starting address for the exception handling mechanism. This suggests
+that an exception occured, that the processor is trying to handle. However, either
+the exception handler code is not loaded correctly by the program loader, or it
+is placed at a different address without the processor knowing. In either case,
+this is a faulty state, which should never occur, and it is likely caused by a
+bug in the simulator, more specifically, the \texttt{handle\_exception(...)}
+function of the simulator.

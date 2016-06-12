@@ -11,13 +11,13 @@ units.
 The functionality of all processors is fundamentally the same. The processor
 executes some primitive operation by fetching an instruction in the form of
 binary signals, act upon the instruction and store the result in either
-one of the its registers, or in the main memory.
+one of its registers, or in the main memory.
 
 A single instruction does very little, but a collection of instructions
 make up
 a program. In the very early computing days, computers were programmed in an
 assembly language, which is simply human-readable instruction code. As the
-computers grew more powerful, more complex and much faster, larger programs could be
+computers grew more powerful, more complex and faster, larger programs could be
 executed. Because it is hard and time-consuming to write programs using
 only the
 assembly language, compilers are used to remove this complexity. A
@@ -98,14 +98,14 @@ These are \cite{COD5}:
 \end{itemize}
 These decisions withstood the trial by fire and proved, that honoring these
 principles yields good design, easing implementation as well as simplifying
-hardware.
+hardware\cite{COD5}.
 
 
 \section{MIPS Core Processing Unit}
 MIPS CPUs are pipelined, meaning that they implement an instruction pipeline which
 enables them
 to execute different stages of multiple instructions at once. This gives the
-processor a higher throughput than would otherwise be possible at a given
+processor a higher throughput that would otherwise be possible at a given
 clock-rate. The processor has 31 general purpose (GP) registers, with
 additional registers per co-processing unit. A MIPS processor can have up to
 4 co-processing units, the first one being required. Co-processing units add
@@ -168,7 +168,7 @@ Rather, they are modified by dedicated instructions.
 \texttt{HI} and \texttt{LO} registers are used to contain the result of a
 multiplication or division, which, using 2 32bit registers, can end with a
 64bit result.\\
-The PC register is pretty self-explanatory, as it simply points the current
+The PC register is pretty self-explanatory, as it simply points to the current
 location in the program (or "counts" the instructions). On other
 architectures,
 this register is better known as the Instruction Pointer (IP).
@@ -234,7 +234,7 @@ In MIPS, the instructions have 3 basic formats:
 \label{fig:instruction_formats}
 \end{figure}
 
-It is clear that, as they have common fields, mainly the opcode field,
+It is clear that, even though they have common fields, mainly the opcode field,
 they are
 easily distinguishable.\\
 The R-format instructions are mainly used when all the data being processed is
@@ -257,11 +257,11 @@ Without any extension co-processing unit, the Arithmentic Logic Unit (ALU) in
 MIPS32 only supports operations on integers. \\
 The ALU supports basic mathematical operations such as adding (\texttt{add}),
 subtracting (\texttt{sub}), as well as logical shifting to both left and right
-(\texttt{sll, srl}), which also can be used to division or multiplication by
+(\texttt{sll, srl}), which also can be used for division or multiplication by
 even numbers.
 
-All bitwise logical operators \texttt{and, or, and nor} are implemented Using
-these, which additional missing logical operations can be created, such as
+All bitwise logical operators \texttt{and, or, and nor} are implemented. Using
+these, the programmer and compiler can create all the additional missing logical operations, such as
 \texttt{nand} and \texttt{not}.\\
 Since both the operand and destination registers are 32 bit wide, an overflow
 in the result might occur - that is, the result is larger than what a 32 bit
@@ -351,7 +351,7 @@ The memory is a large chuck of consecutive bytes. While these can store
 practically anything, operating systems designate memory areas into multiple
 segments (also called sections), which eases memory management.
 While many operating systems create many different segments in the memory map
-of a program, these segments usually fall into 4
+of a program, these segments usually fall into 5
 categories\cite{memory_sections}\cite{COD5}\cite{see_mips_run}:
 \begin{itemize}
 \item \texttt{.text}\\
