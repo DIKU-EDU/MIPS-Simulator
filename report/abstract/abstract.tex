@@ -5,7 +5,10 @@ This project covers the writing of a pipelined MIPS32 simulator, used to run the
 KUDOS operating system, developed at University of Copenhagen.\\
 For the implementation, the required components, such as the memory-management
 unit and IO-mapped devices, have been studied and implemented in the simulator,
-in order to fully utilize KUDOS.\\
+in order to fully utilize KUDOS. The Translocation Lookaside Buffer, which is
+another requirement to run KUDOS, has not been implemented, due to present bugs
+in the exception-handling routine, which faults when running KUDOS on the
+current version of the simulator.\\
 Although the simulator at the current state is not able to run KUDOS, it is shown
 that it is very well possible, with only minor performance overhead to the host
 machine, compared to the older YAMS simulator.
@@ -14,13 +17,16 @@ machine, compared to the older YAMS simulator.
 
 
 \begin{center}
-\textbf{Resume}\\
+\textbf{Resumé}\\
 \end{center}
 Dette projekt omfatter udvikling af en "pipelined" MIPS32 simulator, brugt til at
-afvikle KUDOS operativsystemet, udviklet på Københavns Universitet.\\
+afvikle KUDOS styresystemet, udviklet på Københavns Universitet.\\
 De nødvendige systemer, krævet for at køre KUDOS, såsom memory-management unit og IO-mapped
 enheder, er blevet studeret og implementeret i simulatoren, så KUDOS kan blive kørt
-i dens fulde potentiale.\\
+i dens fulde potentiale. Translocation Lookaside Buffer, som også er et krav for
+at køre KUDOS, er ikke blevet implementered, grundet eksisterende fejl i
+exception håndterings-systemet, som fejler ved eksekvering af KUDOS på den nuværende
+version af simulatoren.\\
 Selvom simulatoren i dens nuværende tilstand ikke er klar til at køre KUDOS, bliver
 det vist at det er muligt med meget små krav til ekstra omkostninger på
 ydeevnen, sammenlignet til den forrige YAMS simulator.

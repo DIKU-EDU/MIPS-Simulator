@@ -144,6 +144,7 @@ MIPS Simulator, the current simulator used to run KUDOS. The same device descrip
 structure is defined in KUDOS, so that KUDOS can interface with the underlying
 simulator, retrieving the relevant information.
 The structure is defined in \cite[kudos/drivers/mips32/arch.h]{kudos} as:
+\begin{minipage}{0.5\textwidth}
 \begin{lstlisting}[language=c]
 typedef struct {
     uint32_t type;
@@ -156,6 +157,7 @@ typedef struct {
     uint32_t resv[2];
 } io_descriptor_t;
 \end{lstlisting}
+\end{minipage}
 
 Learning from the devicetree specification and the seasoned Linux developers,
 it would probably be better with a more general method to describe system
@@ -173,7 +175,7 @@ device descriptor area. In KUDOS and the simulator, this area is defined by
 KUDOS searches for the underlying devices. The structure is represented on figure
 \ref{fig:io_memory_layout}
 
-\begin{figure}[H]
+\begin{figure}[h]
 	\centering
 	\includegraphics[scale=1]{io/io_memory_layout.eps}
 	\caption{Memory layout of IO device descriptors and registers.}

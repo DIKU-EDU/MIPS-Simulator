@@ -1,14 +1,14 @@
 CPU speeds are usually measured by timing the execution time of programs. Since
 a computer program is just a collection instructions, the speed of the CPU is
 determined by how fast it can process each instruction.
-Every CPU has a clock, which ticks at a given rate. For every tick, a new
+Every CPU has a clock, which ticks at a constant rate. For every tick, a new
 instruction is executed. This clock ensures that all instructions "flow" through
 the processor without problems, and that the electrical components, such as the
 ALU or the control-unit, can manage to carry out their tasks in that time.
 Naturally, electrical engineers have pushed the limits of the circuits to manage
 the highest clock rate. The clock rate of the very first processors was measured
-in hertz and kiloHertz (kHz), but most modern desktop CPUs reach in multiple
-GigaHertz (GHz)\cite{wiki:clock_rate}. However, even with those speeds, the
+in hertz and kilohertz (kHz), but most modern desktop CPUs reach in multiple
+Gigahertz (GHz)\cite{wiki:clock_rate}. However, even with those speeds, the
 demand for faster processing units is ever-growing, and other techniques to speed-up
 the execution are used.\\
 One of those techniques is pipelining, which separates the circuit into multiple
@@ -19,7 +19,7 @@ decreases the labor need.
 In MIPS, this idea is implemented by separating the processor into 5 stages\cite{COD5}:
 \begin{itemize}
 	\item Instruction Fetch (IF)\\
-Fetches the next instruction.
+Fetches the next instruction from memory.
 
 	\item Instruction Decode (ID)\\
 Reads the instruction, sets the appropriate control flags, reads the relevant
@@ -75,7 +75,7 @@ In MIPS32 assembly, this would be written as:
 # t0 = A, t1 = B, t2 = C, t3 = D
 add $s0, $t0, $t1 	# s0 = A + B
 add $s1, $t2, $t3	# s1 = C + D
-add $v0, $s0, $s1	# $v0 = $s1 + $s0
+add $v0, $s0, $s1	# v0 = s1 + s0
 	\end{lstlisting}
 	\caption{Code exposing data hazard situation.}
 	\label{fig:data_hazard_code}
@@ -97,7 +97,7 @@ two instructions is needed in the third.\\
 	\caption{Time-sheet of the program listed in figure
 \ref{fig:data_hazard_code}.}
 \end{figure}
-The problem is very clear - the data is needed before it is saved at the
+The problem is very clear --- the data is needed before it is saved at the
 appropriate place. However, the data is usually already available in the EX
 stage in the ALU, and can therefore be used in the same clock-cycle in the ID
 stage. This is called forwarding or bypassing, and is handled by a dedicated
@@ -142,7 +142,7 @@ machine together, so that each device or system has its own C structure.
 	\label{fig:structure_layout}
 \end{figure}
 In the simulator, the processor cores, pipeline registers, and memory unit all
-belong to a "hardware" structure, that binds them together, making up the state
+belong to a \texttt{hardware} structure, that binds them together, making up the state
 of the simulated machine. The relations between the components can be seen in figure
 \ref{fig:structure_layout}.\\
 In the simulator, the hardware structure will be used to pass along the
@@ -163,6 +163,8 @@ void tick() {
         interpret_ex(...);
         interpret_id(...);
         interpret_if(...);
+
+        forwarding unit(...);
 }
 \end{verbatim}
 

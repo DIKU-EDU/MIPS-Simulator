@@ -1,4 +1,4 @@
-This report describes the development of a MIPS simulator, intended to support
+This report describes the development of a MIPS32 simulator, intended to support
 the operating system KUDOS. The simulator will be written in C, and will
 support the most important processor features and I/O devices, required to run
 KUDOS, such as the translation lookaside
@@ -8,7 +8,7 @@ multiple cores (SMP), and I/O device emulation. \\
 
 \subsection{Motivation}
 KUDOS is a small operating system skeleton intended to be used by students
-attending operating system project courses at university of Copenhagen.
+attending operating system project courses at University of Copenhagen.
 It is used to explore operating system concepts by extending and improving on
 an existing system.
 Initially, KUDOS targets the MIPS32 architecture, which leverages on the
@@ -17,7 +17,7 @@ reduced instruction set computing --- RISC.\\
 To ease the development and debugging of KUDOS, it is desireable to run the
 operating system
 in a simulated machine. This enables the students and other developers to
-better inspect the state of the machine, as well as making up
+better inspect the state of the machine, as well as makes up
 for the difference in the hardware of the host machine.
 
 \subsection{A simulator}
@@ -30,7 +30,7 @@ the target and its behaviour, practically immitating the target.\\
 An emulator, on the other side, is intended to only mimick the behaviour of
 a target on the outside, not correctly reflecting the internal state of the target.
 Emulators are often used as a substitute for the real targets.
-The difference between emulation and simulation is therefore, that unlike simulating a system,
+Hence, the difference between emulation and simulation is that, unlike simulating a system,
 an emulator only imitates the outward behaviour of its target, and it is hard
 to predict how the target would act internally.\\
 For example, mobile developers often use an emulator to test their
@@ -45,7 +45,7 @@ purposes. While it gives a very good insight on how a simulated airplane might
 react in given situations, it does not actually move the users from one point
 to another.\\
 The purpose of our project is to write a program used at the Computer Systems
-course at Copenhagen University, that can emulate KUDOS, while at the same
+course at University of Copenhagen, that can emulate KUDOS, while at the same
 time, exposes the internal workings of the machine, for the students and
 other participants to inspect and study.\\
 Our target is therefore to simulate the academically important and relevant

@@ -3,10 +3,13 @@ MIPS32 processors. This yields a natural flow of instructions, as well as a very
 behaviour of the actual code.\\
 While the simulator can successfully run all the test-cases supplied along side
 the code, as well as handling IO devices, exceptions and interrupts, we have
-shown that the simulator still contains bugs that, when running
-KUDOS, will cause the simulator to continue execution at unknown memory addresses,
-eventually reaching some actual code that will make the simulator enter an invalid
-state, and crashing. However, despite this bug, enough material has been presented
+shown that the simulator still contains bugs in the exception-handling mechanism,
+that, when running a skeleton version KUDOS, will cause the simulator to
+continue execution at unknown memory addresses, eventually reaching some actual
+code, that will make the simulator enter an invalid state, and crash. \\
+Due to this unresolved bug, the Translation Lookaside Buffer has not been implemented,
+which is a vital subsystem to run the full version of KUDOS.\\
+Despite this bug, enough material has been presented
 to show that a pipelined MIPS32 simulator with a working MMU, memory-mapped IO,
 exception mechanism as well as debugging functions, can be written, with excellent
 performance. After comparison to the more field-tested YAMS, the simulator was
