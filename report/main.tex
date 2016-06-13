@@ -35,7 +35,6 @@
 \usepackage{subcaption}
 \usepackage{lipsum}
 
-
 \makesavenoteenv{tabular}
 
 % More subsubsub sections
@@ -168,7 +167,8 @@
 	\Large{
 		\begin{tabular}{C{4.5cm} C{4.5cm} C{4.5cm}}
 		Jan Mezník \\
-			\texttt{PZJ895}
+		\texttt{PZJ895}\\
+		\texttt{jan@meznik.dk}\\
 		\end{tabular}
 	}
 	\vspace{12cm}
@@ -181,6 +181,24 @@
 		\vspace{0.5cm}
 	\Large{A MIPS32 machine simulator}
 }
+
+%\lhead{University of Copenhagen}
+%\rhead{}
+
+\pagestyle{fancy}
+
+
+\iffalse
+\fancyhf{}
+\fancyhead[L]{University of Copenhagen}
+\fancyhead[R]{Jan Mezník}
+\fancyhead[C]{BSc Project\\\texttt{See KUDOS Run}}
+%\fancyfoot[C]{Center \leftmark}
+\fi
+
+\lhead{University of Copenhagen}
+\chead{\texttt{See KUDOS Run}}
+\rhead{Jan Mezník}
 
 \begin{document}
 
