@@ -927,8 +927,6 @@ int run(simulator_t *simulator)
 
 	}
 
-	DEBUG("RETURNED: %d", hw->cpu->core[0].regs[REG_V0]);
-
 	free(buf);
 
 	/* XXX */
